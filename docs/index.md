@@ -1,66 +1,79 @@
 # Introduction
 
-In this guide, you'll build a simple full-stack task manager — an HTTP API in Gleam running on Erlang, paired with a frontend compiled to JavaScript.
+Welcome to The Gleam Guide. We'll build a full-stack task manager from scratch — a JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
 
-This guide assumes you have Gleam installed and are familiar with the basics of the language. If you're new to Gleam, check out the [official tour](https://tour.gleam.run) before continuing.
+## What We're Building
 
-## Creating Projects
+The app lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging.
 
-The application is made up of three Gleam projects living side by side in the same repository:
+The finished product consists of:
 
-- **server** — the HTTP backend, compiled to Erlang
-- **client** — the frontend, compiled to JavaScript
-- **shared** — code shared between the two (types, validation logic, etc.)
+- **API** — a JSON HTTP backend compiled to Erlang, talking to [PostgreSQL](https://www.postgresql.org) database
+- **Web** — runs in any browser, served by the Gleam backend
+- **Desktop** — packaged as a native app via Tauri
+- **Mobile** — deployed to iOS and Android via Tauri
 
-Create them with:
+All three frontends share the same Gleam codebase. We'll use Tauri to wrap the compiled JavaScript output and provide native capabilities (HTTP, haptics, etc.) where needed.
 
-```sh
-gleam new server --skip-github
-gleam new client --skip-github --template javascript
-gleam new shared --skip-github
-```
+## Architecture
 
-The `--skip-github` flag skips generating GitHub Actions workflows, keeping things simple for now. The `--template javascript` flag sets `client`'s compile target to JavaScript; `server` and `shared` default to Erlang.
+### Backend
 
-Both `server` and `client` depend on `shared` via a local path reference. Add the following to their `gleam.toml`[^1]:
+The server is a straightforward HTTP API built with [Wisp](https://hexdocs.pm/wisp/) and [Mist](https://hexdocs.pm/mist/), backed by PostgreSQL. It exposes a REST API for task resources and shares type definitions with the client via the `shared` project — a multi-target Gleam library that compiles to both Erlang and JavaScript, embracing code reusability between the backend and frontend.
 
-```toml
-[dependencies]
-shared = { path = "../shared" } # [!code ++]
-gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-```
+While building the backend we'll run the server locally with `gleam run`, connecting to a PostgreSQL container managed by [Docker Compose](https://docs.docker.com/compose/). Once we move to the frontend, we'll use `docker compose up` to bring up the full backend without managing the server service manually. We'll use the same approach for production, with a separate Compose configuration and environment.
 
-[^1]: See commit [46bd4ae](https://github.com/lukwol/gleam-app/commit/46bd4ae5912781600b93d5ab3bae25de32a4d46d) on GitHub
+### Frontend
 
-## Project Structure
+The frontend follows the **[Elm Architecture](https://guide.elm-lang.org/architecture/)**, implemented via [Lustre](https://hexdocs.pm/lustre/) — Gleam's Elm-inspired UI framework. Every page is modelled as:
 
-The repository layout looks like this:
+- **Model** — the page's state
+- **Msg** — all events that can change that state
+- **update** — a pure function that produces a new model (and optional effects) from a message
+- **view** — a pure function that renders the model as HTML
+
+This makes data flow explicit and unidirectional: user interactions dispatch messages, messages drive state transitions, state drives the view. No hidden side effects, no two-way binding.
 
 ```
-gleam-app/
-├── server/
-│   ├── gleam.toml
-│   └── src/server.gleam
-├── client/
-│   ├── gleam.toml
-│   └── src/client.gleam
-└── shared/
-    ├── gleam.toml
-    └── src/shared.gleam
+User interaction
+      │
+      ▼
+   Message
+      │
+      ▼
+   update(model, msg) ──▶ new Model ──▶ view(model) ──▶ HTML
+      │
+      ▼
+   Effect (HTTP request, navigation, …)
 ```
 
-The dependency relationship between projects is straightforward:
+## Who is this guide for
 
-```
-server ──┐
-         ├──▶ shared
-client ──┘
-```
+This guide is for developers who:
 
-Each project contains a minimal `main` function and a test suite using [gleeunit](https://github.com/lpil/gleeunit). To run or test any project:
+- Are comfortable with Gleam syntax and core concepts (if not, work through the [official tour](https://tour.gleam.run) first)
+- Want to build a real backend, frontend, or mobile app in Gleam, not just toy examples
+- Are new to the Gleam ecosystem and want to see how the pieces fit together
 
-```sh
-cd server   # or client / shared
-gleam run
-gleam test
-```
+No prior experience with Erlang/OTP, frontend frameworks, or Tauri is required. We'll introduce relevant concepts as they come up.
+
+## Prerequisites
+
+Before starting, make sure you have the following installed:
+
+- [Gleam](https://gleam.run/getting-started/installing/) — the language compiler and build tool
+- [Erlang](https://www.erlang.org/downloads) — required to run and test the backend locally
+- [Docker](https://docs.docker.com/get-started/get-docker/) — for running the PostgreSQL database locally
+- [Rust](https://www.rust-lang.org/tools/install) — required by Tauri
+- [Bun](https://bun.sh) — JavaScript package manager and runtime used in this guide (npm, pnpm, or yarn work too)
+- [Xcode](https://developer.apple.com/xcode/) — required for iOS builds (macOS only); also install [Cocoapods](https://cocoapods.org) via Homebrew and follow [Tauri's iOS setup guide](https://tauri.app/start/prerequisites/#ios)
+- [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
+- [direnv](https://direnv.net) — automatically loads environment variables from `.envrc` files when entering a subproject directory; used to override database connection settings so `gleam run` in the `server/` directory connects to the PostgreSQL container exposed via Docker's port mapping
+
+## How to Use This Guide
+
+The chapters are meant to be read in order — each one builds on the code from the previous. You don't need to type everything from scratch: the complete source is available at [github.com/lukwol/gleam-app](https://github.com/lukwol/gleam-app).
+
+Throughout the guide, footnotes link to the specific commit where each change is introduced, so you can always diff against the reference if something isn't working.
+
+The reference repository intentionally commits a `.env` file containing development credentials so you can clone and run it without any manual setup. In a real project, `.env` files should be added to `.gitignore` and never committed.

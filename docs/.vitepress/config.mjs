@@ -1,7 +1,7 @@
 import footnote from "markdown-it-footnote";
 
 export default {
-  title: "Gleam Gleam",
+  title: "Gleam Guide",
   description: "A practical guide to building full-stack apps with Gleam",
   markdown: {
     theme: {
@@ -17,6 +17,7 @@ export default {
       {
         items: [
           { text: "Introduction", link: "/" },
+          { text: "Getting Started", link: "/getting-started" },
           { text: "Setting Up the Server", link: "/server" },
         ],
       },
