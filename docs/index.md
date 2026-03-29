@@ -72,7 +72,7 @@ Before starting, make sure you have the following installed:
 
 ## How to Use This Guide
 
-The chapters are meant to be read in order — each one builds on the code from the previous. You don't need to type everything from scratch: the complete source is available at [github.com/lukwol/gleam-app](https://github.com/lukwol/gleam-app).
+The chapters are meant to be read in order — each one builds on the code from the previous. You don't need to type everything from scratch: the complete source is available at [github.com/lukwol/doable](https://github.com/lukwol/doable).
 
 Throughout the guide, footnotes link to the specific commit where each change is introduced, so you can always diff against the reference if something isn't working.
 

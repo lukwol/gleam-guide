@@ -26,7 +26,7 @@ wisp = ">= 2.2.1 and < 3.0.0" # [!code ++]
 mist = ">= 5.0.4 and < 6.0.0" # [!code ++]
 ```
 
-[^1]: See commit [18c3c39](https://github.com/lukwol/gleam-app/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
+[^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
 
 ## Source Layout
 
@@ -127,4 +127,4 @@ fn handle_tasks(segments: List(String), req: Request) -> Response {
 | `upsert_task` | PUT    | `/api/tasks/:id` |
 | `delete_task` | DELETE | `/api/tasks/:id` |
 
-[^2]: See commit [623097c](https://github.com/lukwol/gleam-app/commit/623097c3207f7ac65083a4aba14e47b220820355) on GitHub
+[^2]: See commit [623097c](https://github.com/lukwol/doable/commit/623097c3207f7ac65083a4aba14e47b220820355) on GitHub
