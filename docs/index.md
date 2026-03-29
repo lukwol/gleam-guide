@@ -69,6 +69,7 @@ Before starting, make sure you have the following installed:
 - [Xcode](https://developer.apple.com/xcode/) — required for iOS builds (macOS only); also install [Cocoapods](https://cocoapods.org) via Homebrew and follow [Tauri's iOS setup guide](https://tauri.app/start/prerequisites/#ios)
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
 - [direnv](https://direnv.net) — automatically loads environment variables from `.envrc` files when entering a subproject directory; used to override database connection settings so `gleam run` in the `server/` directory connects to the PostgreSQL container exposed via Docker's port mapping
+- [curl](https://curl.se) — command-line HTTP client used to verify API routes; any HTTP client (Postman, HTTPie, Restfox, etc.) works fine
 
 ## How to Use This Guide
 

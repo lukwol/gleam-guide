@@ -18,7 +18,7 @@ export default {
         items: [
           { text: "Introduction", link: "/" },
           { text: "Getting Started", link: "/getting-started" },
-          { text: "Setting Up the Server", link: "/server" },
+          { text: "Setting Up the Server", link: "/server-setup" },
         ],
       },
     ],

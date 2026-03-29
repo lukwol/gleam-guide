@@ -1,5 +1,7 @@
 # Setting Up the Server
 
+The server is structured around four files: an entry point that starts Mist, a shared middleware stack, a router that dispatches by path and method, and route handlers for the task API. We'll build each in turn, leaving the handlers as stubs until the database is ready.
+
 ## Install Dependencies
 
 To add HTTP server capabilities to `server`, install these packages:
@@ -32,13 +34,13 @@ mist = ">= 5.0.4 and < 6.0.0" # [!code ++]
 
 We'll organise the server code across four files:
 
-```
+```sh
 src/
 ├── server.gleam       # starts the HTTP server
-├── web.gleam          # shared middleware
-├── router.gleam       # top-level request dispatcher
+├── web.gleam          # shared middleware              [!code ++]
+├── router.gleam       # top-level request dispatcher   [!code ++]
 └── task/
-    └── route.gleam    # stub handlers for Task routes
+    └── route.gleam    # Task routes handlers           [!code ++]
 ```
 
 ## Starting the Server
@@ -114,9 +116,9 @@ fn handle_tasks(segments: List(String), req: Request) -> Response {
 
 `case segments, req.method` matches on both the remaining path segments and HTTP method simultaneously, making the routing table easy to scan.
 
-## Task Route Stubs
+## Task Routes
 
-`task/route.gleam` contains stub handlers that return empty responses, to be filled in later[^2]:
+`task/route.gleam` contains routes handlers. For now these are stubs that return empty responses[^2]:
 
 | Handler       | Method | Path             |
 | ------------- | ------ | ---------------- |
@@ -128,3 +130,30 @@ fn handle_tasks(segments: List(String), req: Request) -> Response {
 | `delete_task` | DELETE | `/api/tasks/:id` |
 
 [^2]: See commit [623097c](https://github.com/lukwol/doable/commit/623097c3207f7ac65083a4aba14e47b220820355) on GitHub
+
+## Verifying the API Routes
+
+Start the server:
+
+```sh
+cd server
+gleam run
+```
+
+Then use `curl -i` to check that each route returns the right status code and placeholder body:
+
+```sh
+curl -i http://localhost:8000/api/tasks             # 200 OK, []
+curl -i -X POST http://localhost:8000/api/tasks     # 201 Created, {}
+curl -i http://localhost:8000/api/tasks/1           # 200 OK, {}
+curl -i -X PATCH http://localhost:8000/api/tasks/1  # 200 OK, {}
+curl -i -X PUT http://localhost:8000/api/tasks/1    # 200 OK, {}
+curl -i -X DELETE http://localhost:8000/api/tasks/1 # 204 No Content
+
+curl -i -X DELETE http://localhost:8000/api/tasks   # 405 Method Not Allowed
+curl -i http://localhost:8000/api/unknown           # 404 Not Found
+```
+
+## What's Next
+
+With the server routing in place, the next step is setting up the PostgreSQL database using Docker Compose. Once that's ready, we'll come back and replace the placeholder bodies with real data.

@@ -38,7 +38,7 @@ gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 
 The repository layout looks like this:
 
-```
+```sh
 doable/
 ├── server/
 │   ├── src/server.gleam
