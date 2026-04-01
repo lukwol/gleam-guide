@@ -129,7 +129,7 @@ fn handle_tasks(segments: List(String), req: Request) -> Response {
 | `upsert_task` | PUT    | `/api/tasks/:id` |
 | `delete_task` | DELETE | `/api/tasks/:id` |
 
-[^2]: See commit [623097c](https://github.com/lukwol/doable/commit/623097c3207f7ac65083a4aba14e47b220820355) on GitHub
+[^2]: See commit [d440191](https://github.com/lukwol/doable/commit/d4401913ce856e3dcb73eeb3309d404246360516) on GitHub
 
 ## Verifying the API Routes
 

@@ -98,4 +98,4 @@ Run `\l` to list databases and confirm `doable-dev` is present, then `\q` to exi
 
 With the database running, the next step is creating the schema. We'll write a migration using the `migrate` service to set up the tasks table.
 
-[^1]: See commit [81f8df9](https://github.com/lukwol/doable/commit/81f8df9d7b0fc27814b739d5209d54a6184fd632) on GitHub
+[^1]: See commit [2f9bf51](https://github.com/lukwol/doable/commit/2f9bf51d4647c032e551686a9bb3e0f7cd1176ad) on GitHub
