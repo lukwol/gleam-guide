@@ -92,7 +92,30 @@ Type "help" for help.
 doable-dev=#
 ```
 
-Run `\l` to list databases and confirm `doable-dev` is present, then `\q` to exit.
+Once inside, run `\l` to list databases and confirm `doable-dev` is present. Then run a quick query to confirm the database is accepting connections:
+
+```sql
+SELECT 1;
+```
+
+You should see:
+
+```
+ ?column?
+----------
+        1
+(1 row)
+```
+
+Type `\q` to exit.
+
+Since the port is mapped to your host, you can also connect directly from your machine without going through Docker:
+
+```sh
+psql -h localhost -p 5432 -U doable-user-dev -d doable-dev
+```
+
+The same credentials work in any GUI client — [DBeaver](https://dbeaver.io), [DataGrip](https://www.jetbrains.com/datagrip/), or similar — using `localhost:5432`.
 
 ## What's Next
 

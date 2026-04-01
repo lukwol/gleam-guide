@@ -225,6 +225,8 @@ curl -i http://localhost:8000/api/unknown           # 404 Not Found
 
 The last two lines check the error cases: an unsupported method returns `405`, and an unknown path returns `404`. Getting these right from the start means the API already behaves correctly at the edges, before any real logic exists.
 
+If you prefer a GUI, [Postman](https://www.postman.com), [Insomnia](https://insomnia.rest), or [Bruno](https://www.usebruno.com) all work equally well against `http://localhost:8000`.
+
 ## What's Next
 
 The routing skeleton is in place. The next step is setting up the PostgreSQL database with Docker Compose — once that's running, we'll come back and replace these stubs with handlers that actually read from and write to the database.
