@@ -19,6 +19,7 @@ export default {
           { text: "Introduction", link: "/" },
           { text: "Getting Started", link: "/getting-started" },
           { text: "Setting Up the Server", link: "/server-setup" },
+          { text: "Setting Up the Database", link: "/database-setup" },
         ],
       },
     ],
