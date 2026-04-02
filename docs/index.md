@@ -1,10 +1,10 @@
 # Introduction
 
-Welcome to The Gleam Guide. We'll build a full-stack task manager from scratch — a JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
+Welcome to The Gleam Guide. We'll build **Doable** — a full-stack task manager — from scratch. A JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
 
 ## What We're Building
 
-The app lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging.
+Doable lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging.
 
 The finished product consists of:
 
@@ -69,7 +69,6 @@ Before starting, make sure you have the following installed:
 - [Xcode](https://developer.apple.com/xcode/) — required for iOS builds (macOS only); also install [Cocoapods](https://cocoapods.org) via Homebrew and follow [Tauri's iOS setup guide](https://tauri.app/start/prerequisites/#ios)
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
 - [direnv](https://direnv.net) — automatically loads environment variables from `.envrc` files when entering a subproject directory; used to override database connection settings so `gleam run` in the `server/` directory connects to the PostgreSQL container exposed via Docker's port mapping
-- [curl](https://curl.se) — command-line HTTP client used to verify API routes; any HTTP client (Postman, HTTPie, Restfox, etc.) works fine
 
 ## How to Use This Guide
 

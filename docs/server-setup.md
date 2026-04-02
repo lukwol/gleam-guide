@@ -2,12 +2,22 @@
 
 Before we can store or retrieve tasks, we need an HTTP server that listens for requests and routes them to the right place. By the end of this chapter you'll have a working API with all task endpoints responding — no database yet, but enough to verify the routing is correct.
 
-This chapter touches four files:
+Three new files join the existing `server.gleam`:
 
-- `server.gleam` — entry point that starts the HTTP server
-- `web.gleam` — shared middleware stack applied to every request
-- `router.gleam` — router that dispatches by path and method
-- `task/route.gleam` — route handlers for the task API
+```sh
+doable/
+└── server/
+    └── src/
+        ├── server.gleam       # starts the HTTP server
+        ├── web.gleam          # shared middleware              [!code ++]
+        ├── router.gleam       # top-level request dispatcher   [!code ++]
+        └── task/
+            └── route.gleam    # task route handlers            [!code ++]
+```
+
+`server.gleam` is the entry point — its only job is to start Mist and hand it a request handler. `web.gleam` holds middleware that runs on every request regardless of route. `router.gleam` inspects the path and method and decides which handler to call. `task/route.gleam` contains the actual handler functions for the task API.
+
+This separation keeps `router.gleam` free of cross-cutting concerns and `web.gleam` free of routing logic — each file does exactly one thing.
 
 ## Install Dependencies
 
@@ -31,30 +41,13 @@ After running the command, `gleam.toml` gains four new entries[^1]:
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
-gleam_http = ">= 4.3.0 and < 5.0.0" # [!code ++]
-gleam_erlang = ">= 1.3.0 and < 2.0.0" # [!code ++]
-wisp = ">= 2.2.1 and < 3.0.0" # [!code ++]
-mist = ">= 5.0.4 and < 6.0.0" # [!code ++]
+gleam_http = ">= 4.3.0 and < 5.0.0"     # [!code ++]
+gleam_erlang = ">= 1.3.0 and < 2.0.0"   # [!code ++]
+wisp = ">= 2.2.1 and < 3.0.0"           # [!code ++]
+mist = ">= 5.0.4 and < 6.0.0"           # [!code ++]
 ```
 
 [^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
-
-## Source Layout
-
-Three new files join the existing `server.gleam`:
-
-```sh
-src/
-├── server.gleam       # starts the HTTP server
-├── web.gleam          # shared middleware              [!code ++]
-├── router.gleam       # top-level request dispatcher   [!code ++]
-└── task/
-    └── route.gleam    # task route handlers            [!code ++]
-```
-
-`server.gleam` is the entry point — its only job is to start Mist and hand it a request handler. `web.gleam` holds middleware that runs on every request regardless of route. `router.gleam` inspects the path and method and decides which handler to call. `task/route.gleam` contains the actual handler functions for the task API.
-
-This separation keeps `router.gleam` free of cross-cutting concerns and `web.gleam` free of routing logic — each file does exactly one thing.
 
 ## Starting the Server
 
@@ -105,9 +98,9 @@ pub fn middleware(
 
 The three layers, from outermost to innermost:
 
-- **`log_request`** — logs every incoming request so you can see what's hitting the server in your terminal.
-- **`rescue_crashes`** — catches any unhandled panics and turns them into 500 responses instead of crashing the process. Essential during development when handler stubs are incomplete.
-- **`handle_head`** — automatically handles `HEAD` requests by running the corresponding `GET` handler and stripping the body. This is correct HTTP behaviour for free.
+- `log_request` — logs every incoming request so you can see what's hitting the server in your terminal.
+- `rescue_crashes` — catches any unhandled panics and turns them into 500 responses instead of crashing the process. Essential during development when handler stubs are incomplete.
+- `handle_head` — automatically handles `HEAD` requests by running the corresponding `GET` handler and stripping the body. This is correct HTTP behaviour for free.
 
 Wisp's `use` syntax threads the request through each layer in order. The result is a clean, readable middleware stack that's easy to extend later.
 

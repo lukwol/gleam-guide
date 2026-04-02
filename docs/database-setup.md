@@ -2,6 +2,14 @@
 
 With the server routing in place, we need a PostgreSQL database to back it. We'll run Postgres locally using Docker Compose and keep the connection credentials in a `.env` file.
 
+Two new files at the project root:
+
+```sh
+doable/
+├── .env          # [!code ++]
+└── compose.yml   # [!code ++]
+```
+
 ## Environment Variables
 
 Create a `.env` file at the project root to hold the database credentials:
@@ -52,12 +60,12 @@ networks:
 
 A few things worth noting:
 
-- **`image: postgres:18-alpine`** — the Alpine variant keeps the image small.
-- **`shm_size: 128mb`** — Postgres uses shared memory for internal buffers; the Docker default of 64 MB can cause issues under load.
-- **`restart: unless-stopped`** — the container restarts automatically after a machine reboot, unless you explicitly stop it.
-- **`${PGPORT}:${PGPORT}`** — Docker Compose reads `.env` automatically, so the port mapping uses the same variable as the app.
-- **Named volume `doable-dev-data`** — data persists across container restarts and rebuilds.
-- **Named network `doable-dev-network`** — an explicit name makes it easier to connect other services later.
+- `image: postgres:18-alpine` — the Alpine variant keeps the image small.
+- `shm_size: 128mb` — Postgres uses shared memory for internal buffers; the Docker default of 64 MB can cause issues under load.
+- `restart: unless-stopped` — the container restarts automatically after a machine reboot, unless you explicitly stop it.
+- `${PGPORT}:${PGPORT}` — Docker Compose reads `.env` automatically, so the port mapping uses the same variable as the app.
+- Named volume `doable-dev-data` — data persists across container restarts and rebuilds.
+- Named network `doable-dev-network` — an explicit name makes it easier to connect other services later.
 
 ## Starting the Database
 

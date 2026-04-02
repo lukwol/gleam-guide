@@ -2,11 +2,21 @@
 
 With the database running, we need to create the schema. We'll manage migrations using [golang-migrate](https://github.com/golang-migrate/migrate), running it as a Docker Compose service so it starts automatically and only runs after the database is ready.
 
+Two new migration files and an updated `compose.yml`:
+
+```sh
+doable/
+├── compose.yml
+└── migrations/
+    ├── 000001_create_tasks.up.sql    # [!code ++]
+    └── 000001_create_tasks.down.sql  # [!code ++]
+```
+
 ## Migration Files
 
-Create a `migrations/` directory at the project root and add the first migration:
+Create the `migrations/` directory at the project root and add the first migration:
 
-**`migrations/000001_create_tasks.up.sql`**
+**migrations/000001_create_tasks.up.sql**
 
 ```sql
 CREATE TABLE tasks (
@@ -19,7 +29,7 @@ CREATE TABLE tasks (
 );
 ```
 
-**`migrations/000001_create_tasks.down.sql`**
+**migrations/000001_create_tasks.down.sql**
 
 ```sql
 DROP TABLE tasks;
@@ -77,11 +87,11 @@ networks:
 
 A few things worth noting:
 
-- **`pg_isready`** — the healthcheck uses the Postgres built-in utility to probe the TCP port and verify the server is accepting connections.
-- **`depends_on: condition: service_healthy`** — makes `migrate` wait until the `db` healthcheck passes, not just until the container is running.
-- **`migrate/migrate`** — the official Docker image for golang-migrate; no installation needed.
-- **`./migrations:/migrations`** — mounts the local migrations directory into the container so the tool can find the SQL files.
-- **`sslmode=disable`** — local dev doesn't use TLS; this tells the Postgres driver not to require it.
+- `pg_isready` — the healthcheck uses the Postgres built-in utility to probe the TCP port and verify the server is accepting connections.
+- `depends_on: condition: service_healthy` — makes `migrate` wait until the `db` healthcheck passes, not just until the container is running.
+- `migrate/migrate` — the official Docker image for golang-migrate; no installation needed.
+- `./migrations:/migrations` — mounts the local migrations directory into the container so the tool can find the SQL files.
+- `sslmode=disable` — local dev doesn't use TLS; this tells the Postgres driver not to require it.
 
 ## Running Migrations
 

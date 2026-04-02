@@ -28,7 +28,7 @@ Both `server` and `client` depend on `shared` via a local path reference. Add th
 
 ```toml
 [dependencies]
-shared = { path = "../shared" } # [!code ++]
+shared = { path = "../shared" }	        # [!code ++]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 ```
 
