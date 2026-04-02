@@ -1,4 +1,4 @@
-# Setting Up the Server
+# Server Setup
 
 Before we can store or retrieve tasks, we need an HTTP server that listens for requests and routes them to the right place. By the end of this chapter you'll have a working API with all task endpoints responding — no database yet, but enough to verify the routing is correct.
 

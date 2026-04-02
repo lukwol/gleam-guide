@@ -24,8 +24,9 @@ export default {
         text: "Server",
         collapsed: false,
         items: [
-          { text: "Setting Up the Server", link: "/server-setup" },
-          { text: "Setting Up the Database", link: "/database-setup" },
+          { text: "Server Setup", link: "/server-setup" },
+          { text: "Database Setup", link: "/database-setup" },
+          { text: "Database Migrations", link: "/database-migrations" },
         ],
       },
     ],

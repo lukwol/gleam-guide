@@ -1,4 +1,4 @@
-# Setting Up the Database
+# Database Setup
 
 With the server routing in place, we need a PostgreSQL database to back it. We'll run Postgres locally using Docker Compose and keep the connection credentials in a `.env` file.
 
