@@ -327,9 +327,9 @@ Then run the following erlang expressions:
 3> Config = config:load().
 4> Context = context:init(Config).
 5> DbConn = context:db_conn(Context).
-6> Query = pog:query(<<"SELECT 1">>).
+6> Query = pog:query("SELECT 1").
 7> pog:execute(Query, DbConn).
-% returns: {ok,{returned,1,[nil]}}
+% {ok,{returned,1,[nil]}}
 ```
 
 `returned` contains the row count (`1`) and the decoded rows (`[nil]` — no decoder was attached, so each row decodes to `nil`). Getting an `ok` tuple confirms the pool started, connected, and executed a query successfully.

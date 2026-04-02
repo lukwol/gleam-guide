@@ -29,6 +29,7 @@ export default {
           { text: "Database Migrations", link: "/database-migrations" },
           { text: "SQL Queries with Squirrel", link: "/sql-queries" },
           { text: "Connecting to the Database", link: "/database-connection" },
+          { text: "Database Layer", link: "/database-layer" },
         ],
       },
     ],
