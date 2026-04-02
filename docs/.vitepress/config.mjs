@@ -22,7 +22,6 @@ export default {
       },
       {
         text: "Server",
-        collapsed: false,
         items: [
           { text: "Server Setup", link: "/server-setup" },
           { text: "Database Setup", link: "/database-setup" },
@@ -30,6 +29,7 @@ export default {
           { text: "SQL Queries with Squirrel", link: "/sql-queries" },
           { text: "Connecting to the Database", link: "/database-connection" },
           { text: "Database Layer", link: "/database-layer" },
+          { text: "API Routes", link: "/api-routes" },
         ],
       },
     ],
