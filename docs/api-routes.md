@@ -334,4 +334,4 @@ The error cases confirm the helpers are working: a non-integer ID returns `404`,
 
 The REST API is fully implemented and backed by a real database. The next step is adding automated tests for the route handlers.
 
-[^1]: See commit [fbf9abb](https://github.com/lukwol/doable/commit/fbf9abb688fcfb19c47c30f0bf439495dd99d960) on GitHub
+[^1]: See commit [b0e4e2e](https://github.com/lukwol/doable/commit/b0e4e2e385766953d4895728f2026c03b0522040) on GitHub

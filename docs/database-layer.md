@@ -91,12 +91,10 @@ import gleam/bool
 import gleam/list
 import gleam/result
 import pog
-import task
+import task.{type Task, type TaskInput, Task}
 import task/sql
 
-pub fn all_tasks(
-  db_conn: pog.Connection,
-) -> Result(List(task.Task), DatabaseError) {
+pub fn all_tasks(db_conn: pog.Connection) -> Result(List(Task), DatabaseError) {
   let query_result =
     db_conn
     |> sql.all_tasks
@@ -104,7 +102,7 @@ pub fn all_tasks(
   use pog.Returned(_, rows) <- result.map(query_result)
   use row <- list.map(rows)
 
-  task.Task(
+  Task(
     id: row.id,
     name: row.name,
     description: row.description,
@@ -114,8 +112,8 @@ pub fn all_tasks(
 
 pub fn create_task(
   db_conn: pog.Connection,
-  input: task.TaskInput,
-) -> Result(task.Task, DatabaseError) {
+  input: TaskInput,
+) -> Result(Task, DatabaseError) {
   let query_result =
     sql.create_task(db_conn, input.name, input.description, input.completed)
     |> result.map_error(QueryError)
@@ -126,7 +124,7 @@ pub fn create_task(
     |> result.replace_error(UnexpectedNoRows)
   use row <- result.map(row)
 
-  task.Task(
+  Task(
     id: row.id,
     name: row.name,
     description: row.description,
@@ -134,10 +132,7 @@ pub fn create_task(
   )
 }
 
-pub fn get_task(
-  db_conn: pog.Connection,
-  id: Int,
-) -> Result(task.Task, DatabaseError) {
+pub fn get_task(db_conn: pog.Connection, id: Int) -> Result(Task, DatabaseError) {
   let query_result =
     sql.get_task(db_conn, id)
     |> result.map_error(QueryError)
@@ -148,7 +143,7 @@ pub fn get_task(
     |> result.replace_error(RecordNotFound)
   use row <- result.map(row)
 
-  task.Task(
+  Task(
     id: row.id,
     name: row.name,
     description: row.description,
@@ -158,8 +153,8 @@ pub fn get_task(
 
 pub fn update_task(
   db_conn: pog.Connection,
-  task: task.Task,
-) -> Result(task.Task, DatabaseError) {
+  task: Task,
+) -> Result(Task, DatabaseError) {
   let query_result =
     sql.update_task(
       db_conn,
@@ -176,7 +171,7 @@ pub fn update_task(
     |> result.replace_error(RecordNotFound)
   use row <- result.map(row)
 
-  task.Task(
+  Task(
     id: row.id,
     name: row.name,
     description: row.description,
@@ -186,8 +181,8 @@ pub fn update_task(
 
 pub fn upsert_task(
   db_conn: pog.Connection,
-  task: task.Task,
-) -> Result(#(task.Task, Bool), DatabaseError) {
+  task: Task,
+) -> Result(#(Task, Bool), DatabaseError) {
   let query_result =
     sql.upsert_task(
       db_conn,
@@ -205,7 +200,7 @@ pub fn upsert_task(
   use row <- result.map(row)
 
   #(
-    task.Task(
+    Task(
       id: row.id,
       name: row.name,
       description: row.description,
@@ -322,4 +317,4 @@ The domain types and database layer are in place. The next step is implementing 
 
 [^1]: See commit [8b7a651](https://github.com/lukwol/doable/commit/8b7a6516934deff97d7175c8861e839ef75d4b24) on GitHub
 
-[^2]: See commit [6a9cd05](https://github.com/lukwol/doable/commit/6a9cd058e6851ff9bdf3ff84a5e2898dea0d0a49) on GitHub
+[^2]: See commit [10f2d18](https://github.com/lukwol/doable/commit/10f2d18abcc65b8d4090034f911c78b995d1a369) on GitHub
