@@ -27,6 +27,7 @@ export default {
           { text: "Server Setup", link: "/server-setup" },
           { text: "Database Setup", link: "/database-setup" },
           { text: "Database Migrations", link: "/database-migrations" },
+          { text: "SQL Queries with Squirrel", link: "/sql-queries" },
         ],
       },
     ],

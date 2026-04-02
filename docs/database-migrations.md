@@ -157,6 +157,6 @@ Type `\q` to exit.
 
 ## What's Next
 
-With the schema in place, the next step is connecting the Gleam server to the database. We'll add the Squirrel package to generate type-safe SQL queries from our migration.
+With the schema in place, the next step is writing the SQL queries. We'll use Squirrel to generate type-safe Gleam functions directly from plain `.sql` files.
 
 [^1]: See commit [a0c44fc](https://github.com/lukwol/doable/commit/a0c44fca5133aba55bfd2c0f6c02f23e8f38424d) on GitHub
