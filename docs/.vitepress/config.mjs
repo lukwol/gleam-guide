@@ -31,6 +31,7 @@ export default {
           { text: "Database Layer", link: "/database-layer" },
           { text: "API Routes", link: "/api-routes" },
           { text: "Integration Tests", link: "/integration-tests" },
+          { text: "Server Dockerfile", link: "/server-dockerfile" },
         ],
       },
     ],
