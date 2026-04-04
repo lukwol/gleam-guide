@@ -28,7 +28,7 @@ export default {
           { text: "Database Migrations", link: "/database-migrations" },
           { text: "SQL Queries with Squirrel", link: "/sql-queries" },
           { text: "Connecting to the Database", link: "/database-connection" },
-          { text: "Database Layer", link: "/database-layer" },
+          { text: "Task Repository", link: "/task-repository" },
           { text: "API Routes", link: "/api-routes" },
           { text: "Integration Tests", link: "/integration-tests" },
           { text: "Server Dockerfile", link: "/server-dockerfile" },

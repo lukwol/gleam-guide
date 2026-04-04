@@ -11,6 +11,7 @@ doable/
     └── src/
         ├── config.gleam       # loads all settings from environment variables   [!code ++]
         ├── context.gleam      # holds config and DB pool, passed to handlers    [!code ++]
+        ├── database.gleam     # starts supervised DB pool                       [!code ++]
         ├── server.gleam       # initialises config and context, configures Mist [!code highlight]
         ├── router.gleam       # threads context through to route handlers       [!code highlight]
         └── task/
@@ -134,8 +135,6 @@ pub fn load() -> Config {
 ```gleam
 import config.{type Config}
 import gleam/erlang/process
-import gleam/option.{Some}
-import gleam/otp/static_supervisor as supervisor
 import pog
 
 pub type DbPoolName =
@@ -148,16 +147,25 @@ pub type Context {
 pub fn db_conn(ctx: Context) -> pog.Connection {
   pog.named_connection(ctx.db_pool_name)
 }
+```
 
-pub fn init(config: Config) -> Context {
-  let db_pool_name = db_pool_name_init(config)
-  Context(config:, db_pool_name:)
-}
+`DbPoolName` — rather than storing a `pog.Connection` directly, `Context` stores a named reference to the pool process. `db_conn` resolves it to a live connection on demand using `pog.named_connection`.
 
-fn db_pool_name_init(config: Config) -> DbPoolName {
+### `database.gleam`
+
+`database.gleam` owns the pool lifecycle — it creates a named pool, attaches it to an OTP supervisor, and returns the pool name:
+
+```gleam
+import config.{type Config}
+import context.{type DbPoolName}
+import gleam/erlang/process
+import gleam/option.{Some}
+import gleam/otp/static_supervisor as supervisor
+import pog
+
+pub fn start(config: Config) -> DbPoolName {
   let db_pool_name = process.new_name("db")
-
-  let db_config =
+  let db_pool =
     db_pool_name
     |> pog.default_config
     |> pog.host(config.db_host)
@@ -165,21 +173,17 @@ fn db_pool_name_init(config: Config) -> DbPoolName {
     |> pog.database(config.db_name)
     |> pog.user(config.db_user)
     |> pog.password(Some(config.db_password))
-
-  let db_pool = pog.supervised(db_config)
-
+    |> pog.supervised
   let assert Ok(_) =
     supervisor.new(supervisor.RestForOne)
     |> supervisor.add(db_pool)
     |> supervisor.start
-
   db_pool_name
 }
 ```
 
 A few things worth noting:
 
-- `DbPoolName` — rather than storing a `pog.Connection` directly, `Context` stores a named reference to the pool process. `db_conn` resolves it to a live connection on demand using `pog.named_connection`.
 - `pog.supervised` — wraps the pool as an OTP child spec rather than starting it immediately. This lets us hand it to a supervisor.
 - `supervisor.RestForOne` — if the pool process crashes, the supervisor restarts it. With `RestForOne`, any processes started after the crashed one are also restarted, preserving startup order.
 
@@ -191,7 +195,8 @@ A few things worth noting:
 
 ```gleam
 import config
-import context
+import context.{Context}
+import database
 import gleam/erlang/process
 import mist
 import router
@@ -200,7 +205,8 @@ import wisp/wisp_mist
 
 pub fn main() -> Nil {
   let config = config.load()
-  let context = context.init(config)
+  let db_pool_name = database.start(config)
+  let context = Context(config:, db_pool_name:)
 
   wisp.configure_logger()
 
@@ -325,10 +331,11 @@ Then run the following erlang expressions:
 1> shell:strings(true).
 2> application:ensure_all_started(pgo).
 3> Config = config:load().
-4> Context = context:init(Config).
-5> DbConn = context:db_conn(Context).
-6> Query = pog:query("SELECT 1").
-7> pog:execute(Query, DbConn).
+4> DbPoolName = database:start(Config).
+5> Context = {context, Config, DbPoolName}.
+6> DbConn = context:db_conn(Context).
+7> Query = pog:query("SELECT 1").
+8> pog:execute(Query, DbConn).
 % {ok,{returned,1,[nil]}}
 ```
 
@@ -338,12 +345,12 @@ A few things worth noting:
 
 - `shell:strings(true)` — tells the Erlang shell to display binaries as strings rather than lists of integers, making output more readable.
 - `application:ensure_all_started(pgo)` — starts the `pog` database driver application and its dependencies. Normally Gleam's runtime does this automatically, but in the shell it needs to be done manually.
-- **Erlang module syntax** — Gleam modules compile to Erlang modules with the same name. `config:load()` calls `load()` from `config.gleam`, `context:init(Config)` calls `init` from `context.gleam`, and so on.
+- **Erlang module syntax** — Gleam modules compile to Erlang modules with the same name. `config:load()` calls `load()` from `config.gleam`, `database:start(Config)` calls `start` from `database.gleam`, and so on. Gleam custom types compile to Erlang tuples, so `Context(config:, db_pool_name:)` becomes `{context, Config, DbPoolName}` — the constructor name as a lowercase atom followed by the fields.
 
 ## What's Next
 
-The server is now fully wired to the database. The next step is replacing the route stubs with real implementations that call into `task/sql.gleam`. But before we dive into that we need to prepare our model and the database layer with CRUD.
+The server is now fully wired to the database. The next step is replacing the route stubs with real implementations that call into `task/sql.gleam`. But before we dive into that we need to prepare our model and the database repository with CRUD.
 
-[^1]: See commit [6da5f9d](https://github.com/lukwol/doable/commit/6da5f9ddb28af5ebbfac13f0b81d66fc5921d8ec) on GitHub
+[^1]: See commit [4d5efdb](https://github.com/lukwol/doable/commit/4d5efdbe4825c123661c6772e6074dc4807cab33) on GitHub
 
-[^2]: See commit [08bcec0](https://github.com/lukwol/doable/commit/08bcec0d48c39f4d26813da1c8e55a0fd92a457e) on GitHub
+[^2]: See commit [352d44f](https://github.com/lukwol/doable/commit/352d44fd9f2400d86a150c8f309bf3e85ce23608) on GitHub

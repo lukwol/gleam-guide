@@ -1,6 +1,6 @@
 # Implementing the API Routes
 
-With the database layer in place, this chapter replaces the stub handlers in `task/route.gleam` with real implementations[^1]. Before that, `task.gleam` gains JSON encoders and decoders, and `web.gleam` gains shared helpers that keep the handler code flat and free of repetition.
+With the database repository in place, this chapter wires everything together into a working API[^1]. `task.gleam` gains JSON encoders and decoders, `web.gleam` gains request pipeline helpers, and the stub handlers in `task/route.gleam` are replaced with real implementations.
 
 ## Install Dependencies
 
@@ -44,12 +44,11 @@ pub type Task {
   Task(id: Int, name: String, description: String, completed: Bool)
 }
 
-pub fn task_from(input: TaskInput, id: Int) -> Task {
-  Task(
-    id: id,
-    name: input.name,
-    description: input.description,
-    completed: input.completed,
+pub fn to_task_input(task: Task) -> TaskInput {
+  TaskInput(
+    name: task.name,
+    description: task.description,
+    completed: task.completed,
   )
 }
 
@@ -74,11 +73,12 @@ pub type TaskInput {
   TaskInput(name: String, description: String, completed: Bool)
 }
 
-pub fn task_input_from(task: Task) -> TaskInput {
-  TaskInput(
-    name: task.name,
-    description: task.description,
-    completed: task.completed,
+pub fn to_task(input: TaskInput, id: Int) -> Task {
+  Task(
+    id: id,
+    name: input.name,
+    description: input.description,
+    completed: input.completed,
   )
 }
 
@@ -103,6 +103,59 @@ A few things worth noting:
 - **Decoders can be generated** — the Gleam LSP offers a code action to generate decoders from type definitions. Place the cursor on the type name and invoke "Generate decoder" to get a starting point, then adjust as needed (e.g. swapping `decode.field` for `decode.optional_field`).
 - **`decode.optional_field`** — used for `completed` in `TaskInput`. If the field is absent from the JSON body, the decoder falls back to `False` rather than returning an error. This is useful for create requests where a sensible default exists.
 - **`task_decoder` vs `task_input_decoder`** — `task_decoder` expects an `id` field; `task_input_decoder` does not. The separation mirrors the split between `Task` and `TaskInput` in the domain model.
+
+## Testing `task.gleam`
+
+With the JSON functions in place, it's worth adding unit tests for the shared module. `shared/test/shared_test.gleam` had boilerplate left over from project setup — that's removed, and a new `shared/test/task_test.gleam` verifies the conversion and JSON round-trip functions:
+
+```gleam
+import gleam/json
+import task
+
+const task = task.Task(
+  id: 1,
+  name: "Buy groceries",
+  description: "Milk, eggs, bread",
+  completed: False,
+)
+
+const task_input = task.TaskInput(
+  name: "Buy groceries",
+  description: "Milk, eggs, bread",
+  completed: False,
+)
+
+pub fn to_task_test() {
+  assert task.to_task(task_input, 1) == task
+}
+
+pub fn to_task_input_test() {
+  assert task.to_task_input(task) == task_input
+}
+
+pub fn task_to_json_test() {
+  assert task
+    |> task.task_to_json
+    |> json.to_string
+    |> json.parse(task.task_decoder())
+    == Ok(task)
+}
+
+pub fn task_input_to_json_test() {
+  assert task_input
+    |> task.task_input_to_json
+    |> json.to_string
+    |> json.parse(task.task_input_decoder())
+    == Ok(task_input)
+}
+```
+
+The JSON tests encode a value to a string then decode it back, confirming that the encoder and decoder are inverses of each other. Run them from the `shared/` directory:
+
+```sh
+cd shared
+gleam test
+```
 
 ## Handler Helpers in `web.gleam`
 
@@ -168,13 +221,13 @@ With the helpers in place, the route handlers become short, readable pipelines:
 import context.{type Context}
 import gleam/json
 import task
-import task/database
+import task/repository
 import web
 import wisp.{type Request, type Response}
 
 pub fn list_tasks(ctx: Context) -> Response {
   let db = context.db_conn(ctx)
-  use tasks <- web.db_execute(database.all_tasks(db))
+  use tasks <- web.db_execute(repository.all_tasks(db))
 
   tasks
   |> json.array(task.task_to_json)
@@ -186,7 +239,7 @@ pub fn create_task(req: Request, ctx: Context) -> Response {
   let db = context.db_conn(ctx)
   use json <- wisp.require_json(req)
   use task_input <- web.decode_body(json, task.task_input_decoder())
-  use task <- web.db_execute(database.create_task(db, task_input))
+  use task <- web.db_execute(repository.create_task(db, task_input))
 
   task
   |> task.task_to_json
@@ -197,7 +250,7 @@ pub fn create_task(req: Request, ctx: Context) -> Response {
 pub fn show_task(_req: Request, ctx: Context, id: String) -> Response {
   let db = context.db_conn(ctx)
   use id <- web.parse_id(id)
-  use task <- web.db_execute(database.get_task(db, id))
+  use task <- web.db_execute(repository.get_task(db, id))
 
   task
   |> task.task_to_json
@@ -210,8 +263,8 @@ pub fn update_task(req: Request, ctx: Context, id: String) -> Response {
   use id <- web.parse_id(id)
   use json <- wisp.require_json(req)
   use task_input <- web.decode_body(json, task.task_input_decoder())
-  let task = task.task_from(task_input, id)
-  use task <- web.db_execute(database.update_task(db, task))
+  let task = task_input |> task.to_task(id)
+  use task <- web.db_execute(repository.update_task(db, task))
 
   task
   |> task.task_to_json
@@ -224,8 +277,8 @@ pub fn upsert_task(req: Request, ctx: Context, id: String) -> Response {
   use id <- web.parse_id(id)
   use json <- wisp.require_json(req)
   use task_input <- web.decode_body(json, task.task_input_decoder())
-  let task = task.task_from(task_input, id)
-  use #(task, inserted) <- web.db_execute(database.upsert_task(db, task))
+  let task = task_input |> task.to_task(id)
+  use #(task, inserted) <- web.db_execute(repository.upsert_task(db, task))
 
   let body =
     task
@@ -241,7 +294,7 @@ pub fn upsert_task(req: Request, ctx: Context, id: String) -> Response {
 pub fn delete_task(_req: Request, ctx: Context, id: String) -> Response {
   let db = context.db_conn(ctx)
   use id <- web.parse_id(id)
-  use _ <- web.db_execute(database.delete_task(db, id))
+  use _ <- web.db_execute(repository.delete_task(db, id))
 
   wisp.no_content()
 }
@@ -251,8 +304,8 @@ A few things worth noting:
 
 - **`use` for early returns** — each `use` line is a callback that either calls `next` on success or returns an error response immediately. The result is an imperative-looking pipeline where failures short-circuit without nested `case` expressions.
 - **`wisp.require_json`** — provided by Wisp; parses the request body as JSON and returns a `decode.Dynamic` value, or responds with `400 Bad Request` if the body isn't valid JSON.
-- **`upsert_task` status** — the `inserted` flag from the database layer determines whether to return `201 Created` (new record) or `200 OK` (updated existing record). This is the correct REST semantics for `PUT`.
-- **`delete_task` discards the value** — `use _ <-` ignores the `Ok(Nil)` from `database.delete_task`; only the error branch matters here.
+- **`upsert_task` status** — the `inserted` flag from the database repository determines whether to return `201 Created` (new record) or `200 OK` (updated existing record). This is the correct REST semantics for `PUT`.
+- **`delete_task` discards the value** — `use _ <-` ignores the `Ok(Nil)` from `repository.delete_task`; only the error branch matters here.
 
 ## Verifying the API
 
@@ -334,4 +387,4 @@ The error cases confirm the helpers are working: a non-integer ID returns `404`,
 
 The REST API is fully implemented and backed by a real database. The next step is adding automated tests for the route handlers.
 
-[^1]: See commit [b0e4e2e](https://github.com/lukwol/doable/commit/b0e4e2e385766953d4895728f2026c03b0522040) on GitHub
+[^1]: See commit [02049aa](https://github.com/lukwol/doable/commit/02049aaafc6101b9a268922cc590cb69fa04c3c4) on GitHub

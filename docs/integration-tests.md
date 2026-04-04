@@ -13,9 +13,10 @@ doable/
     ├── src/
     │   └── context.gleam                   # extended with TestContext variant           [!code highlight]
     └── test/
-        ├── server_test.gleam               # initialises test context before suite       [!code highlight]
-        ├── test_context.gleam              # shared DB pool setup and retrieval          [!code ++]
-        ├── database_helpers.gleam          # transaction rollback helper                 [!code ++]
+        ├── server_test.gleam               # initialises test database before suite      [!code highlight]
+        ├── test_context.gleam              # test context retrieval                      [!code ++]
+        ├── test_database.gleam             # DB pool setup and transaction rollback      [!code ++]
+        ├── test_config.gleam               # test database config                        [!code ++]
         ├── fixtures.gleam                  # reusable Task test data                     [!code ++]
         └── routes/
             ├── router_test.gleam           # routing and method-not-allowed cases        [!code ++]
@@ -135,7 +136,7 @@ docker compose up -d
 
 ## Test Context
 
-The tests need database access, but setting up a fresh connection pool per-test would be slow and wasteful. Instead, the pool is started once when the test suite starts and retrieved by name in each test.
+Tests need database access, and they use the same route handlers as production. Adding a `TestContext` variant to `Context` is the approach used here for dependency injection: instead of wiring up a pool, tests pass a direct `pog.Connection` — specifically a transaction-scoped one, so `with_rollback` can roll it back after each test.
 
 ### Extending `context.gleam`
 
@@ -144,43 +145,58 @@ The tests need database access, but setting up a fresh connection pool per-test 
 ```gleam
 pub type Context {
   Context(config: Config, db_pool_name: DbPoolName)
-  TestContext(config: Config, db_conn: pog.Connection)  // [!code ++]
+  TestContext(config: Config, db_conn: pog.Connection)                // [!code ++]
 }
 
 pub fn db_conn(ctx: Context) -> pog.Connection {
-  pog.named_connection(ctx.db_pool_name)                // [!code --]
-  case ctx {                                            // [!code ++]
-    Context(_, db_pool_name) -> pog.named_connection(db_pool_name)  // [!code ++]
-    TestContext(_, db_conn) -> db_conn                  // [!code ++]
-  }                                                     // [!code ++]
+  pog.named_connection(ctx.db_pool_name)                              // [!code --]
+  case ctx {                                                          // [!code ++]
+    Context(_, db_pool_name) -> pog.named_connection(db_pool_name)    // [!code ++]
+    TestContext(_, db_conn) -> db_conn                                // [!code ++]
+  }                                                                   // [!code ++]
 }
 ```
 
-`TestContext` stores a `pog.Connection` directly because `with_rollback` (covered below) must inject a transaction-scoped connection into the context. Named pool lookup would bypass the transaction boundary.
+`with_rollback` (covered below) opens a transaction and replaces `db_conn` in the context with the transaction-scoped connection, so every database call inside the test body participates in the same transaction and gets rolled back at the end.
 
-### `test/test_context.gleam`
+### `test/test_config.gleam`
 
-`test_context.gleam` provides two functions: `init` starts the pool once, and `get` retrieves it by name for each test[^2]:
+`test_config.gleam` loads the test database configuration by overriding `db_name` with `TEST_DB_NAME` from the environment, leaving all other settings (host, port, user, password) the same as the development config[^2]:
 
 ```gleam
-import config
-import context.{type Context, TestContext}
+import config.{type Config}
 import envoy
-import gleam/erlang/process
+
+pub fn load() -> Config {
+  let assert Ok(db_name) = envoy.get("TEST_DB_NAME")
+  config.Config(..config.load(), db_name:)
+}
+```
+
+### `test/test_database.gleam`
+
+`test_database.gleam` owns the test pool lifecycle and provides the `with_rollback` helper:
+
+```gleam
+import context.{type Context, type DbPoolName, TestContext}
 import gleam/option.{Some}
 import pog
+import test_config
 
 const test_db_pool_name = "test_db_pool"
 
 @external(erlang, "erlang", "binary_to_atom")
-fn binary_to_atom(name: String) -> process.Name(pog.Message)
+fn binary_to_atom(name: String) -> DbPoolName
 
-pub fn init() -> Context {
-  let config = test_config()
-  let db_pool_name = binary_to_atom(test_db_pool_name)
-  let db_conn = pog.named_connection(db_pool_name)
+pub fn db_pool_name() -> DbPoolName {
+  binary_to_atom(test_db_pool_name)
+}
+
+pub fn start() -> DbPoolName {
+  let config = test_config.load()
+
   let assert Ok(_) =
-    db_pool_name
+    db_pool_name()
     |> pog.default_config
     |> pog.host(config.db_host)
     |> pog.port(config.db_port)
@@ -188,20 +204,18 @@ pub fn init() -> Context {
     |> pog.user(config.db_user)
     |> pog.password(Some(config.db_password))
     |> pog.start
-  TestContext(config:, db_conn:)
+
+  db_pool_name()
 }
 
-pub fn get() -> Context {
-  let config = test_config()
-  let db_pool_name = binary_to_atom(test_db_pool_name)
-  let assert Ok(_) = process.named(db_pool_name)
-  let db_conn = pog.named_connection(db_pool_name)
-  TestContext(config:, db_conn:)
-}
-
-fn test_config() -> config.Config {
-  let assert Ok(db_name) = envoy.get("TEST_DB_NAME")
-  config.Config(..config.load(), db_name:)
+pub fn with_rollback(ctx: Context, next: fn(Context) -> Nil) -> Nil {
+  let _ =
+    pog.transaction(context.db_conn(ctx), fn(db_conn) {
+      next(TestContext(config: ctx.config, db_conn:))
+      // Always rollback by returning Error
+      Error("rollback")
+    })
+  Nil
 }
 ```
 
@@ -209,20 +223,39 @@ A few things worth noting:
 
 - **`binary_to_atom`** — pog's named pool API requires a `process.Name(pog.Message)`. Gleam's standard library doesn't expose a way to create one from a string at runtime, so this calls Erlang's `binary_to_atom` directly via an `@external` binding.
 - **`pog.named_connection`** — returns a lazy handle that references the pool by name; it does not establish a connection immediately. The actual connection is checked out from the pool when a query runs, which is why it is safe to call before `pog.start`.
-- **`init` vs `get`** — `init` starts the pool and must be called once before any test runs. `get` looks up the already-running pool by name; it's called at the top of every test. gleeunit runs tests concurrently, so sharing one pool rather than creating one per test avoids connection exhaustion.
-- **`test_config`** — overrides `db_name` with `TEST_DB_NAME` from the environment, leaving all other settings (host, port, user, password) the same as the development config.
+- **`start` vs `get`** — `start` starts the pool and must be called once before any test runs. `test_context.get` looks up the already-running pool by name; it's called at the top of every test. gleeunit runs tests concurrently, so sharing one pool rather than creating one per test avoids connection exhaustion.
 - **`pog.start`** — for tests, the pool is started directly rather than through an OTP supervisor. There's no crash-recovery concern in a test process.
+
+### `test/test_context.gleam`
+
+`test_context.gleam` provides `get`, which retrieves the running pool and wraps it in a `TestContext`:
+
+```gleam
+import context.{type Context, TestContext}
+import gleam/erlang/process
+import pog
+import test_config
+import test_database
+
+pub fn get() -> Context {
+  let config = test_config.load()
+  let db_pool_name = test_database.db_pool_name()
+  let assert Ok(_) = process.named(db_pool_name)
+  let db_conn = pog.named_connection(db_pool_name)
+  TestContext(config:, db_conn:)
+}
+```
 
 ### `test/server_test.gleam`
 
-gleeunit's `main` is the suite entry point. Calling `test_context.init()` here ensures the pool exists before any test module runs:
+gleeunit's `main` is the suite entry point. Calling `test_database.start()` here ensures the pool exists before any test module runs:
 
 ```gleam
 import gleeunit
-import test_context
+import test_database
 
 pub fn main() -> Nil {
-  test_context.init()
+  test_database.start()
 
   gleeunit.main()
 }
@@ -264,33 +297,18 @@ pub const task4 = task.Task(
 )
 ```
 
-The `id` fields don't matter — database sequences assign real IDs on insert. The fixtures are used as templates for `task_input_from`, which strips the ID before inserting.
+The `id` fields don't matter — database sequences assign real IDs on insert. The fixtures are used as templates for `to_task_input`, which strips the ID before inserting.
 
 ## Rollback Isolation
 
-Tests that write to the database must leave it clean for the tests that follow. `test/database_helpers.gleam` provides a `with_rollback` helper that wraps a test body in a transaction and always rolls back:
-
-```gleam
-import context.{type Context, TestContext}
-import pog
-
-pub fn with_rollback(ctx: Context, next: fn(Context) -> Nil) -> Nil {
-  let _ =
-    pog.transaction(context.db_conn(ctx), fn(db_conn) {
-      next(TestContext(config: ctx.config, db_conn:))
-      // Always rollback by returning Error
-      Error("rollback")
-    })
-  Nil
-}
-```
+Tests that write to the database must leave it clean for the tests that follow. `test_database.with_rollback` wraps a test body in a transaction and always rolls back. It is part of `test/test_database.gleam` alongside the pool setup covered above.
 
 A few things worth noting:
 
 - **`pog.transaction`** — starts a database transaction and passes the transaction-scoped connection to the callback. If the callback returns `Error`, the transaction is rolled back; if it returns `Ok`, it is committed.
 - **Always returning `Error("rollback")`** — by unconditionally returning an error after `next`, every test transaction is rolled back regardless of whether it succeeded or failed. This ensures no test leaves data behind.
 - **Injecting a new `TestContext`** — `with_rollback` wraps the transaction-scoped `db_conn` in a fresh `TestContext` and passes it to `next`. All database calls inside the test use this connection and therefore participate in the same transaction.
-- **`use` at the call site** — tests call `use ctx <- database_helpers.with_rollback(ctx)` to shadow the outer `ctx` with the transaction-scoped one. Any test that omits `with_rollback` runs outside a transaction and directly affects the test database — appropriate for read-only tests.
+- **`use` at the call site** — tests call `use ctx <- test_database.with_rollback(ctx)` to shadow the outer `ctx` with the transaction-scoped one. Any test that omits `with_rollback` runs outside a transaction and directly affects the test database — appropriate for read-only tests.
 
 ## Writing Route Tests
 
@@ -378,16 +396,16 @@ Tests that insert data wrap the body in `with_rollback`. The transaction-scoped 
 // routes/list_tasks_test.gleam
 pub fn not_empty_list_tasks_test() {
   let ctx = test_context.get()
-  use ctx <- database_helpers.with_rollback(ctx)
+  use ctx <- test_database.with_rollback(ctx)
 
   let db_conn = context.db_conn(ctx)
   let inputs =
     [fixtures.task1, fixtures.task2]
-    |> list.map(task.task_input_from)
+    |> list.map(task.to_task_input)
 
   inputs
   |> list.each(fn(input) {
-    let assert Ok(_) = database.create_task(db_conn, input)
+    let assert Ok(_) = repository.create_task(db_conn, input)
   })
 
   let response =
@@ -399,7 +417,7 @@ pub fn not_empty_list_tasks_test() {
   let body = simulate.read_body(response)
   let assert Ok(tasks) = json.parse(body, decode.list(task.task_decoder()))
 
-  assert list.map(tasks, task.task_input_from) == list.reverse(inputs)
+  assert list.map(tasks, task.to_task_input) == list.reverse(inputs)
 }
 ```
 
@@ -411,11 +429,11 @@ A create test verifies the response body matches the submitted input:
 // routes/create_task_test.gleam
 pub fn create_task_with_completed_test() {
   let ctx = test_context.get()
-  use ctx <- database_helpers.with_rollback(ctx)
+  use ctx <- test_database.with_rollback(ctx)
 
   let body =
     fixtures.task1
-    |> task.task_input_from
+    |> task.to_task_input
     |> task.task_input_to_json
 
   let response =
@@ -427,11 +445,11 @@ pub fn create_task_with_completed_test() {
   let body = simulate.read_body(response)
   let assert Ok(task) = json.parse(body, task.task_decoder())
 
-  assert task.task_input_from(task) == task.task_input_from(fixtures.task1)
+  assert task.to_task_input(task) == task.to_task_input(fixtures.task1)
 }
 ```
 
-`task.task_input_from` strips the ID before comparing — the database assigns a new ID, so comparing the full `Task` structs would always fail.
+`task.to_task_input` strips the ID before comparing — the database assigns a new ID, so comparing the full `Task` structs would always fail.
 
 ### Error Cases
 
@@ -477,9 +495,9 @@ The upsert handler returns `201 Created` when it inserts and `200 OK` when it up
 // routes/upsert_task_test.gleam
 pub fn upsert_task_creates_task_test() {
   let ctx = test_context.get()
-  use ctx <- database_helpers.with_rollback(ctx)
+  use ctx <- test_database.with_rollback(ctx)
 
-  let input = task.task_input_from(fixtures.task1)
+  let input = task.to_task_input(fixtures.task1)
   let body = task.task_input_to_json(input)
 
   let response =
@@ -492,18 +510,18 @@ pub fn upsert_task_creates_task_test() {
     json.parse(simulate.read_body(response), task.task_decoder())
 
   assert task.id == 123_456_789
-  assert task.task_input_from(task) == input
+  assert task.to_task_input(task) == input
 }
 
 pub fn upsert_task_updates_task_test() {
   let ctx = test_context.get()
-  use ctx <- database_helpers.with_rollback(ctx)
+  use ctx <- test_database.with_rollback(ctx)
 
   let db_conn = context.db_conn(ctx)
   let assert Ok(created) =
-    database.create_task(db_conn, task.task_input_from(fixtures.task1))
+    repository.create_task(db_conn, task.to_task_input(fixtures.task1))
 
-  let updated_input = task.task_input_from(fixtures.task2)
+  let updated_input = task.to_task_input(fixtures.task2)
   let body = task.task_input_to_json(updated_input)
 
   let response =
@@ -516,13 +534,13 @@ pub fn upsert_task_updates_task_test() {
     json.parse(simulate.read_body(response), task.task_decoder())
 
   assert task.id == created.id
-  assert task.task_input_from(task) == updated_input
+  assert task.to_task_input(task) == updated_input
 }
 ```
 
 The insert test uses a hardcoded high ID (`123456789`) that's unlikely to exist, making it a reliable insert. The update test inserts first, then upserts the same ID, confirming the `200` branch.
 
-The remaining test files — `show_task_test.gleam`, `update_task_test.gleam`, and `delete_task_test.gleam` — follow the same patterns: seed with `database.create_task` inside `with_rollback`, dispatch a simulated request using the transaction-scoped `ctx`, and assert on the response status and body.
+The remaining test files — `show_task_test.gleam`, `update_task_test.gleam`, and `delete_task_test.gleam` — follow the same patterns: seed with `repository.create_task` inside `with_rollback`, dispatch a simulated request using the transaction-scoped `ctx`, and assert on the response status and body.
 
 ## Running the Tests
 
@@ -544,6 +562,6 @@ gleeunit discovers every function whose name ends in `_test` across all files in
 
 The server is fully tested. The next step adds it to Docker Compose so the whole stack — database, migrations, and server — starts with a single `docker compose up`, making client development easier without needing to run `gleam run` separately.
 
-[^1]: See commit [b9991b6](https://github.com/lukwol/doable/commit/b9991b6219a28fbce4d63e1b6c4d1e24d0bdde95) on GitHub
+[^1]: See commit [3701cef](https://github.com/lukwol/doable/commit/3701cef5af2e6d89d09985953ae004809eef6311) on GitHub
 
-[^2]: See commit [df43064](https://github.com/lukwol/doable/commit/df430644ecc4e2ef91a68605725048d85f57b332) on GitHub
+[^2]: See commit [6932ca9](https://github.com/lukwol/doable/commit/6932ca9cf23737284372718ee3218aebfc972bcc) on GitHub
