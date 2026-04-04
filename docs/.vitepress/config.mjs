@@ -30,6 +30,7 @@ export default {
           { text: "Connecting to the Database", link: "/database-connection" },
           { text: "Database Layer", link: "/database-layer" },
           { text: "API Routes", link: "/api-routes" },
+          { text: "Integration Tests", link: "/integration-tests" },
         ],
       },
     ],

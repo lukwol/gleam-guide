@@ -8,14 +8,14 @@ Four files change[^1] [^2]:
 doable/
 ├── shared/
 │   └── src/
-│       ├── shared.gleam          # [!code --]
-│       └── task.gleam            # [!code ++]
+│       ├── shared.gleam          # placeholder removed                    [!code --]
+│       └── task.gleam            # Task and TaskInput domain types        [!code ++]
 └── server/
     └── src/
-        ├── console.gleam         # [!code ++]
-        ├── error.gleam           # [!code ++]
+        ├── console.gleam         # debug helper for gleam shell           [!code ++]
+        ├── error.gleam           # DatabaseError type                     [!code ++]
         └── task/
-            └── database.gleam    # [!code ++]
+            └── database.gleam    # CRUD operations over the tasks table   [!code ++]
 ```
 
 ## Shared Task Types

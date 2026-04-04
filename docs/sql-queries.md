@@ -10,13 +10,13 @@ doable/
     └── src/
         └── task/
             ├── sql/
-            │   ├── all_tasks.sql    # [!code ++]
-            │   ├── get_task.sql     # [!code ++]
-            │   ├── create_task.sql  # [!code ++]
-            │   ├── update_task.sql  # [!code ++]
-            │   ├── upsert_task.sql  # [!code ++]
-            │   └── delete_task.sql  # [!code ++]
-            └── sql.gleam            # [!code ++]
+            │   ├── all_tasks.sql       # fetch all tasks ordered by id desc    [!code ++]
+            │   ├── get_task.sql        # fetch a single task by id             [!code ++]
+            │   ├── create_task.sql     # insert a new task                     [!code ++]
+            │   ├── update_task.sql     # update an existing task               [!code ++]
+            │   ├── upsert_task.sql     # insert or update by id                [!code ++]
+            │   └── delete_task.sql     # delete a task by id                   [!code ++]
+            └── sql.gleam               # generated type-safe query functions   [!code ++]
 ```
 
 ## Install Dependencies

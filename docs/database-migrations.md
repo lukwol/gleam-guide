@@ -6,10 +6,10 @@ Two new migration files and an updated `compose.yml`:
 
 ```sh
 doable/
-├── compose.yml
+├── compose.yml                         # adds healthcheck and migrate service   [!code highlight]
 └── migrations/
-    ├── 000001_create_tasks.up.sql    # [!code ++]
-    └── 000001_create_tasks.down.sql  # [!code ++]
+    ├── 000001_create_tasks.up.sql      # creates the tasks table                [!code ++]
+    └── 000001_create_tasks.down.sql    # drops the tasks table                  [!code ++]
 ```
 
 ## Migration Files
@@ -41,7 +41,7 @@ Each migration is a pair of files — `.up.sql` to apply the change and `.down.s
 
 The `migrate` service needs to wait until Postgres is actually ready to accept connections — not just started. Add a healthcheck to the `db` service and a new `migrate` service to `compose.yml`[^1]:
 
-```yaml{17-33}
+```yaml{22,28-30}
 name: doable-dev
 
 services:
@@ -58,23 +58,23 @@ services:
       - ${PGPORT}:${PGPORT}
     volumes:
       - data:/var/lib/postgresql
-    healthcheck:
-      test: "pg_isready -U ${PGUSER} -d ${PGDATABASE}"
-      interval: 1s
-      timeout: 2s
-      retries: 10
+    healthcheck:                                            # [!code ++]
+      test: "pg_isready -U ${PGUSER} -d ${PGDATABASE}"      # [!code ++]
+      interval: 1s                                          # [!code ++]
+      timeout: 2s                                           # [!code ++]
+      retries: 10                                           # [!code ++]
 
-  migrate:
-    image: migrate/migrate
-    volumes:
-      - ./migrations:/migrations
-    command: >
+  migrate:                                                  # [!code ++]
+    image: migrate/migrate                                  # [!code ++]
+    volumes:                                                # [!code ++]
+      - ./migrations:/migrations                            # [!code ++]
+    command: >                                              # [!code ++]
       -path /migrations
       -database postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=disable
       up
-    depends_on:
-      db:
-        condition: service_healthy
+    depends_on:                                             # [!code ++]
+      db:                                                   # [!code ++]
+        condition: service_healthy                          # [!code ++]
 
 volumes:
   data:

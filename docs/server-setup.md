@@ -8,7 +8,7 @@ Three new files join the existing `server.gleam`:
 doable/
 └── server/
     └── src/
-        ├── server.gleam       # starts the HTTP server
+        ├── server.gleam       # starts the HTTP server         [!code highlight]
         ├── web.gleam          # shared middleware              [!code ++]
         ├── router.gleam       # top-level request dispatcher   [!code ++]
         └── task/
@@ -205,15 +205,15 @@ gleam run
 Then hit each route with `curl -i` to confirm the right status codes come back:
 
 ```sh
-curl -i http://localhost:8000/api/tasks             # 200 OK, []
-curl -i -X POST http://localhost:8000/api/tasks     # 201 Created, {}
-curl -i http://localhost:8000/api/tasks/1           # 200 OK, {}
-curl -i -X PATCH http://localhost:8000/api/tasks/1  # 200 OK, {}
-curl -i -X PUT http://localhost:8000/api/tasks/1    # 200 OK, {}
-curl -i -X DELETE http://localhost:8000/api/tasks/1 # 204 No Content
+curl -i http://localhost:8000/api/tasks                 # 200 OK, []
+curl -i -X POST http://localhost:8000/api/tasks         # 201 Created, {}
+curl -i http://localhost:8000/api/tasks/1               # 200 OK, {}
+curl -i -X PATCH http://localhost:8000/api/tasks/1      # 200 OK, {}
+curl -i -X PUT http://localhost:8000/api/tasks/1        # 200 OK, {}
+curl -i -X DELETE http://localhost:8000/api/tasks/1     # 204 No Content
 
-curl -i -X DELETE http://localhost:8000/api/tasks   # 405 Method Not Allowed
-curl -i http://localhost:8000/api/unknown           # 404 Not Found
+curl -i -X DELETE http://localhost:8000/api/tasks       # 405 Method Not Allowed
+curl -i http://localhost:8000/api/unknown               # 404 Not Found
 ```
 
 The last two lines check the error cases: an unsupported method returns `405`, and an unknown path returns `404`. Getting these right from the start means the API already behaves correctly at the edges, before any real logic exists.

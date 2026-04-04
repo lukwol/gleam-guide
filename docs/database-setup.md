@@ -6,8 +6,8 @@ Two new files at the project root:
 
 ```sh
 doable/
-├── .env          # [!code ++]
-└── compose.yml   # [!code ++]
+├── .env          # database credentials       [!code ++]
+└── compose.yml   # runs Postgres in Docker    [!code ++]
 ```
 
 ## Environment Variables

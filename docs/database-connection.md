@@ -6,15 +6,15 @@ Two new files join the existing ones, and three are updated:
 
 ```sh
 doable/
-├── .env
+├── .env                       # add server settings                             [!code highlight]
 └── server/
     └── src/
         ├── config.gleam       # loads all settings from environment variables   [!code ++]
         ├── context.gleam      # holds config and DB pool, passed to handlers    [!code ++]
-        ├── server.gleam       # initialises config and context, configures Mist
-        ├── router.gleam       # threads context through to route handlers
+        ├── server.gleam       # initialises config and context, configures Mist [!code highlight]
+        ├── router.gleam       # threads context through to route handlers       [!code highlight]
         └── task/
-            └── route.gleam    # handler stubs accept context
+            └── route.gleam    # handler stubs accept context                    [!code highlight]
 ```
 
 ## Install Dependencies
