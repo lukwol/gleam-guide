@@ -1,6 +1,6 @@
 # Introduction
 
-Welcome to The Gleam Guide. We'll build **Doable** — a full-stack task manager — from scratch. A JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
+Welcome to The Gleam Guide. We'll build **Doable**[^1] — a full-stack task manager — from scratch. A JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
 
 ## What We're Building
 
@@ -51,11 +51,13 @@ User interaction
 
 This guide is for developers who:
 
-- Are comfortable with Gleam syntax and core concepts (if not, work through the [official tour](https://tour.gleam.run) first)
-- Want to build a real backend, frontend, or mobile app in Gleam, not just toy examples
-- Are new to the Gleam ecosystem and want to see how the pieces fit together
+- Are comfortable with Gleam syntax and core concepts (if not, walk through the [official tour](https://tour.gleam.run) first)
+- Want to build a real backend, frontend, or mobile app in Gleam with solid foundations
+- Want to understand how the pieces fit together, not just get something running
+- Are new to the Gleam ecosystem and want to see how it all connects — from the database to the UI
+- Are curious about Docker, Lustre, Wisp, or Tauri in a Gleam context
 
-No prior experience with Erlang/OTP, frontend frameworks, or Tauri is required. We'll introduce relevant concepts as they come up.
+No prior experience with Docker, Erlang/OTP, frontend frameworks, or Tauri is required. We'll introduce relevant concepts as they come up.
 
 ## Prerequisites
 
@@ -63,12 +65,12 @@ Before starting, make sure you have the following installed:
 
 - [Gleam](https://gleam.run/getting-started/installing/) — the language compiler and build tool
 - [Erlang](https://www.erlang.org/downloads) — required to run and test the backend locally
-- [Docker](https://docs.docker.com/get-started/get-docker/) — for running the PostgreSQL database locally
-- [Rust](https://www.rust-lang.org/tools/install) — required by Tauri
 - [Bun](https://bun.sh) — JavaScript package manager and runtime used in this guide (npm, pnpm, or yarn work too)
+- [Docker](https://docs.docker.com/get-started/get-docker/) — for orchestrating services locally and for production deployment
+- [direnv](https://direnv.net) — automatically loads `.envrc` files in projects, which load environment variables
+- [Rust](https://www.rust-lang.org/tools/install) — required by Tauri
 - [Xcode](https://developer.apple.com/xcode/) — required for iOS builds (macOS only); also install [Cocoapods](https://cocoapods.org) via Homebrew and follow [Tauri's iOS setup guide](https://tauri.app/start/prerequisites/#ios)
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
-- [direnv](https://direnv.net) — automatically loads environment variables from `.envrc` files when entering a subproject directory; used to override database connection settings so `gleam run` in the `server/` directory connects to the PostgreSQL container exposed via Docker's port mapping
 
 ## How to Use This Guide
 
@@ -77,3 +79,5 @@ The chapters are meant to be read in order — each one builds on the code from 
 Throughout the guide, footnotes link to the specific commit where each change is introduced, so you can always diff against the reference if something isn't working.
 
 The reference repository intentionally commits a `.env` file containing development credentials so you can clone and run it without any manual setup. In a real project, `.env` files should be added to `.gitignore` and never committed.
+
+[^1]: The name is inspired by fantastic [Rails New tutorial by Typecraft](https://www.youtube.com/watch?v=oEDkhfsFMTg&list=PLHFP2OPUpCeZcPutT9yn4-e0bMmrn5Gd1).
