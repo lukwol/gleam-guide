@@ -1,25 +1,21 @@
 # Introduction
 
-Welcome to The Gleam Guide. We'll build **Doable**[^1] — a full-stack task manager — from scratch. A JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and a mobile app for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All three share types and validation logic written once in [Gleam](https://gleam.run).
-
 ## What We're Building
 
-Doable lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging.
+Welcome to The Gleam Guide. We'll build **Doable**[^1] — a full-stack task manager — from scratch: a JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and desktop and mobile apps for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All four share types and validation logic written once in [Gleam](https://gleam.run).
 
-The finished product consists of:
+Doable lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging. The finished product consists of:
 
-- **API** — a JSON HTTP backend compiled to Erlang, talking to [PostgreSQL](https://www.postgresql.org) database
-- **Web** — runs in any browser, served by the Gleam backend
-- **Desktop** — packaged as a native app via Tauri
-- **Mobile** — deployed to iOS and Android via Tauri
-
-All three frontends share the same Gleam codebase. We'll use Tauri to wrap the compiled JavaScript output and provide native capabilities (HTTP, haptics, etc.) where needed.
+- **API Server** — a JSON HTTP backend compiled to [Erlang](https://www.erlang.org) using [PostgreSQL](https://www.postgresql.org) database
+- **Web App** — runs in any browser, served by the Gleam backend
+- **Desktop App** — packaged as a native app via [Tauri](https://tauri.app)
+- **Mobile Apps** — deployed to [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) via Tauri
 
 ## Architecture
 
-In production, everything runs inside Docker. [Caddy](https://caddyserver.com) is the single entry point — it serves the compiled web app as static files for the browser and proxies API requests to the backend for all clients. The desktop and mobile apps embed the same static bundle via Tauri and use Tauri's HTTP plugin to send requests to Caddy.
-
 ### Production
+
+In production, everything runs inside Docker. [Caddy](https://caddyserver.com) is the single entry point — it serves the compiled web app as static files for the browser and proxies API requests to the backend for all clients. The desktop and mobile apps embed the same static bundle via Tauri and use Tauri's HTTP plugin to send requests to Caddy.
 
 ```
                       ┌─────────Docker─────────┐
@@ -30,7 +26,7 @@ In production, everything runs inside Docker. [Caddy](https://caddyserver.com) i
                       │  └─────────┼─────────┘ │
                       │            │           │
                       │     ┌──────┴─────┐     │
-                      │     │ Api Server │     │
+                      │     │ API Server │     │
                       │     └────────▲───┘     │
                       │              │         │
                       │ ┌────Caddy───┼───────┐ │
@@ -75,17 +71,15 @@ In development, the database and API server run in Docker via `docker compose up
       │      └─────▲─────▲─────▲────┘   │          │
       │            │     │     │        │          │
       │   ┌────────┘     │     └─────┐  │          │
-      │   │              │           │  │       ┌──┴──────────┐
-┌─────┴───┴────┐  ┌──────┴──┐  ┌─────┴──┴───┐   │ Local Tests │
-│ Desktop App  │  │ Browser │  │ Mobile App │   │  (Server)   │
-└──────────────┘  └─────────┘  └────────────┘   └─────────────┘
+      │   │              │           │  │          │
+┌─────┴───┴────┐  ┌──────┴──┐  ┌─────┴──┴───┐   ┌──┴────────────────┐
+│ Desktop App  │  │ Browser │  │ Mobile App │   │ Integration Tests │
+└──────────────┘  └─────────┘  └────────────┘   └───────────────────┘
 ```
 
 ### Backend
 
-The server is a straightforward HTTP API built with [Wisp](https://hexdocs.pm/wisp/) and [Mist](https://hexdocs.pm/mist/), backed by PostgreSQL. It exposes a REST API for task resources and shares type definitions with the client via the `shared` project — a multi-target Gleam library that compiles to both Erlang and JavaScript, embracing code reusability between the backend and frontend.
-
-While building the backend we'll run the server locally with `gleam run`, connecting to a PostgreSQL container managed by [Docker Compose](https://docs.docker.com/compose/). Once we move to the frontend, we'll use `docker compose up` to bring up the full backend without managing the server service manually. We'll use the same approach for production, with a separate Compose configuration and environment.
+The server is a straightforward HTTP API built with [Wisp](https://hexdocs.pm/wisp/) and [Mist](https://hexdocs.pm/mist/), backed by PostgreSQL. It exposes a REST API for task resources and shares type definitions with the frontends via the `shared` project — a multi-target Gleam library that compiles to both Erlang and JavaScript.
 
 ### Frontend
 
@@ -105,10 +99,14 @@ User interaction
    Message
       │
       ▼
-   update(model, msg) ──▶ new Model ──▶ view(model) ──▶ HTML
-      │
-      ▼
-   Effect (HTTP request, navigation, …)
+   update(model, msg) ──▶ #(new Model, Effect)
+                                 │          │
+                                 ▼          ▼
+                           view(model)   Effect runs
+                                 │       (HTTP, navigation, …)
+                                 ▼          │
+                               HTML         ▼
+                                       new Message
 ```
 
 ## Who is this guide for
@@ -116,8 +114,7 @@ User interaction
 This guide is for developers who:
 
 - Are comfortable with Gleam syntax and core concepts (if not, walk through the [official tour](https://tour.gleam.run) first)
-- Want to build a real backend, frontend, or mobile app in Gleam with solid foundations
-- Want to understand how the pieces fit together, not just get something running
+- Want to build a real full-stack app in Gleam and understand how the pieces fit together
 - Are new to the Gleam ecosystem and want to see how it all connects — from the database to the UI
 - Are curious about Docker, Lustre, Wisp, or Tauri in a Gleam context
 
@@ -141,7 +138,5 @@ Before starting, make sure you have the following installed:
 The chapters are meant to be read in order — each one builds on the code from the previous. You don't need to type everything from scratch: the complete source is available at [github.com/lukwol/doable](https://github.com/lukwol/doable).
 
 Throughout the guide, footnotes link to the specific commit where each change is introduced, so you can always diff against the reference if something isn't working.
-
-The reference repository intentionally commits a `.env` file containing development credentials so you can clone and run it without any manual setup. In a real project, `.env` files should be added to `.gitignore` and never committed.
 
 [^1]: The name is inspired by fantastic [Rails New tutorial by Typecraft](https://www.youtube.com/watch?v=oEDkhfsFMTg&list=PLHFP2OPUpCeZcPutT9yn4-e0bMmrn5Gd1).

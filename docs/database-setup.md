@@ -25,7 +25,9 @@ PGPASSWORD=doable-dev-p@ssw0rd
 
 The variable names follow the [standard libpq environment variables](https://www.postgresql.org/docs/current/libpq-envars.html), which Postgres clients pick up automatically — including [Squirrel](https://hexdocs.pm/squirrel/index.html), the Gleam package we'll use later to query the database.
 
-> **Never commit `.env` to version control.** For this guide we do so intentionally — the credentials are for a local dev database only and keeping the file in the repo simplifies following along.
+::: warning
+Never commit `.env` to version control. For this guide we do so intentionally — the credentials are for a local dev database only and keeping the file in the repo simplifies following along.
+:::
 
 ## Docker Compose
 
