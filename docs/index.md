@@ -17,6 +17,70 @@ All three frontends share the same Gleam codebase. We'll use Tauri to wrap the c
 
 ## Architecture
 
+In production, everything runs inside Docker. [Caddy](https://caddyserver.com) is the single entry point — it serves the compiled web app as static files for the browser and proxies API requests to the backend for all clients. The desktop and mobile apps embed the same static bundle via Tauri and use Tauri's HTTP plugin to send requests to Caddy.
+
+### Production
+
+```
+                      ┌─────────Docker─────────┐
+                      │  ┌─────PostgreSQL────┐ │
+                      │  │ ┌───────────────┐ │ │
+                      │  │ │ Prod Database │ │ │
+                      │  │ └───────▲───────┘ │ │
+                      │  └─────────┼─────────┘ │
+                      │            │           │
+                      │     ┌──────┴─────┐     │
+                      │     │ Api Server │     │
+                      │     └────────▲───┘     │
+                      │              │         │
+                      │ ┌────Caddy───┼───────┐ │
+                      │ │ ┌──────────┴─────┐ │ │
+                      │ │ │    Web App     │ │ │
+                      │ │ │ (static files) │ │ │
+                      │ │ └────────────────┘ │ │
+                      │ └─────▲───▲───▲──────┘ │
+                      └───────┼───┼───┼────────┘
+                              │   │   │
+           ┌──────────────────┘   │   └──────────────────┐
+           │                      │                      │
+           │                      │                      │
+┌──────────┴─────────┐   ┌────────┴───────────┐     ┌────┴────┐
+│     Desktop App    │   │     Mobile App     │     │ Browser │
+│ ┌────────────────┐ │   │ ┌────────────────┐ │     └─────────┘
+│ │    Web App     │ │   │ │    Web App     │ │
+│ │ (static files) │ │   │ │ (static files) │ │
+│ └────────────────┘ │   │ └────────────────┘ │
+└────────────────────┘   └────────────────────┘
+```
+
+### Development
+
+In development, the database and API server run in Docker via `docker compose up`. The database is a single PostgreSQL container with two databases inside: one for development and one for integration tests. All three clients load the frontend from [Vite](https://vite.dev)'s dev server for hot reload. The browser also sends API requests through Vite's proxy to avoid CORS issues, while desktop and mobile apps use Tauri's HTTP plugin to call the API server directly. Integration tests also call the server directly, using the dedicated test database.
+
+```
+        ┌──────────────────────Docker─────────────────────┐
+        │       ┌─────────────PostgreSQL───────────────┐  │
+        │       │ ┌──────────────┐   ┌───────────────┐ │  │
+        │       │ │ Dev Database │   │ Test Database │ │  │
+        │       │ └──────▲───────┘   └─────────────▲─┘ │  │
+        │       └────────┼─────────────────────────┼───┘  │
+        │  ┌─────────────┴─────────────┐           │      │
+        │  │        API Server         │           │      │
+        │  └───▲─────────▲────────▲────┘           │      │
+        └──────┼─────────┼────────┼────────────────┼──────┘
+      ┌────────┘         │        └─────┐          │
+      │      ┌───────────┴──────────┐   │          │
+      │      │    Vite Dev Server   │   │          │
+      │      │      (with proxy)    │   │          │
+      │      └─────▲─────▲─────▲────┘   │          │
+      │            │     │     │        │          │
+      │   ┌────────┘     │     └─────┐  │          │
+      │   │              │           │  │       ┌──┴──────────┐
+┌─────┴───┴────┐  ┌──────┴──┐  ┌─────┴──┴───┐   │ Local Tests │
+│ Desktop App  │  │ Browser │  │ Mobile App │   │  (Server)   │
+└──────────────┘  └─────────┘  └────────────┘   └─────────────┘
+```
+
 ### Backend
 
 The server is a straightforward HTTP API built with [Wisp](https://hexdocs.pm/wisp/) and [Mist](https://hexdocs.pm/mist/), backed by PostgreSQL. It exposes a REST API for task resources and shares type definitions with the client via the `shared` project — a multi-target Gleam library that compiles to both Erlang and JavaScript, embracing code reusability between the backend and frontend.
