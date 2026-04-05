@@ -1,22 +1,22 @@
 # Database Migrations
 
-With the database running, we need to create the schema. We'll manage migrations using [golang-migrate](https://github.com/golang-migrate/migrate), running it as a Docker Compose service so it starts automatically and only runs after the database is ready.
+With the database running, we need to create the schema. We'll manage migrations using [migrate](https://github.com/golang-migrate/migrate), running it as a Docker Compose service so it starts automatically and only runs after the database is ready.
 
 Two new migration files and an updated `compose.yml`:
 
 ```sh
 doable/
-├── compose.yml                         # adds healthcheck and migrate service   [!code highlight]
+├── compose.yml                    # adds healthcheck and migrate service   [!code highlight]
 └── migrations/
-    ├── 000001_create_tasks.up.sql      # creates the tasks table                [!code ++]
-    └── 000001_create_tasks.down.sql    # drops the tasks table                  [!code ++]
+    ├── 1_create_tasks.up.sql      # creates the tasks table                [!code ++]
+    └── 1_create_tasks.down.sql    # drops the tasks table                  [!code ++]
 ```
 
 ## Migration Files
 
 Create the `migrations/` directory at the project root and add the first migration:
 
-**migrations/000001_create_tasks.up.sql**
+**migrations/1_create_tasks.up.sql**
 
 ```sql
 CREATE TABLE tasks (
@@ -29,13 +29,13 @@ CREATE TABLE tasks (
 );
 ```
 
-**migrations/000001_create_tasks.down.sql**
+**migrations/1_create_tasks.down.sql**
 
 ```sql
 DROP TABLE tasks;
 ```
 
-Each migration is a pair of files — `.up.sql` to apply the change and `.down.sql` to roll it back. The numeric prefix determines the order migrations run in.
+Each migration is a pair of files — `.up.sql` to apply the change and `.down.sql` to roll it back. The file names follow migrate's [official naming convention](https://github.com/golang-migrate/migrate/blob/master/MIGRATIONS.md): `{version}_{title}.{direction}.sql`. The numeric prefix determines the order migrations run in.
 
 ## Updating Docker Compose
 
@@ -99,27 +99,40 @@ Restart Docker Compose to pick up the changes:
 
 ```sh
 docker compose up -d
+# [+] up 4/4
+#  ✔ Network doable-dev-network     Created
+#  ✔ Volume doable-dev-data         Created
+#  ✔ Container doable-dev-db-1      Healthy
+#  ✔ Container doable-dev-migrate-1 Started
 ```
 
-The `migrate` service will run, apply `000001_create_tasks.up.sql`, and exit. You can check its output with:
+The `migrate` service will run, apply `1_create_tasks.up.sql`, and exit. You can check its output with:
 
 ```sh
 docker compose logs migrate
-```
-
-On the first run you should see each migration logged:
-
-```
-migrate  | 1/u create_tasks (Xms)
-```
-
-On subsequent runs, when all migrations are already applied, you'll see:
-
-```
-migrate  | no change
+# migrate  | 1/u create_tasks (Xms)   # first run — migration applied
+# or
+# migrate  | no change                # subsequent runs — nothing to do
 ```
 
 The `migrate` service is not configured with `restart: unless-stopped`, so it runs once and stops; `docker compose up` will start it again, but reruns are safe.
+
+To stop the stack, run `docker compose down`. If you want to start fresh — for example to re-run the init script — add `-v` to also remove the named volume and wipe the data:
+
+```sh
+docker compose down     # stop containers, keep data
+# [+] down 3/3
+#  ✔ Container doable-dev-migrate-1 Removed
+#  ✔ Container doable-dev-db-1      Removed
+#  ✔ Network doable-dev-network     Removed
+# or
+docker compose down -v  # stop containers, delete volume (data is lost)
+# [+] down 4/4
+#  ✔ Container doable-dev-migrate-1 Removed
+#  ✔ Container doable-dev-db-1      Removed
+#  ✔ Network doable-dev-network     Removed
+#  ✔ Volume doable-dev-data         Removed
+```
 
 ## Verifying the Schema
 
@@ -169,4 +182,4 @@ Type `\q` to exit.
 
 With the schema in place, the next step is writing the SQL queries. We'll use Squirrel to generate type-safe Gleam functions directly from plain `.sql` files.
 
-[^1]: See commit [a2d539b](https://github.com/lukwol/doable/commit/a2d539b3f858446d2b9087b49ba654d2eaf05995) on GitHub
+[^1]: See commit [2997ddf](https://github.com/lukwol/doable/commit/2997ddf425d96d720cd63b4cd017839eb88a4020) on GitHub

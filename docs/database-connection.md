@@ -1,12 +1,12 @@
 # Connecting to the Database
 
-The query functions are ready but they need a `pog.Connection` to run against. This chapter wires everything together: loading server settings from environment variables, setting up a supervised database connection pool, and threading it through the router to the route handlers.
+The query functions are ready but they need a [`pog.Connection`](https://hexdocs.pm/pog/) to run against. This chapter wires everything together: loading server settings from environment variables, setting up a supervised database connection pool, and threading it through the router to the route handlers.
 
 Two new files join the existing ones, and three are updated:
 
 ```sh
 doable/
-├── .env                       # add server settings                             [!code highlight]
+├── .env                       # adds server settings                             [!code highlight]
 └── server/
     └── src/
         ├── config.gleam       # loads all settings from environment variables   [!code ++]

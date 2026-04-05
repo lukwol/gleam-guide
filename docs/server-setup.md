@@ -99,7 +99,7 @@ pub fn middleware(
 The three layers, from outermost to innermost:
 
 - `log_request` — logs every incoming request so you can see what's hitting the server in your terminal.
-- `rescue_crashes` — catches any unhandled panics and turns them into 500 responses instead of crashing the process. Essential during development when handler stubs are incomplete.
+- `rescue_crashes` — catches any unhandled panics and turns them into 500 responses instead of crashing the process.
 - `handle_head` — automatically handles `HEAD` requests by running the corresponding `GET` handler and stripping the body. This is correct HTTP behaviour for free.
 
 Wisp's `use` syntax threads the request through each layer in order. The result is a clean, readable middleware stack that's easy to extend later.

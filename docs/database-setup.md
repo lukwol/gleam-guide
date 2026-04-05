@@ -23,10 +23,10 @@ PGUSER=doable-user-dev
 PGPASSWORD=doable-dev-p@ssw0rd
 ```
 
-The variable names follow the [standard libpq environment variables](https://www.postgresql.org/docs/current/libpq-envars.html), which Postgres clients pick up automatically — including [Squirrel](https://hexdocs.pm/squirrel/index.html), the Gleam package we'll use later to query the database.
+The variable names follow the [standard libpq environment variables](https://www.postgresql.org/docs/current/libpq-envars.html), which Postgres clients pick up automatically — including Squirrel, the Gleam package we'll use later to query the database.
 
 ::: warning
-Never commit `.env` to version control. For this guide we do so intentionally — the credentials are for a local dev database only and keeping the file in the repo simplifies following along.
+Never commit `.env` to version control. For this guide I did it intentionally — the credentials are for a local dev database only and keeping the file in the repo simplifies following along.
 :::
 
 ## Docker Compose
@@ -63,7 +63,7 @@ networks:
 A few things worth noting:
 
 - `image: postgres:18-alpine` — the Alpine variant keeps the image small.
-- `shm_size: 128mb` — Postgres uses shared memory for internal buffers; the Docker default of 64 MB can cause issues under load.
+- `shm_size: 128mb` — Postgres uses shared memory for internal buffers; the Docker defaults to 64 MB but I followed the recommended settings in [official Postgres image docs](https://hub.docker.com/_/postgres).
 - `restart: unless-stopped` — the container restarts automatically after a machine reboot, unless you explicitly stop it.
 - `${PGPORT}:${PGPORT}` — Docker Compose reads `.env` automatically, so the port mapping uses the same variable as the app.
 - Named volume `doable-dev-data` — data persists across container restarts and rebuilds.
