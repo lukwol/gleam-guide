@@ -21,11 +21,12 @@ FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam   # stage 1: com
 
 FROM erlang:${ERLANG_VERSION}-alpine AS build                     # stage 2: build
 COPY --from=gleam /bin/gleam /bin/gleam
-COPY shared/ /doable/shared/
 WORKDIR /doable/server
-COPY server/gleam.toml server/manifest.toml ./                    # copy manifests only
+COPY shared/gleam.toml /doable/shared/gleam.toml                  # shared config
+COPY server/gleam.toml server/manifest.toml ./                    # server config and manifests
 RUN gleam deps download                                           # cached until deps change
-COPY server/ ./                                                   # copy source
+COPY shared/ /doable/shared/                                      # full shared source
+COPY server/ ./                                                   # server source
 RUN gleam export erlang-shipment
 
 FROM erlang:${ERLANG_VERSION}-alpine                              # stage 3: runtime
@@ -48,28 +49,31 @@ This stage exists purely to extract the `gleam` binary from the official scratch
 ```dockerfile
 FROM erlang:${ERLANG_VERSION}-alpine AS build
 COPY --from=gleam /bin/gleam /bin/gleam
-COPY shared/ /doable/shared/
 WORKDIR /doable/server
+COPY shared/gleam.toml /doable/shared/gleam.toml
 COPY server/gleam.toml server/manifest.toml ./
 RUN gleam deps download
+COPY shared/ /doable/shared/
 COPY server/ ./
 RUN gleam export erlang-shipment
 ```
 
 This is where compilation happens. The order of `COPY` and `RUN` instructions is deliberate — Docker builds each instruction as a separate cached layer. A layer is only rebuilt when its instruction or anything above it changes.
 
-`shared/` is copied before any server files because it lives outside `server/` and the Dockerfile needs the project root as its build context (set in `compose.yml`). Copying it early means it's available when Gleam resolves the path dependency in `gleam.toml`.
-
 The dependency download is split from the source copy intentionally:
 
 ```dockerfile
-COPY server/gleam.toml server/manifest.toml ./      # ← only the manifests
+COPY shared/gleam.toml /doable/shared/gleam.toml    # ← shared config
+COPY server/gleam.toml server/manifest.toml ./      # ← server config and lock file
 RUN gleam deps download                             # ← cached layer
-COPY server/ ./                                     # ← source files
+COPY shared/ /doable/shared/                        # ← full shared source
+COPY server/ ./                                     # ← server source
 RUN gleam export erlang-shipment
 ```
 
-If the source were copied first and then deps downloaded, any change to any `.gleam` file would invalidate the deps layer and trigger a full re-download on every build. By copying only `gleam.toml` and `manifest.toml` first, the deps layer is only invalidated when the dependency manifest actually changes — source edits only invalidate the compilation layer below it.
+`server` declares a path dependency on `shared` in `gleam.toml`, so Gleam needs `shared/gleam.toml` to exist before it can resolve the dependency graph and download packages. The config and lock files are all that's needed at this stage — source isn't required until compilation. Copying them separately keeps the two concerns distinct: config and lock files invalidate the deps layer, source files invalidate the compilation layer.
+
+If the source were copied before deps were downloaded, any change to any `.gleam` file would invalidate the deps layer and trigger a full re-download on every build. With this layout, the deps layer is only rebuilt when `gleam.toml` or `manifest.toml` actually changes.
 
 `gleam export erlang-shipment` produces a self-contained directory with the compiled BEAM files and an `entrypoint.sh` script. No Gleam toolchain is needed to run it — only the Erlang runtime.
 
@@ -177,17 +181,31 @@ A few things worth noting:
 
 ## Starting the Stack
 
-```sh
-docker compose up --build
-```
-
-`--build` forces a rebuild of the server image on first run. After that, omit it for faster startup — Docker reuses the cached layers unless `gleam.toml`, `manifest.toml`, or the source files change:
+With both the Dockerfile and Compose service in place, the entire stack starts with a single command:
 
 ```sh
 docker compose up
 ```
 
+:::: tip
+To force a rebuild of the server image, use:
+
+```sh
+docker compose up --build
+```
+
+::::
+
 The server is now reachable at `http://localhost:8000` without needing a separate terminal running `gleam run`.
+
+:::: info
+To run the server locally with `gleam run` instead, stop the `server` service first so it doesn't conflict:
+
+```sh
+docker compose stop server
+```
+
+::::
 
 ## What's Next
 
@@ -195,4 +213,4 @@ With the full backend running from a single command, it's time to start building
 
 [^1]: Based on the awesome [Gleam deployment guide](https://gleam.run/deployment/linux-server/)
 
-[^2]: See commit [e398828](https://github.com/lukwol/doable/commit/e398828) on GitHub
+[^2]: See commit [c0e0ac0](https://github.com/lukwol/doable/commit/c0e0ac0) on GitHub
