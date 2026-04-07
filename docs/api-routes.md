@@ -32,7 +32,7 @@ gleam_json = ">= 3.1.0 and < 4.0.0"   # [!code ++]
 wisp = ">= 2.2.1 and < 3.0.0"
 ```
 
-## JSON in `shared/src/task.gleam`
+## JSON Serialization
 
 `task.gleam` needs four new functions: a decoder and an encoder for both `Task` and `TaskInput`:
 
@@ -157,7 +157,7 @@ cd shared
 gleam test
 ```
 
-## Handler Helpers in `web.gleam`
+## Request Helpers
 
 The route handlers all share three common operations: parsing an ID from a path segment, decoding a JSON body, and translating a database result into an HTTP response. Rather than repeating this logic in every handler, `web.gleam` provides three helper functions:
 
@@ -213,7 +213,7 @@ Each helper follows the same shape: it takes a `next` continuation as its last a
 - **`decode_body`** — runs a decoder against the parsed JSON body. An invalid payload returns `422 Unprocessable Content`.
 - **`db_execute`** — maps database results to HTTP responses. `RecordNotFound` becomes `404`; any other error becomes `500`.
 
-## Route Handlers in `task/route.gleam`
+## Route Handlers
 
 With the helpers in place, the route handlers become short, readable pipelines:
 
@@ -387,4 +387,4 @@ The error cases confirm the helpers are working: a non-integer ID returns `404`,
 
 The REST API is fully implemented and backed by a real database. The next step is adding automated tests for the route handlers.
 
-[^1]: See commit [02049aa](https://github.com/lukwol/doable/commit/02049aaafc6101b9a268922cc590cb69fa04c3c4) on GitHub
+[^1]: See commit [bf68025](https://github.com/lukwol/doable/commit/bf68025) on GitHub

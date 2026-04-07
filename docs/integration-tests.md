@@ -562,6 +562,6 @@ gleeunit discovers every function whose name ends in `_test` across all files in
 
 The server is fully tested. The next step adds it to Docker Compose so the whole stack — database, migrations, and server — starts with a single `docker compose up`, making client development easier without needing to run `gleam run` separately.
 
-[^1]: See commit [3701cef](https://github.com/lukwol/doable/commit/3701cef5af2e6d89d09985953ae004809eef6311) on GitHub
+[^1]: See commit [47723c9](https://github.com/lukwol/doable/commit/47723c9) on GitHub
 
-[^2]: See commit [6932ca9](https://github.com/lukwol/doable/commit/6932ca9cf23737284372718ee3218aebfc972bcc) on GitHub
+[^2]: See commit [7c17ec1](https://github.com/lukwol/doable/commit/7c17ec1) on GitHub

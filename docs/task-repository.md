@@ -79,9 +79,7 @@ Three variants cover everything that can go wrong at the database repository:
 
 Keeping errors as a plain Gleam type means route handlers can pattern-match on them directly when building HTTP responses.
 
-## Database Layer
-
-### `task/repository.gleam`
+## Database Repository
 
 `task/repository.gleam` sits between the generated SQL functions and the rest of the application. Each function follows the same shape: call an SQL function, map the error, unwrap the returned rows, and build a domain value:
 
@@ -235,11 +233,7 @@ A few things worth noting:
 
 ## Shell Helper
 
-### `console.gleam`
-
 The previous chapter required six Erlang expressions just to get a `pog.Connection` in `gleam shell`. `console.gleam` wraps that setup into a single Gleam function.
-
-The name `console` is deliberate. A more natural name would be `shell`, but Erlang already ships a built-in module called `shell`. Gleam modules compile to Erlang modules with the same name, so `shell.gleam` would compile to a `shell` module that overwrites the built-in one — potentially causing confusing errors anywhere that module is used. `console` avoids the collision.
 
 ```gleam
 import config
@@ -267,7 +261,7 @@ pub fn init() -> pog.Connection {
 
 `@external(erlang, ...)` binds a Gleam function to an existing Erlang function. The two FFI calls here are the same setup steps from before — enabling string display and starting the pog driver — wrapped so they happen automatically on `console:init()`.
 
-## Verifying the Database Functions
+## Verifying Database Repository
 
 With the database running, open a shell from the `server/` directory:
 
@@ -310,13 +304,13 @@ A few things worth noting:
 
 - **`console:init()`** — compiled from `console.gleam`, callable with Erlang module syntax just like any other Gleam module.
 - **Gleam constructors in Erlang** — `{task_input, "Buy milk", "2% fat", false}` is how Gleam's `TaskInput("Buy milk", "2% fat", false)` looks in Erlang. Custom types become tuples with a lowercase atom tag matching the constructor name.
-- **`<<"...">>`** — Gleam's `String` type compiles to an Erlang binary. `shell:strings(true)` prints bare binaries as quoted strings, but when a binary is nested inside a tuple the shell still uses the `<<"...">>` binary literal notation. This is expected — the values are correct.
+- **`<<"...">>`** — Gleam's `String` type compiles to an Erlang binary. `shell:strings(true)` prints bare binaries as quoted strings, but when a binary is nested inside a tuple the shell still uses the `<<"...">>` binary literal notation.
 - **`upsert_task` result** — the `false` at the end is the `inserted` flag; `false` here because the record already existed, so it was updated rather than inserted.
 
 ## What's Next
 
 The domain types and database repository are in place. The next step is implementing the route handlers to call into `task/repository.gleam` and return real HTTP responses.
 
-[^1]: See commit [f160d2b](https://github.com/lukwol/doable/commit/f160d2b218ea4a196c6687ee424065a45702092c) on GitHub
+[^1]: See commit [f83331b](https://github.com/lukwol/doable/commit/f83331b) on GitHub
 
-[^2]: See commit [a4adb36](https://github.com/lukwol/doable/commit/a4adb365381cf9e0a66dbb19e12ff88a4912ab28) on GitHub
+[^2]: See commit [fa618dd](https://github.com/lukwol/doable/commit/fa618dd) on GitHub

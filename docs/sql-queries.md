@@ -51,7 +51,7 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 squirrel = ">= 4.6.0 and < 5.0.0"       # [!code ++]
 ```
 
-## Configure Local Database Access
+## Configure Database Access
 
 Squirrel connects to the database at code-generation time to validate queries and infer types — which is why we set the libpq environment variables in `.env` from the start.
 
@@ -215,4 +215,4 @@ The column types come directly from the schema — Squirrel infers them by query
 
 The query functions are ready but they need a `pog.Connection` to run against. The next step is loading server configuration from environment variables and setting up a supervised connection pool to pass through the router.
 
-[^1]: See commit [1650a07](https://github.com/lukwol/doable/commit/1650a07326b2c153a7a53160ad255b9b94b42f1b) on GitHub
+[^1]: See commit [e7b36f1](https://github.com/lukwol/doable/commit/e7b36f1) on GitHub
