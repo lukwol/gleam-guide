@@ -1,6 +1,23 @@
 # Implementing the API Routes
 
-With the database repository in place, this chapter wires everything together into a working API[^1]. `task.gleam` gains JSON encoders and decoders, `web.gleam` gains request pipeline helpers, and the stub handlers in `task/route.gleam` are replaced with real implementations.
+With the database repository in place, this chapter wires everything together into a working API[^1].
+
+Three files change, one test file is added:
+
+```sh
+doable/
+├── shared/
+│   ├── src/
+│   │   └── task.gleam            # JSON encoder and decoder          [!code highlight]
+│   └── test/
+│       ├── shared_test.gleam     # generated placeholder removed     [!code --]
+│       └── task_test.gleam       # JSON round-trip tests             [!code ++]
+└── server/
+    └── src/
+        ├── web.gleam             # request pipeline helpers          [!code highlight]
+        └── task/
+            └── route.gleam       # real handler implementations      [!code highlight]
+```
 
 ## Install Dependencies
 
@@ -104,7 +121,7 @@ A few things worth noting:
 - **`decode.optional_field`** — used for `completed` in `TaskInput`. If the field is absent from the JSON body, the decoder falls back to `False` rather than returning an error. This is useful for create requests where a sensible default exists.
 - **`task_decoder` vs `task_input_decoder`** — `task_decoder` expects an `id` field; `task_input_decoder` does not. The separation mirrors the split between `Task` and `TaskInput` in the domain model.
 
-## Testing `task.gleam`
+## Shared Module Tests
 
 With the JSON functions in place, it's worth adding unit tests for the shared module. `shared/test/shared_test.gleam` had boilerplate left over from project setup — that's removed, and a new `shared/test/task_test.gleam` verifies the conversion and JSON round-trip functions:
 
