@@ -1,6 +1,6 @@
 # Integration Tests
 
-With the REST API complete, this chapter adds an automated test suite that exercises each route end-to-end — through the router, handlers, and real database queries — without running a live HTTP server. The setup involves four moving parts: a dedicated test database, a shared test context, transaction-based rollback for isolation, and Wisp's in-process request simulator.
+With the REST API complete, this chapter adds an automated test suite that exercises each route end-to-end — through the router, handlers, and real database queries — without running a live HTTP server.
 
 Several new files are added across the project:
 
@@ -34,7 +34,7 @@ Tests need their own database so they don't touch development data. Two small ad
 
 ### `docker/init-test-db.sh`
 
-A new shell script runs during the Postgres container's first-time initialization:
+A shell script placed in `/docker-entrypoint-initdb.d/` runs automatically on Postgres first start, creating the test database alongside the development one:
 
 ```sh
 #!/bin/bash
@@ -42,11 +42,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -c "CREATE DATABASE \"$TEST_DB_NAME\";"
 ```
 
-This creates the test database alongside the development database in the same Postgres instance. Postgres runs scripts in `/docker-entrypoint-initdb.d/` automatically on first start, so no manual steps are needed.
-
 ### `.env`
 
-One new variable tells Docker and the server which database name to use for tests:
+One new variable specifies the test database name:
 
 ```sh
 # Database
@@ -65,7 +63,7 @@ SERVER_PORT=8000
 
 ### `compose.yml`
 
-Two changes to `compose.yml`: the `db` service gains the `TEST_DB_NAME` environment variable and a volume mount for the init script, and a new `migrate-test` service runs the same migrations against the test database:
+Two changes: the `db` service gains the `TEST_DB_NAME` environment variable and the init script volume mount, and a new `migrate-test` service runs migrations against the test database:
 
 ```yaml{42-44}
 name: doable-dev
@@ -132,15 +130,17 @@ docker compose down -v
 docker compose up -d
 ```
 
-`-v` removes the named volume so Postgres reinitializes from scratch and the init script runs again.
+`-v` removes the named volume so Postgres reinitializes and the init script runs again.
 
 ## Test Context
 
-Tests need database access, and they use the same route handlers as production. Adding a `TestContext` variant to `Context` is the approach used here for dependency injection: instead of wiring up a pool, tests pass a direct `pog.Connection` — specifically a transaction-scoped one, so `with_rollback` can roll it back after each test.
+Tests use the same route handlers as production but need a database connection they can roll back after each test. To support this, a second `TestContext` variant is introduced. Unlike `Context`, which holds only a pool name atom, `TestContext` holds a `pog.Connection` directly — either a pool-backed handle for read-only tests, or a transaction-scoped one inside `with_rollback`.
+
+Four files work together to make this happen: `test_database` owns the pool, `test_config` tells it which database to use, `test_context` wraps the pool in a `TestContext` ready to use in each test, and `server_test` starts it all before the suite runs.
 
 ### Extending `context.gleam`
 
-`context.gleam` gains a `TestContext` variant that holds a direct `pog.Connection` rather than a named pool reference. The `db_conn` helper handles both variants:
+`context.gleam` gains a `TestContext` variant and updates `db_conn` to handle both:
 
 ```gleam
 pub type Context {
@@ -157,11 +157,9 @@ pub fn db_conn(ctx: Context) -> pog.Connection {
 }
 ```
 
-`with_rollback` (covered below) opens a transaction and replaces `db_conn` in the context with the transaction-scoped connection, so every database call inside the test body participates in the same transaction and gets rolled back at the end.
-
 ### `test/test_config.gleam`
 
-`test_config.gleam` loads the test database configuration by overriding `db_name` with `TEST_DB_NAME` from the environment, leaving all other settings (host, port, user, password) the same as the development config[^2]:
+Loads the test database config by overriding `db_name` with `TEST_DB_NAME`, keeping all other settings (host, port, user, password) the same as development[^2]:
 
 ```gleam
 import config.{type Config}
@@ -175,7 +173,7 @@ pub fn load() -> Config {
 
 ### `test/test_database.gleam`
 
-`test_database.gleam` owns the test pool lifecycle and provides the `with_rollback` helper:
+Owns the test pool lifecycle and provides the `with_rollback` helper:
 
 ```gleam
 import context.{type Context, type DbPoolName, TestContext}
@@ -219,16 +217,14 @@ pub fn with_rollback(ctx: Context, next: fn(Context) -> Nil) -> Nil {
 }
 ```
 
-A few things worth noting:
+A few notes:
 
-- **`binary_to_atom`** — pog's named pool API requires a `process.Name(pog.Message)`. Gleam's standard library doesn't expose a way to create one from a string at runtime, so this calls Erlang's `binary_to_atom` directly via an `@external` binding.
-- **`pog.named_connection`** — returns a lazy handle that references the pool by name; it does not establish a connection immediately. The actual connection is checked out from the pool when a query runs, which is why it is safe to call before `pog.start`.
-- **`start` vs `get`** — `start` starts the pool and must be called once before any test runs. `test_context.get` looks up the already-running pool by name; it's called at the top of every test. gleeunit runs tests concurrently, so sharing one pool rather than creating one per test avoids connection exhaustion.
-- **`pog.start`** — for tests, the pool is started directly rather than through an OTP supervisor. There's no crash-recovery concern in a test process.
+- **`binary_to_atom`** — `pog`'s named pool API requires a `process.Name(pog.Message)`. Gleam's `process.new_name` generates a unique name on every call, so it can't be used here — `start` and `test_context.get` must resolve to the same atom. `binary_to_atom` produces a fixed, deterministic atom from a string, which is exactly what's needed.
+- **`start` vs `get`** — `start` starts the pool once before the suite runs; `test_context.get` looks it up by name at the top of each test.
 
 ### `test/test_context.gleam`
 
-`test_context.gleam` provides `get`, which retrieves the running pool and wraps it in a `TestContext`:
+`test_context.get` verifies the pool is running and wraps it in a `TestContext`:
 
 ```gleam
 import context.{type Context, TestContext}
@@ -248,7 +244,7 @@ pub fn get() -> Context {
 
 ### `test/server_test.gleam`
 
-gleeunit's `main` is the suite entry point. Calling `test_database.start()` here ensures the pool exists before any test module runs:
+`gleeunit`'s `main` is the suite entry point. Calling `test_database.start()` here ensures the pool exists before any test module runs:
 
 ```gleam
 import gleeunit
@@ -261,9 +257,11 @@ pub fn main() -> Nil {
 }
 ```
 
+Tests that write to the database wrap their body in `use ctx <- test_database.with_rollback(ctx)`. This opens a transaction, passes a transaction-scoped `ctx` to the test, and always rolls back — so every test leaves the database clean regardless of outcome. Tests that only read can skip `with_rollback` entirely.
+
 ## Test Fixtures
 
-`test/fixtures.gleam` defines a handful of reusable `Task` values that appear throughout the tests:
+`test/fixtures.gleam` defines reusable `Task` values used as input templates throughout the tests:
 
 ```gleam
 import task
@@ -297,22 +295,11 @@ pub const task4 = task.Task(
 )
 ```
 
-The `id` fields don't matter — database sequences assign real IDs on insert. The fixtures are used as templates for `to_task_input`, which strips the ID before inserting.
-
-## Rollback Isolation
-
-Tests that write to the database must leave it clean for the tests that follow. `test_database.with_rollback` wraps a test body in a transaction and always rolls back. It is part of `test/test_database.gleam` alongside the pool setup covered above.
-
-A few things worth noting:
-
-- **`pog.transaction`** — starts a database transaction and passes the transaction-scoped connection to the callback. If the callback returns `Error`, the transaction is rolled back; if it returns `Ok`, it is committed.
-- **Always returning `Error("rollback")`** — by unconditionally returning an error after `next`, every test transaction is rolled back regardless of whether it succeeded or failed. This ensures no test leaves data behind.
-- **Injecting a new `TestContext`** — `with_rollback` wraps the transaction-scoped `db_conn` in a fresh `TestContext` and passes it to `next`. All database calls inside the test use this connection and therefore participate in the same transaction.
-- **`use` at the call site** — tests call `use ctx <- test_database.with_rollback(ctx)` to shadow the outer `ctx` with the transaction-scoped one. Any test that omits `with_rollback` runs outside a transaction and directly affects the test database — appropriate for read-only tests.
+The `id` fields are placeholders — the database assigns real IDs on insert. Fixtures are used as templates for `to_task_input`, which strips the ID before inserting.
 
 ## Writing Route Tests
 
-Tests call `router.handle_request` directly, bypassing Mist and the TCP stack entirely. Wisp's `simulate` module builds in-memory requests and reads responses. It is part of the `wisp` package already declared as a dependency — no new packages needed.
+Tests call `router.handle_request` directly, bypassing Mist and the TCP stack entirely. Wisp's `simulate` module builds in-memory requests and reads responses — no new packages needed.
 
 ### The `simulate` API
 
@@ -328,19 +315,11 @@ response.status               // Int
 simulate.read_body(response)  // String
 ```
 
-`simulate.json_body` sets both the body and the `content-type: application/json` header in one call. When you need to send a malformed body with the correct content type — to test JSON parse failures — use `simulate.string_body` and `simulate.header` separately:
-
-```gleam
-let response =
-  simulate.request(http.Post, "/api/tasks")
-  |> simulate.string_body("{not valid json}")
-  |> simulate.header("content-type", "application/json")
-  |> router.handle_request(ctx)
-```
+`simulate.json_body` sets both the body and the `content-type: application/json` header.
 
 ### Stateless Tests
 
-Tests that don't write to the database need no rollback. They call `test_context.get()` and dispatch a request directly. Because every mutating test wraps its writes in `with_rollback`, the database is always empty at the start of a read-only test regardless of execution order.
+Tests that only read from the database don't need `with_rollback` — just get a context and dispatch a request:
 
 ```gleam
 // routes/list_tasks_test.gleam
@@ -360,7 +339,7 @@ pub fn empty_list_tasks_test() {
 }
 ```
 
-Method-not-allowed and not-found cases are also stateless — they don't touch the database at all:
+Method-not-allowed and not-found cases are also stateless:
 
 ```gleam
 // routes/router_test.gleam
@@ -388,9 +367,73 @@ pub fn list_tasks_wrong_method_test() {
 }
 ```
 
+### Error Cases
+
+Error path tests don't touch the database, so no rollback is needed. An invalid JSON body returns `422`; a malformed body returns `400`:
+
+```gleam
+// routes/create_task_test.gleam
+pub fn create_task_with_invalid_json_test() {
+  let ctx = test_context.get()
+
+  let body = json.object([#("foo", json.string("bar"))])
+
+  let response =
+    simulate.request(http.Post, "/api/tasks")
+    |> simulate.json_body(body)
+    |> router.handle_request(ctx)
+
+  assert response.status == 422
+  assert simulate.read_body(response) == "Unprocessable content"
+}
+
+pub fn create_task_with_malformed_body_test() {
+  let ctx = test_context.get()
+
+  let response =
+    simulate.request(http.Post, "/api/tasks")
+    |> simulate.string_body("{not valid json}")
+    |> simulate.header("content-type", "application/json")
+    |> router.handle_request(ctx)
+
+  assert response.status == 400
+  assert simulate.read_body(response) == "Bad request: Invalid JSON"
+}
+```
+
+`422` comes from `web.decode_body` failing to match the decoder; `400` comes from `wisp.require_json` rejecting the body.
+
 ### Stateful Tests
 
-Tests that insert data wrap the body in `with_rollback`. The transaction-scoped `ctx` is then used for both the seed insert and the HTTP request, so both participate in the same transaction:
+Tests that write to the database wrap their body in `with_rollback`. Both the seed insert and the HTTP request use the same transaction-scoped `ctx`, so both participate in the same transaction and are rolled back after the test:
+
+```gleam
+// routes/create_task_test.gleam
+pub fn create_task_with_completed_test() {
+  let ctx = test_context.get()
+  use ctx <- test_database.with_rollback(ctx)
+
+  let body =
+    fixtures.task1
+    |> task.to_task_input
+    |> task.task_input_to_json
+
+  let response =
+    simulate.request(http.Post, "/api/tasks")
+    |> simulate.json_body(body)
+    |> router.handle_request(ctx)
+
+  assert response.status == 201
+  let body = simulate.read_body(response)
+  let assert Ok(task) = json.parse(body, task.task_decoder())
+
+  assert task.to_task_input(task) == task.to_task_input(fixtures.task1)
+}
+```
+
+`task.to_task_input` strips the ID before comparing — the database assigns a new ID, so comparing full `Task` structs would always fail.
+
+Tests that seed multiple records follow the same pattern — insert first, then dispatch:
 
 ```gleam
 // routes/list_tasks_test.gleam
@@ -423,73 +466,7 @@ pub fn not_empty_list_tasks_test() {
 
 `list.reverse(inputs)` reflects the `ORDER BY id DESC` in the `all_tasks` query — the most recently inserted task comes first.
 
-A create test verifies the response body matches the submitted input:
-
-```gleam
-// routes/create_task_test.gleam
-pub fn create_task_with_completed_test() {
-  let ctx = test_context.get()
-  use ctx <- test_database.with_rollback(ctx)
-
-  let body =
-    fixtures.task1
-    |> task.to_task_input
-    |> task.task_input_to_json
-
-  let response =
-    simulate.request(http.Post, "/api/tasks")
-    |> simulate.json_body(body)
-    |> router.handle_request(ctx)
-
-  assert response.status == 201
-  let body = simulate.read_body(response)
-  let assert Ok(task) = json.parse(body, task.task_decoder())
-
-  assert task.to_task_input(task) == task.to_task_input(fixtures.task1)
-}
-```
-
-`task.to_task_input` strips the ID before comparing — the database assigns a new ID, so comparing the full `Task` structs would always fail.
-
-### Error Cases
-
-Error path tests exercise the handler helpers without requiring database state. An invalid JSON body returns `422`, a malformed body returns `400`:
-
-```gleam
-// routes/create_task_test.gleam
-pub fn create_task_with_invalid_json_test() {
-  let ctx = test_context.get()
-
-  let body = json.object([#("foo", json.string("bar"))])
-
-  let response =
-    simulate.request(http.Post, "/api/tasks")
-    |> simulate.json_body(body)
-    |> router.handle_request(ctx)
-
-  assert response.status == 422
-  assert simulate.read_body(response) == "Unprocessable content"
-}
-
-pub fn create_task_with_malformed_body_test() {
-  let ctx = test_context.get()
-
-  let response =
-    simulate.request(http.Post, "/api/tasks")
-    |> simulate.string_body("{not valid json}")
-    |> simulate.header("content-type", "application/json")
-    |> router.handle_request(ctx)
-
-  assert response.status == 400
-  assert simulate.read_body(response) == "Bad request: Invalid JSON"
-}
-```
-
-`422` comes from `web.decode_body` — valid JSON that doesn't match the decoder. `400` comes from `wisp.require_json` — the body itself isn't valid JSON.
-
-### Upsert
-
-The upsert handler returns `201 Created` when it inserts and `200 OK` when it updates. Two separate tests cover each branch:
+The upsert handler is worth highlighting because it returns `201 Created` on insert and `200 OK` on update. Two tests cover each branch:
 
 ```gleam
 // routes/upsert_task_test.gleam
@@ -538,9 +515,9 @@ pub fn upsert_task_updates_task_test() {
 }
 ```
 
-The insert test uses a hardcoded high ID (`123456789`) that's unlikely to exist, making it a reliable insert. The update test inserts first, then upserts the same ID, confirming the `200` branch.
+The insert test uses a hardcoded high ID (`123456789`) unlikely to exist. The update test inserts first, then upserts the same ID to confirm the `200` branch.
 
-The remaining test files — `show_task_test.gleam`, `update_task_test.gleam`, and `delete_task_test.gleam` — follow the same patterns: seed with `repository.create_task` inside `with_rollback`, dispatch a simulated request using the transaction-scoped `ctx`, and assert on the response status and body.
+The remaining test files — `show_task_test.gleam`, `update_task_test.gleam`, and `delete_task_test.gleam` — follow the same patterns: seed with `repository.create_task` inside `with_rollback`, dispatch a simulated request, and assert on status and body.
 
 ## Running the Tests
 
@@ -556,7 +533,7 @@ gleam test
 # 32 passed, no failures
 ```
 
-gleeunit discovers every function whose name ends in `_test` across all files in `test/`. Each dot represents one passing test; a summary of passes and failures is printed at the end.
+`gleeunit` discovers every function whose name ends in `_test` across all files in `test/`. Each dot represents one passing test.
 
 ## What's Next
 
