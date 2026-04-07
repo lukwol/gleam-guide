@@ -93,20 +93,22 @@ The frontend follows the **[Elm Architecture](https://guide.elm-lang.org/archite
 This makes data flow explicit and unidirectional: user interactions dispatch messages, messages drive state transitions, state drives the view. No hidden side effects, no two-way binding.
 
 ```
-User interaction
-      │
-      ▼
-   Message
-      │
-      ▼
-   update(model, msg) ──▶ #(new Model, Effect)
-                                 │          │
-                                 ▼          ▼
-                           view(model)   Effect runs
-                                 │       (HTTP, navigation, …)
-                                 ▼          │
-                               HTML         ▼
-                                       new Message
+ ┌───▶ User interaction
+ │           │
+ │           ▼
+ │        Message ◀──────────────────┐
+ │           │                       │
+ │           ▼                       │
+ │   update(model, msg) ──▶ Effect   │
+ │           │               │       │
+ │           ▼               ▼       │
+ │        new Model     Effect runs  │
+ │           │          (HTTP, …)    │
+ │           ▼               │       │
+ │      view(model)          └───────┘
+ │           │
+ │           ▼
+ └──────────HTML
 ```
 
 ## Who is this guide for
