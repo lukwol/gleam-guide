@@ -34,6 +34,12 @@ export default {
           { text: "Server Dockerfile", link: "/server-dockerfile" },
         ],
       },
+      {
+        text: "Client",
+        items: [
+          { text: "Client Setup", link: "/client-setup" },
+        ],
+      },
     ],
   },
 };
