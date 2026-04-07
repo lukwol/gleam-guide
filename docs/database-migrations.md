@@ -117,7 +117,8 @@ docker compose logs migrate
 
 The `migrate` service is not configured with `restart: unless-stopped`, so it runs once and stops; `docker compose up` will start it again, but reruns are safe.
 
-To stop the stack, run `docker compose down`. If you want to start fresh — for example to re-run the init script — add `-v` to also remove the named volume and wipe the data:
+::: info
+To stop the stack, run `docker compose down` or if you want to start fresh — for example to re-run the init script — add `-v` to also remove the named volume and wipe the data:
 
 ```sh
 docker compose down     # stop containers, keep data
@@ -133,6 +134,8 @@ docker compose down -v  # stop containers, delete volume (data is lost)
 #  ✔ Network doable-dev-network     Removed
 #  ✔ Volume doable-dev-data         Removed
 ```
+
+:::
 
 ## Verifying the Schema
 

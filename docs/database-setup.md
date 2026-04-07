@@ -25,7 +25,7 @@ PGPASSWORD=doable-dev-p@ssw0rd
 
 The variable names follow the [standard libpq environment variables](https://www.postgresql.org/docs/current/libpq-envars.html), which Postgres clients pick up automatically — including Squirrel, the Gleam package we'll use later to query the database.
 
-::: warning
+::: danger
 Never commit `.env` to version control. For this guide I did it intentionally — the credentials are for a local dev database only and keeping the file in the repo simplifies following along.
 :::
 
@@ -119,6 +119,7 @@ You should see:
 
 Type `\q` to exit.
 
+::: tip
 Since the port is mapped to your host, you can also connect directly from your machine without going through Docker:
 
 ```sh
@@ -126,6 +127,7 @@ psql -h localhost -p 5432 -U doable-user-dev -d doable-dev
 ```
 
 The same credentials work in any GUI client — [DBeaver](https://dbeaver.io), [DataGrip](https://www.jetbrains.com/datagrip/), or similar — using `localhost:5432`.
+:::
 
 ## What's Next
 
