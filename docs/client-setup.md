@@ -44,10 +44,10 @@ Lustre structures every application around four things:
 
 - **Model** — the complete state of the application at any point in time.
 - **Msg** — a description of something that happened (a user action, a server response, a timer firing).
-- **update** — a pure function that produces a new model from the current model and a message.
-- **view** — a pure function from Model to HTML. No state lives in the view.
+- **update** — a function that produces a new model from the current model and a message.
+- **view** — a function from Model to HTML. No state lives in the view.
 
-When a `Msg` is dispatched, Lustre calls `update(model, msg)` to produce the next model, then calls `view(new_model)` to produce the new HTML. The cycle repeats for every event. Because `view` is a pure function, the UI is always a deterministic reflection of the model — there's no component state to keep in sync.
+When a `Msg` is dispatched, Lustre calls `update(model, msg)` to produce the next model, then calls `view(new_model)` to produce the new HTML. The cycle repeats for every event. Because `view` is a function, the UI is always a deterministic reflection of the model — there's no component state to keep in sync.
 
 ```
  ┌───▶ User interaction
@@ -68,7 +68,7 @@ When a `Msg` is dispatched, Lustre calls `update(model, msg)` to produce the nex
  └───────── HTML
 ```
 
-This is the `lustre.simple` loop — no side effects. Once the app needs to make HTTP requests, `update` will also return effects alongside the new model, and those effects can dispatch further messages back into the loop.
+This is the `lustre.simple` loop — no side effects. Once the app needs to make HTTP requests, `update` will also return effects alongside the new model, and those effects can dispatch further messages back into the loop. The full diagram is in the [Introduction](/#frontend).
 
 ## The Greeting App
 
@@ -125,7 +125,7 @@ let app = lustre.simple(init, update, view)
 let assert Ok(_) = lustre.start(app, "#app", Nil)
 ```
 
-`lustre.simple` assembles the three MVU functions into an app. `lustre.start` mounts it onto the DOM element matching `#app` and passes `Nil` as the initial flags — flags are how the host page passes data in at startup; we don't need any yet.
+`lustre.simple` assembles the three MVU functions into an app. `lustre.start` mounts it onto the DOM element matching `#app` and passes `Nil` as the starting arguments — arguments are how the host page passes data in at startup; we don't need any yet.
 
 ### Model
 
@@ -152,7 +152,9 @@ type Msg {
 
 `Msg` is a custom type — each variant represents one thing that can happen. `UserUpdatedName` carries the current input value, dispatched on every keystroke via `on_input`. `UserClickedGreet` carries no data; it's dispatched when the button is clicked.
 
+::: info
 Lustre recommends naming messages in subject-verb-object form — `UserUpdatedName` rather than `UpdateName`. This makes it immediately clear what triggered the message, which becomes valuable as the message type grows.
+:::
 
 ### Update
 
@@ -165,7 +167,7 @@ fn update(model: Model, msg: Msg) {
 }
 ```
 
-`update` is a pure function — it takes the current model and a message and returns the next model. `Model(..model, name: name)` is Gleam's record update syntax: copy `model` with `name` replaced. No mutation, no side effects.
+`update` pattern matches on every possible message and returns the updated model. `UserUpdatedName` stores the latest input value; `UserClickedGreet` builds the greeting string from it. The `..model` syntax copies all fields from the current model, replacing only the one specified — so unrelated state is never accidentally lost.
 
 ### View
 
@@ -179,7 +181,7 @@ fn view(model: Model) {
 }
 ```
 
-HTML elements are regular Gleam functions. Each takes two arguments: a list of attributes and a list of children. `on_input` and `on_click` are event handlers that dispatch `Msg` values — when the user types, `UserUpdatedName` is dispatched with the new value; when they click, `UserClickedGreet` is dispatched.
+HTML elements are regular Gleam functions that take a list of attributes and a list of children. Event handlers like `on_input` and `on_click` dispatch `Msg` values back into the loop — `on_input` wraps each keystroke's value in `UserUpdatedName`, `on_click` dispatches `UserClickedGreet`.
 
 ## Running the Dev Server
 
@@ -190,7 +192,7 @@ cd client
 gleam run -m lustre/dev start
 ```
 
-On first run, `lustre_dev_tools` creates a `.lustre/` directory alongside the client source with a generated `index.html` that mounts the app on `<div id="app">`. This is the entry point that `lustre.start(app, "#app", Nil)` targets.
+On first run, `lustre_dev_tools` generates a `.lustre/` directory containing an `index.html` that mounts the app on `<div id="app">` — matching the selector passed to `lustre.start`. It also appends `.lustre/` and `/dist/` to `.gitignore`; the latter is where the compiled bundle lands when building for deployment.
 
 Open `http://localhost:1234` in a browser, type a name, and click the button. The greeting appears below — the Lustre setup is working.
 
