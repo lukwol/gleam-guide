@@ -338,7 +338,35 @@ pub type Msg {
 ```gleam
 // client/src/router.gleam
 
-    _, _ -> panic as "mismatched msg and page"
+pub fn update(page: Page, msg: Msg) -> #(Page, Effect(Msg)) {
+  case msg, page {
+    OnRouteChanged(route), _ -> page_from_route(route)
+    TasksPageSentMsg(page_msg), TasksPage(page_model) -> {
+      let #(new_page_model, effect) = tasks.update(page_model, page_msg)
+      #(TasksPage(new_page_model), effect.map(effect, TasksPageSentMsg))
+    }
+    NewTaskPageSentMsg(page_msg), NewTaskPage(page_model) -> {                          // [!code ++]
+      let #(new_page_model, effect) = new_task.update(page_model, page_msg)             // [!code ++]
+      #(NewTaskPage(new_page_model), effect.map(effect, NewTaskPageSentMsg))            // [!code ++]
+    }                                                                                   // [!code ++]
+    EditTaskPageSentMsg(page_msg), EditTaskPage(page_model) -> {                        // [!code ++]
+      let #(new_page_model, effect) = edit_task.update(page_model, page_msg)            // [!code ++]
+      #(EditTaskPage(new_page_model), effect.map(effect, EditTaskPageSentMsg))          // [!code ++]
+    }                                                                                   // [!code ++]
+    _, _ -> panic as "mismatched msg and page"                                          // [!code ++]
+  }
+}
+
+pub fn view(page: Page) -> Element(Msg) {
+  case page {
+    TasksPage(page_model) ->
+      tasks.view(page_model) |> element.map(TasksPageSentMsg)
+    NewTaskPage(page_model) ->                                                          // [!code ++]
+      new_task.view(page_model) |> element.map(NewTaskPageSentMsg)                      // [!code ++]
+    EditTaskPage(page_model) ->                                                         // [!code ++]
+      edit_task.view(page_model) |> element.map(EditTaskPageSentMsg)                    // [!code ++]
+  }
+}
 ```
 
 The edit task page silently ignores mismatched messages because some can legitimately arrive out of order. The router panics instead — a message arriving for the wrong page is a programming error that should never happen if the router is correct. Panicking makes it visible immediately during development rather than silently swallowing it.
@@ -348,14 +376,22 @@ The edit task page silently ignores mismatched messages because some can legitim
 ```gleam
 // client/src/router.gleam
 
-    route.NewTask -> {
-      let #(page_model, effect) = new_task.init()
-      #(NewTaskPage(page_model), effect.map(effect, NewTaskPageSentMsg))
+fn page_from_route(route: route.Route) -> #(Page, Effect(Msg)) {
+  case route {
+    route.Tasks -> {
+      let #(page_model, effect) = tasks.init()
+      #(TasksPage(page_model), effect.map(effect, TasksPageSentMsg))
     }
-    route.EditTask(id) -> {
-      let #(page_model, effect) = edit_task.init(id)
-      #(EditTaskPage(page_model), effect.map(effect, EditTaskPageSentMsg))
-    }
+    route.NewTask -> {                                                           // [!code ++]
+      let #(page_model, effect) = new_task.init()                                // [!code ++]
+      #(NewTaskPage(page_model), effect.map(effect, NewTaskPageSentMsg))         // [!code ++]
+    }                                                                            // [!code ++]
+    route.EditTask(id) -> {                                                      // [!code ++]
+      let #(page_model, effect) = edit_task.init(id)                             // [!code ++]
+      #(EditTaskPage(page_model), effect.map(effect, EditTaskPageSentMsg))       // [!code ++]
+    }                                                                            // [!code ++]
+  }
+}
 ```
 
 The task ID flows from the URL (`EditTask(id)` in the route) directly into `edit_task.init(id)`, which fires the fetch. No global state, no context — the page gets everything it needs from the route.
@@ -367,9 +403,20 @@ The task ID flows from the URL (`EditTask(id)` in the route) directly into `edit
 ```gleam
 // client/src/page/tasks.gleam
 
-html.a([attribute.href(route.to_path(route.NewTask))], [
-  element.text("New Task"),
-]),
+pub fn view(model: Model) -> Element(Msg) {
+  html.div([], [
+    html.h1([], [element.text("Tasks")]),
+    html.a([attribute.href(route.to_path(route.NewTask))], [                      // [!code ++]
+      element.text("New Task"),                                                   // [!code ++]
+    ]),                                                                           // [!code ++]
+    case model.tasks {
+      Error(err) -> html.p([], [element.text(error.message(err))])
+      Ok([]) if model.loading -> html.p([], [element.text("Loading...")])
+      Ok([]) -> html.p([], [element.text("No tasks yet")])
+      Ok(tasks) -> html.ul([], list.map(tasks, view_task))
+    },
+  ])
+}
 ```
 
 And each task item becomes a link to its edit page:
@@ -380,13 +427,13 @@ And each task item becomes a link to its edit page:
 fn view_task(t: task.Task) -> Element(Msg) {
   html.li([], [
     html.a([attribute.href(route.to_path(route.EditTask(t.id)))], [  // [!code ++]
-      html.input([
-        attribute.type_("checkbox"),
-        attribute.checked(t.completed),
-        attribute.disabled(True),
-      ]),
-      element.text(t.name <> " — " <> t.description),
-    ]),                                                               // [!code ++]
+      html.input([                                                   // [!code highlight]
+        attribute.type_("checkbox"),                                 // [!code highlight]
+        attribute.checked(t.completed),                              // [!code highlight]
+        attribute.disabled(True),                                    // [!code highlight]
+      ]),                                                            // [!code highlight]
+      element.text(t.name <> " — " <> t.description),                // [!code highlight]
+    ]),                                                              // [!code ++]
   ])
 }
 ```
@@ -403,11 +450,11 @@ The fix is to intercept `OPTIONS` before it reaches the router:
 // server/src/web.gleam
 
 fn cors(req: Request, next: fn() -> Response) -> Response {  // [!code highlight]
-  let resp = case req.method {
+  let resp = case req.method {                               // [!code ++]
     http.Options -> wisp.ok()                                // [!code ++]
-    _ -> next()
-  }
-  resp
+    _ -> next()                                              // [!code ++]
+  }                                                          // [!code ++]
+  resp                                                       // [!code highlight]
   |> response.set_header("access-control-allow-origin", "*")
   |> response.set_header(
     "access-control-allow-methods",
@@ -422,11 +469,20 @@ fn cors(req: Request, next: fn() -> Response) -> Response {  // [!code highlight
 ```gleam
 // server/src/web.gleam
 
-use <- cors(req)  // [!code highlight]
+pub fn middleware(
+  req: Request,
+  handle_request: fn(Request) -> Response,
+) -> Response {
+  use <- wisp.log_request(req)
+  use <- wisp.rescue_crashes
+  use req <- wisp.handle_head(req)
+  use <- cors(req)                            // [!code highlight]
+  handle_request(req)
+}
 ```
 
 ## What's Next
 
-The app now supports the full task lifecycle — listing, creating, and editing tasks. The next step is making it deployable: packaging the client into a Docker image and wiring everything together in Docker Compose.
+The app now supports task listing, creation, and editing; however, the UI is still a bit raw. Additionally, our CORS middleware is becoming messier and redundant. To make our lives easier, we will migrate to the [Vite build tool](https://vite.dev) next.
 
-[^1]: See commit [07961ee](https://github.com/lukwol/doable/commit/07961ee5f98ddd4eb9ef270842c5b907f3ac1e47) on GitHub
+[^1]: See commit [b189ff5](https://github.com/lukwol/doable/commit/b189ff5f0555b18395eb3b323f082da0929722df) on GitHub

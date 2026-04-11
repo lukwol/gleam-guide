@@ -215,7 +215,7 @@ The model now holds the task list and a loading flag:
 // client/src/client.gleam
 
 pub type Model {
-  Model(tasks: Result(List(task.Task), ApiError), refreshing: Bool)
+  Model(tasks: Result(List(task.Task), ApiError), loading: Bool)
 }
 
 pub type Msg {
@@ -223,7 +223,7 @@ pub type Msg {
 }
 ```
 
-`tasks` is a `Result` — it holds either a list of tasks or the error that prevented fetching them. `refreshing` tracks whether a fetch is in flight; it's separate from `tasks` so the loading state is readable independently of whether there's already data.
+`tasks` is a `Result` — it holds either a list of tasks or the error that prevented fetching them. `loading` tracks whether a fetch is in flight; it's separate from `tasks` so the loading state is readable independently of whether there's already data.
 
 `Msg` has a single variant. Following Lustre's subject-verb-object convention, `ApiReturnedTasks` names the source (`Api`) and the event (`ReturnedTasks`).
 
@@ -235,7 +235,7 @@ pub type Msg {
 // client/src/client.gleam
 
 pub fn init(_) -> #(Model, Effect(Msg)) {
-  #(Model(tasks: Ok([]), refreshing: True), fetch_tasks())
+  #(Model(tasks: Ok([]), loading: True), fetch_tasks())
 }
 
 fn fetch_tasks() -> Effect(Msg) {
@@ -259,18 +259,18 @@ fn fetch_tasks() -> Effect(Msg) {
 pub fn update(_model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
     ApiReturnedTasks(Ok(tasks)) -> #(
-      Model(tasks: Ok(tasks), refreshing: False),
+      Model(tasks: Ok(tasks), loading: False),
       effect.none(),
     )
     ApiReturnedTasks(Error(err)) -> #(
-      Model(tasks: Error(err), refreshing: False),
+      Model(tasks: Error(err), loading: False),
       effect.none(),
     )
   }
 }
 ```
 
-The previous model is ignored for now (`_model`) — the response carries the full new state. Both branches set `refreshing: False` — the fetch has settled regardless of outcome. `effect.none()` signals that no further side effects are needed.
+The previous model is ignored for now (`_model`) — the response carries the full new state. Both branches set `loading: False` — the fetch has settled regardless of outcome. `effect.none()` signals that no further side effects are needed.
 
 ## View
 
@@ -282,7 +282,7 @@ pub fn view(model: Model) -> Element(Msg) {
     html.h1([], [element.text("Tasks")]),
     case model.tasks {
       Error(err) -> html.p([], [element.text(error.message(err))])
-      Ok([]) if model.refreshing -> html.p([], [element.text("Loading...")])
+      Ok([]) if model.loading -> html.p([], [element.text("Loading...")])
       Ok([]) -> html.p([], [element.text("No tasks yet")])
       Ok(tasks) -> html.ul([], list.map(tasks, view_task))
     },
@@ -304,7 +304,7 @@ fn view_task(t: task.Task) -> Element(Msg) {
 The `case` on `model.tasks` covers all four states:
 
 - **Error** — display the error message via `error.message`.
-- **`Ok([]) if model.refreshing`** — the list is empty _and_ a fetch is in flight: show "Loading…". The guard clause distinguishes this from an empty list that has already loaded.
+- **`Ok([]) if model.loading`** — the list is empty _and_ a fetch is in flight: show "Loading…". The guard clause distinguishes this from an empty list that has already loaded.
 - **`Ok([])`** — fetch complete but no tasks: "No tasks yet".
 - **`Ok(tasks)`** — render the list.
 
@@ -345,4 +345,4 @@ fn cors(next: fn() -> Response) -> Response {                                   
 
 The tasks screen now loads and renders task data from the API. The next step is routing — adding separate pages for creating and editing tasks.
 
-[^1]: See commit [c79e354](https://github.com/lukwol/doable/commit/c79e3549bfbc23614aa8c1170954a25541d1beec) on GitHub
+[^1]: See commit [27337fb](https://github.com/lukwol/doable/commit/27337fbb412f5f719fd2897c4dd678510128803b) on GitHub

@@ -243,4 +243,4 @@ fn view(model: Model) -> Element(router.Msg) {
 
 The routing skeleton is in place. The next step is putting it to work — adding a create task page and a edit task page so users can actually manage their tasks.
 
-[^1]: See commit [099450a](https://github.com/lukwol/doable/commit/099450ab98e0967114f15199859fb73e3681cf42) on GitHub
+[^1]: See commit [8521e92](https://github.com/lukwol/doable/commit/8521e92e89b0007ba94cdcd2e188c4c25bff211e) on GitHub
