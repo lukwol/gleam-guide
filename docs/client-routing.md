@@ -166,10 +166,10 @@ pub fn on_url_change(uri: Uri) -> Msg {
 }
 
 fn page_from_uri(uri: Uri) -> #(Page, Effect(Msg)) {
-  let r = route.from_uri(uri)
-  let #(page, effect) = page_from_route(r)
+  let route = route.from_uri(uri)
+  let #(page, effect) = page_from_route(route)
   let redirect = case uri.path_segments(uri.path) {
-    [] -> modem.replace(route.to_path(r), None, None)
+    [] -> modem.replace(route.to_path(route), None, None)
     _ -> effect.none()
   }
   #(page, effect.batch([effect, redirect]))
@@ -231,7 +231,11 @@ fn view(model: Model) -> Element(router.Msg) {
 }
 ```
 
-`client.gleam` now does three things: starts modem with `modem.init(router.on_url_change)` so URL changes flow into the loop as messages, delegates `init` and `update` entirely to the router, and passes the current page straight to `router.view`.
+`client.gleam` now does three things:
+
+- Starts modem with `modem.init(router.on_url_change)` so URL changes flow into the loop as messages.
+- Delegates `init` and `update` entirely to the `router`.
+- Passes the current page straight to `router.view`.
 
 `modem.initial_uri()` reads the browser's current URL at startup and passes it to `router.init`, so the app always opens on the right page — even if you land directly on `/tasks` from a bookmark or a shared link.
 
@@ -239,4 +243,4 @@ fn view(model: Model) -> Element(router.Msg) {
 
 The routing skeleton is in place. The next step is putting it to work — adding a create task page and a edit task page so users can actually manage their tasks.
 
-[^1]: See commit [ded4a67](https://github.com/lukwol/doable/commit/ded4a67) on GitHub
+[^1]: See commit [21a5ba5](https://github.com/lukwol/doable/commit/21a5ba5b15d8fef09ae0ec8bdd5bddf957f7efe9) on GitHub
