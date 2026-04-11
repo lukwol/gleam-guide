@@ -30,7 +30,7 @@ gleam add gleam_http gleam_erlang wisp mist
 
 Here's what each one brings:
 
-- **wisp** — a lightweight web framework that handles routing helpers, middleware, and response construction. It's the layer you'll spend most of your time in.
+- **wisp** — an excellent lightweight web framework that handles routing helpers, middleware, and response construction. It's the layer you'll spend most of your time in.
 - **mist** — the actual TCP server that receives connections and speaks HTTP. Wisp sits on top of Mist, so you rarely interact with it directly.
 - **gleam_erlang** — Erlang interop utilities. It's a transitive dependency pulled in by Wisp and Mist, but we use `process.sleep_forever()` from it directly, so we declare it explicitly to avoid a compiler warning.
 - **gleam_http** — the shared vocabulary of HTTP: `Request`, `Response`, methods, headers. Also a transitive dependency, declared explicitly because we import it directly in our router.

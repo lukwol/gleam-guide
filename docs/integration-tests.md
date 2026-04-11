@@ -513,4 +513,4 @@ The server is fully tested. The next step adds it to Docker Compose so the whole
 
 [^1]: See commit [b64e8a4](https://github.com/lukwol/doable/commit/b64e8a484107c8f738a1a9b731e4a9df349eb7b7) on GitHub
 
-[^2]: See commit [a8b7c7a](https://github.com/lukwol/doable/commit/b64e8a484107c8f738a1a9b731e4a9df349eb7b7) on GitHub
+[^2]: See commit [a8b7c7a](https://github.com/lukwol/doable/commit/a8b7c7a7502c88fc4f8cd63a937dcaceba7b05e5) on GitHub

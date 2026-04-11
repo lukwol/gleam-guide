@@ -2,9 +2,9 @@
 
 The CORS middleware added in the previous chapter was a workaround for a problem that doesn't need to exist. The browser only enforces the same-origin policy when the frontend and backend are served from different origins — if a dev server proxies API requests on the client's behalf, the browser never sees a cross-origin request. [Vite](https://vite.dev) has this capability built in.
 
-Replacing `lustre_dev_tools` with Vite also gives us a standard JS build tool with a rich plugin ecosystem — including [vite-gleam](https://github.com/nicktobey/vite-gleam), which teaches Vite to import `.gleam` files directly. With the proxy in place, the API base URL is always the same origin as the page, so the hardcoded `http://localhost:8000` in `api.gleam` can go too.
+Replacing `lustre_dev_tools` with Vite also gives us a standard JS build tool with a rich plugin ecosystem — including the fantastic [vite-gleam](https://github.com/nicktobey/vite-gleam), which teaches Vite to import `.gleam` files directly. With the proxy in place, the API base URL is always the same origin as the page, so the hardcoded `http://localhost:8000` in `api.gleam` can go too.
 
-Thirteen files change, five are new[^1]:
+Thirteen files change, five are new[^1]. The migration approach is based on this [excellent blog post](https://erikarow.land/notes/gleam-vite) by Erika Rowland[^2].
 
 ```sh
 doable/
@@ -35,14 +35,18 @@ bun create vite .
 
 Vite will ask which framework and variant to use — select **Vanilla** and **JavaScript**. It then generates a fresh `package.json`, `index.html`, and `src/main.js`, and rewrites `.gitignore` with its own template.
 
+::: warning
+`bun create vite .` overwrites `.gitignore` with its own template, dropping the Gleam-specific entries. Restore them afterwards.
+:::
+
 That rewrite drops the Gleam-specific entries. Add them back manually under a `# Gleam` comment:
 
-```
-# Gleam              // [!code ++]
-*.beam               // [!code ++]
-*.ez                 // [!code ++]
-/build               // [!code ++]
-erl_crash.dump       // [!code ++]
+```sh
+# Gleam               [!code ++]
+*.beam               # [!code ++]
+*.ez                 # [!code ++]
+/build               # [!code ++]
+erl_crash.dump       # [!code ++]
 
 # Logs
 logs
@@ -204,3 +208,5 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
 
 [^1]: See commit [33c887f](https://github.com/lukwol/doable/commit/33c887f6d0dbd4e14dafa1c7729a1ef25527446e) on GitHub
+
+[^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland

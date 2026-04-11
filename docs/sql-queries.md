@@ -1,6 +1,6 @@
 # SQL Queries with Squirrel
 
-With the schema in place, it's time to add Squirrel. It reads plain `.sql` files and produces type-safe Gleam functions — the SQL stays as SQL, Squirrel just generates the wrappers.
+With the schema in place, it's time to add Squirrel. This clever tool reads plain `.sql` files and produces type-safe Gleam functions — the SQL stays as SQL, Squirrel just generates the wrappers.
 
 Five SQL files and a generated Gleam module:
 
@@ -28,7 +28,7 @@ gleam add pog gleam_time
 gleam add --dev squirrel
 ```
 
-- **pog** — the Postgres driver; `pog.Connection` is what we'll pass to every query. It's a transitive dependency pulled in by Squirrel, declared explicitly to avoid a compiler warning.
+- **pog** — a great Postgres driver; `pog.Connection` is what we'll pass to every query. It's a transitive dependency pulled in by Squirrel, declared explicitly to avoid a compiler warning.
 - **gleam_time** — provides the `Timestamp` type that pog uses for `TIMESTAMP` columns. Also a transitive dependency, declared explicitly because we import it in the generated **sql.gleam**.
 - **squirrel** — a dev-only code generator, not a runtime dependency.
 

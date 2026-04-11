@@ -141,6 +141,10 @@ pub fn update(page: Page, msg: Msg) -> #(Page, Effect(Msg)) {
 
 The `effect.map(effect, TasksPageSentMsg)` call is worth pausing on. `tasks.update` returns an `Effect(tasks.Msg)`, but the router works with `Effect(router.Msg)`. `effect.map` transforms one into the other by running the effect and wrapping whatever message it produces in `TasksPageSentMsg`. The same pattern applies to every page — the router never has to know what effects a page runs, only how to wrap their results.
 
+::: info
+`effect.map` and `element.map` are the same idea applied in two places: `effect.map` lifts effect message types up to the router level, `element.map` does the same for view message types. Every page added to the router uses both — wrapping its `Effect(page.Msg)` and its `Element(page.Msg)` into the router's own `Msg` type.
+:::
+
 ### View
 
 ```gleam
