@@ -38,6 +38,7 @@ export default {
         text: "Client",
         items: [
           { text: "Client Setup", link: "/client-setup" },
+          { text: "Tasks Screen", link: "/tasks-screen" },
         ],
       },
     ],
