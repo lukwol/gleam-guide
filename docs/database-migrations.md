@@ -19,6 +19,8 @@ Create the `migrations/` directory at the project root and add the first migrati
 **migrations/1_create_tasks.up.sql**
 
 ```sql
+-- migrations/1_create_tasks.up.sql
+
 CREATE TABLE tasks (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,
@@ -32,6 +34,8 @@ CREATE TABLE tasks (
 **migrations/1_create_tasks.down.sql**
 
 ```sql
+-- migrations/1_create_tasks.down.sql
+
 DROP TABLE tasks;
 ```
 
@@ -42,6 +46,8 @@ Each migration is a pair of files — `.up.sql` to apply the change and `.down.s
 The `migrate` service needs to wait until Postgres is actually ready to accept connections — not just started. Add a healthcheck to the `db` service and a new `migrate` service to `compose.yml`[^1]:
 
 ```yaml{22,28-30}
+# compose.yml
+
 name: doable-dev
 
 services:

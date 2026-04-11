@@ -37,6 +37,8 @@ Tests need their own database so they don't touch development data. Two small ad
 A shell script placed in `/docker-entrypoint-initdb.d/` runs automatically on Postgres first start, creating the test database alongside the development one:
 
 ```sh
+# docker/init-test-db.sh
+
 #!/bin/bash
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -c "CREATE DATABASE \"$TEST_DB_NAME\";"
@@ -47,6 +49,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
 One new variable specifies the test database name:
 
 ```sh
+# .env
+
 # Database
 PGHOST=db
 PGPORT=5432
@@ -66,6 +70,8 @@ SERVER_PORT=8000
 Two changes: the `db` service gains the `TEST_DB_NAME` environment variable and the init script volume mount, and a new `migrate-test` service runs migrations against the test database:
 
 ```yaml{42-44}
+# compose.yml
+
 name: doable-dev
 
 services:
@@ -143,6 +149,8 @@ Four files work together to make this happen: `test_database` owns the pool, `te
 `context.gleam` gains a `TestContext` variant and updates `db_conn` to handle both:
 
 ```gleam
+// server/src/context.gleam
+
 pub type Context {
   Context(config: Config, db_pool_name: DbPoolName)
   TestContext(config: Config, db_conn: pog.Connection)                // [!code ++]
@@ -162,6 +170,8 @@ pub fn db_conn(ctx: Context) -> pog.Connection {
 Loads the test database config by overriding `db_name` with `TEST_DB_NAME`, keeping all other settings (host, port, user, password) the same as development[^2]:
 
 ```gleam
+// server/test/test_config.gleam
+
 import config.{type Config}
 import envoy
 
@@ -176,6 +186,8 @@ pub fn load() -> Config {
 Owns the test pool lifecycle and provides the `with_rollback` helper:
 
 ```gleam
+// server/test/test_database.gleam
+
 import context.{type Context, type DbPoolName, TestContext}
 import gleam/option.{Some}
 import pog
@@ -227,6 +239,8 @@ A few notes:
 `test_context.get` verifies the pool is running and wraps it in a `TestContext`:
 
 ```gleam
+// server/test/test_context.gleam
+
 import context.{type Context, TestContext}
 import gleam/erlang/process
 import pog
@@ -247,6 +261,8 @@ pub fn get() -> Context {
 `gleeunit`'s `main` is the suite entry point. Calling `test_database.start()` here ensures the pool exists before any test module runs:
 
 ```gleam
+// server/test/server_test.gleam
+
 import gleeunit
 import test_database
 
@@ -264,6 +280,8 @@ Tests that write to the database wrap their body in `use ctx <- test_database.wi
 `test/fixtures.gleam` defines reusable `Task` values used as input templates throughout the tests:
 
 ```gleam
+// server/test/fixtures.gleam
+
 import task
 
 pub const task1 = task.Task(
@@ -323,6 +341,7 @@ Tests that only read from the database don't need `with_rollback` — just get a
 
 ```gleam
 // routes/list_tasks_test.gleam
+
 pub fn empty_list_tasks_test() {
   let ctx = test_context.get()
 
@@ -343,6 +362,7 @@ Method-not-allowed and not-found cases are also stateless:
 
 ```gleam
 // routes/router_test.gleam
+
 pub fn unknown_route_not_found_test() {
   let ctx = test_context.get()
 
@@ -355,6 +375,7 @@ pub fn unknown_route_not_found_test() {
 }
 
 // routes/list_tasks_test.gleam
+
 pub fn list_tasks_wrong_method_test() {
   let ctx = test_context.get()
 
@@ -373,6 +394,7 @@ Error path tests don't touch the database, so no rollback is needed. An invalid 
 
 ```gleam
 // routes/create_task_test.gleam
+
 pub fn create_task_with_invalid_json_test() {
   let ctx = test_context.get()
 
@@ -409,6 +431,7 @@ Tests that write to the database wrap their body in `with_rollback`. Both the se
 
 ```gleam
 // routes/create_task_test.gleam
+
 pub fn create_task_with_completed_test() {
   let ctx = test_context.get()
   use ctx <- test_database.with_rollback(ctx)
@@ -437,6 +460,7 @@ Tests that seed multiple records follow the same pattern — insert first, then 
 
 ```gleam
 // routes/list_tasks_test.gleam
+
 pub fn not_empty_list_tasks_test() {
   let ctx = test_context.get()
   use ctx <- test_database.with_rollback(ctx)
@@ -470,6 +494,7 @@ The upsert handler is worth highlighting because it returns `201 Created` on ins
 
 ```gleam
 // routes/upsert_task_test.gleam
+
 pub fn upsert_task_creates_task_test() {
   let ctx = test_context.get()
   use ctx <- test_database.with_rollback(ctx)

@@ -36,6 +36,8 @@ gleam add --dev squirrel
 After running the commands, `gleam.toml` gains three new entries:
 
 ```toml
+# server/gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -68,6 +70,8 @@ doable/
 Content of `.envrc`:
 
 ```sh
+# server/.envrc
+
 dotenv ../.env
 
 export PGHOST=localhost
@@ -82,6 +86,8 @@ Squirrel looks for `.sql` files under `src/` and generates a corresponding `.gle
 **`all_tasks.sql`**
 
 ```sql
+-- server/src/task/sql/all_tasks.sql
+
 SELECT
   id,
   name,
@@ -96,6 +102,8 @@ ORDER BY created_at DESC, id DESC
 **`get_task.sql`**
 
 ```sql
+-- server/src/task/sql/get_task.sql
+
 SELECT
   id,
   name,
@@ -110,6 +118,8 @@ WHERE id = $1
 **`create_task.sql`**
 
 ```sql
+-- server/src/task/sql/create_task.sql
+
 INSERT INTO tasks (name, description, completed)
 VALUES ($1, $2, $3)
 RETURNING
@@ -124,6 +134,8 @@ RETURNING
 **`update_task.sql`**
 
 ```sql
+-- server/src/task/sql/update_task.sql
+
 UPDATE tasks
 SET
   name = $2,
@@ -143,6 +155,8 @@ RETURNING
 **`upsert_task.sql`**
 
 ```sql
+-- server/src/task/sql/upsert_task.sql
+
 INSERT INTO tasks (id, name, description, completed)
 VALUES ($1, $2, $3, $4)
 ON CONFLICT (id) DO UPDATE
@@ -164,6 +178,8 @@ RETURNING
 **`delete_task.sql`**
 
 ```sql
+-- server/src/task/sql/delete_task.sql
+
 DELETE FROM tasks
 WHERE id = $1
 ```
@@ -187,6 +203,8 @@ gleam run -m squirrel
 Squirrel connects to the database, validates each query against the live schema, and generates `src/task/sql.gleam`. For each `.sql` file it produces a result row type and a query function. Here's what it generates for `all_tasks`:
 
 ```gleam
+// server/src/task/sql.gleam
+
 pub type AllTasksRow {
   AllTasksRow(
     id: Int,

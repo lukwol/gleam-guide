@@ -29,6 +29,8 @@ gleam add gleam_http gleam_fetch gleam_javascript gleam_json
 `gleam.toml` gains four new entries:
 
 ```toml
+# client/gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -49,6 +51,8 @@ lustre = ">= 5.6.0 and < 6.0.0"
 A new `error.gleam` module defines all the ways an API call can fail:
 
 ```gleam
+// client/src/error.gleam
+
 import gleam/dynamic/decode
 import gleam/fetch
 import gleam/int
@@ -86,6 +90,8 @@ The `message` helper turns any error into a human-readable string. All the patte
 `api.gleam` provides a single public function, `get`, that sends a JSON request and decodes the response:
 
 ```gleam
+// client/src/api.gleam
+
 import error.{
   type ApiError, DecodeError, FetchError, InvalidUrl, UnexpectedStatus,
 }
@@ -115,6 +121,8 @@ pub fn get(path: String, decoder: Decoder(a)) -> Promise(Result(a, ApiError)) {
 `with_json_request` constructs a base request or returns early if the URL is invalid:
 
 ```gleam
+// client/src/api.gleam
+
 fn with_json_request(
   path: String,
   callback: fn(Request(String)) -> Promise(Result(b, ApiError)),
@@ -135,6 +143,8 @@ fn with_json_request(
 ### Executing the Request
 
 ```gleam
+// client/src/api.gleam
+
 fn execute(
   req: Request(String),
   expect expect: List(Int),
@@ -168,6 +178,8 @@ The pipeline sends the request and processes the response in four steps:
 The greeting app used `lustre.simple`, which only allows pure state updates. To make HTTP requests, `client.gleam` upgrades to `lustre.application`:
 
 ```gleam
+// client/src/client.gleam
+
 pub fn main() {
   let app = lustre.application(init, update, view) // [!code highlight]
   let assert Ok(_) = lustre.start(app, "#app", Nil)
@@ -200,6 +212,8 @@ With `lustre.simple`, `init` returns `Model` and `update` returns `Model`. With 
 The model now holds the task list and a loading flag:
 
 ```gleam
+// client/src/client.gleam
+
 pub type Model {
   Model(tasks: Result(List(task.Task), ApiError), refreshing: Bool)
 }
@@ -218,6 +232,8 @@ pub type Msg {
 `init` starts a fetch immediately:
 
 ```gleam
+// client/src/client.gleam
+
 pub fn init(_) -> #(Model, Effect(Msg)) {
   #(Model(tasks: Ok([]), refreshing: True), fetch_tasks())
 }
@@ -238,6 +254,8 @@ fn fetch_tasks() -> Effect(Msg) {
 `update` handles the single message:
 
 ```gleam
+// client/src/client.gleam
+
 pub fn update(_model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
   case msg {
     ApiReturnedTasks(Ok(tasks)) -> #(
@@ -257,6 +275,8 @@ The previous model is ignored for now (`_model`) — the response carries the fu
 ## View
 
 ```gleam
+// client/src/client.gleam
+
 pub fn view(model: Model) -> Element(Msg) {
   html.div([], [
     html.h1([], [element.text("Tasks")]),
@@ -295,6 +315,8 @@ The `case` on `model.tasks` covers all four states:
 While the dev server (`lustre_dev_tools`) runs on port 1234, the API server runs on port 8000. The browser blocks cross-origin requests by default, so `web.gleam` adds a `cors` middleware:
 
 ```gleam
+// server/src/web.gleam
+
 pub fn middleware(
   req: Request,
   handle_request: fn(Request) -> Response,

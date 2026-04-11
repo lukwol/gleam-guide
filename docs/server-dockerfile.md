@@ -14,6 +14,8 @@ doable/
 ## Dockerfile
 
 ```dockerfile
+# server/Dockerfile
+
 ARG ERLANG_VERSION=28.4.1.0
 ARG GLEAM_VERSION=v1.15.2
 
@@ -94,6 +96,8 @@ The final image is a fresh Alpine with just the Erlang runtime — no Gleam comp
 The `server` service builds from the Dockerfile and waits for migrations to finish before starting:
 
 ```yaml
+# compose.yml
+
 name: doable-dev
 
 services:

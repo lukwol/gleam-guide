@@ -25,6 +25,8 @@ doable/
 `shared.gleam` was a placeholder from project setup. Replace it with `task.gleam`, which defines the domain types shared across the entire app:
 
 ```gleam
+// shared/src/task.gleam
+
 pub type Task {
   Task(id: Int, name: String, description: String, completed: Bool)
 }
@@ -62,6 +64,8 @@ The `shared` package is imported by both `server` and (eventually) `client`, so 
 ### `error.gleam`
 
 ```gleam
+// server/src/error.gleam
+
 import pog
 
 pub type DatabaseError {
@@ -84,6 +88,8 @@ Keeping errors as a plain Gleam type means route handlers can pattern-match on t
 `task/repository.gleam` sits between the generated SQL functions and the rest of the application. Each function follows the same shape: call an SQL function, map the error, unwrap the returned rows, and build a domain value:
 
 ```gleam
+// server/src/task/repository.gleam
+
 import error.{type DatabaseError, QueryError, RecordNotFound, UnexpectedNoRows}
 import gleam/bool
 import gleam/list
@@ -236,6 +242,8 @@ A few things worth noting:
 The previous chapter required six Erlang expressions just to get a `pog.Connection` in `gleam shell`. `console.gleam` wraps that setup into a single Gleam function.
 
 ```gleam
+// server/src/console.gleam
+
 import config
 import context.{Context}
 import database

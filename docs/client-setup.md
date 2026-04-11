@@ -25,6 +25,8 @@ gleam add --dev lustre_dev_tools
 After running these commands, `gleam.toml` gains two new entries[^1]:
 
 ```toml
+# client/gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -75,6 +77,8 @@ This is the `lustre.simple` loop — no side effects. Once the app needs to make
 `client.gleam` implements a small app to validate the setup. A user types a name, clicks a button, and sees a greeting:
 
 ```gleam
+// client/src/client.gleam
+
 import lustre
 import lustre/element.{text}
 import lustre/element/html.{button, div, input, p}

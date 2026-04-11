@@ -30,6 +30,8 @@ gleam add modem
 `gleam.toml` gains one entry:
 
 ```toml
+# client/gleam.toml
+
 [dependencies]
 ...
 lustre = ">= 5.6.0 and < 6.0.0"
@@ -43,6 +45,8 @@ modem = ">= 2.1.2 and < 3.0.0"   # [!code ++]
 `route.gleam` is the single source of truth for every URL in the app:
 
 ```gleam
+// client/src/route.gleam
+
 import gleam/uri.{type Uri}
 
 pub const home_route = Tasks
@@ -87,6 +91,8 @@ client/
 ### Page and Messages
 
 ```gleam
+// client/src/router.gleam
+
 pub type Page {
   TasksPage(tasks.Model)
 }
@@ -104,6 +110,8 @@ pub type Msg {
 ### Init
 
 ```gleam
+// client/src/router.gleam
+
 pub fn init(initial_uri: Result(Uri, Nil)) -> #(Page, Effect(Msg)) {
   initial_uri
   |> result.map(page_from_uri)
@@ -116,6 +124,8 @@ pub fn init(initial_uri: Result(Uri, Nil)) -> #(Page, Effect(Msg)) {
 ### Update
 
 ```gleam
+// client/src/router.gleam
+
 pub fn update(page: Page, msg: Msg) -> #(Page, Effect(Msg)) {
   case msg, page {
     OnRouteChanged(route), _ -> page_from_route(route)
@@ -134,6 +144,8 @@ The `effect.map(effect, TasksPageSentMsg)` call is worth pausing on. `tasks.upda
 ### View
 
 ```gleam
+// client/src/router.gleam
+
 pub fn view(page: Page) -> Element(Msg) {
   case page {
     TasksPage(page_model) ->
@@ -147,6 +159,8 @@ pub fn view(page: Page) -> Element(Msg) {
 ### Handling URLs
 
 ```gleam
+// client/src/router.gleam
+
 pub fn on_url_change(uri: Uri) -> Msg {
   OnRouteChanged(route.from_uri(uri))
 }
@@ -182,6 +196,8 @@ fn page_from_route(route: route.Route) -> #(Page, Effect(Msg)) {
 With the router in place, `client.gleam` becomes pleasantly minimal:
 
 ```gleam
+// client/src/client.gleam
+
 import lustre
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}

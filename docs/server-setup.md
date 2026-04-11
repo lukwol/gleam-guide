@@ -38,6 +38,8 @@ Here's what each one brings:
 After running the command, `gleam.toml` gains four new entries[^1]:
 
 ```toml
+# server/gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -54,6 +56,8 @@ mist = ">= 5.0.4 and < 6.0.0"           # [!code ++]
 `server.gleam` wires everything together and starts Mist on port 8000:
 
 ```gleam
+// server/src/server.gleam
+
 import gleam/erlang/process
 import mist
 import router
@@ -83,6 +87,8 @@ pub fn main() -> Nil {
 Rather than attaching middleware to individual routes, we define it once in `web.gleam` and apply it to every request:
 
 ```gleam
+// server/src/web.gleam
+
 import wisp
 
 pub fn middleware(
@@ -109,6 +115,8 @@ Wisp's `use` syntax threads the request through each layer in order. The result 
 `router.gleam` receives every request after middleware runs and decides where it goes:
 
 ```gleam
+// server/src/router.gleam
+
 import gleam/http.{Delete, Get, Patch, Post, Put}
 import task/route as task_routes
 import web
@@ -157,6 +165,8 @@ The routing logic is split into two functions to keep each `case` focused. `hand
 | `delete_task` | DELETE | `/api/tasks/:id` |
 
 ```gleam
+// server/src/task/route.gleam
+
 import wisp.{type Request, type Response}
 
 pub fn list_tasks() -> Response {

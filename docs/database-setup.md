@@ -15,6 +15,8 @@ doable/
 Create a `.env` file at the project root to hold the database credentials:
 
 ```sh
+# .env
+
 # Database
 PGHOST=db
 PGPORT=5432
@@ -34,6 +36,8 @@ Never commit `.env` to version control. For this guide I did it intentionally â€
 Create `compose.yml` at the project root[^1]:
 
 ```yaml
+# compose.yml
+
 name: doable-dev
 
 services:

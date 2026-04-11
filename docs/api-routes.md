@@ -35,6 +35,7 @@ gleam add gleam_json
 
 ```toml
 # shared/gleam.toml
+
 [dependencies]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 gleam_json = ">= 3.1.0 and < 4.0.0"   # [!code ++]
@@ -42,6 +43,7 @@ gleam_json = ">= 3.1.0 and < 4.0.0"   # [!code ++]
 
 ```toml
 # server/gleam.toml
+
 [dependencies]
 ...
 gleam_otp = ">= 1.2.0 and < 2.0.0"
@@ -54,6 +56,8 @@ wisp = ">= 2.2.1 and < 3.0.0"
 `task.gleam` needs four new functions: a decoder and an encoder for both `Task` and `TaskInput`:
 
 ```gleam
+// shared/src/task.gleam
+
 import gleam/dynamic/decode.{type Decoder}  // [!code ++]
 import gleam/json.{type Json}               // [!code ++]
 
@@ -126,6 +130,8 @@ A few things worth noting:
 With the JSON functions in place, it's worth adding unit tests for the shared module. `shared/test/shared_test.gleam` had boilerplate left over from project setup — that's removed, and a new `shared/test/task_test.gleam` verifies the conversion and JSON round-trip functions:
 
 ```gleam
+// shared/test/task_test.gleam
+
 import gleam/json
 import task
 
@@ -179,6 +185,8 @@ gleam test
 The route handlers all share three common operations: parsing an ID from a path segment, decoding a JSON body, and translating a database result into an HTTP response. Rather than repeating this logic in every handler, `web.gleam` provides three helper functions:
 
 ```gleam
+// server/src/web.gleam
+
 import error.{type DatabaseError, RecordNotFound}                       // [!code ++]
 import gleam/dynamic/decode.{type Decoder}                              // [!code ++]
 import gleam/int                                                        // [!code ++]
@@ -235,6 +243,8 @@ Each helper follows the same shape: it takes a `next` continuation as its last a
 With the helpers in place, the route handlers become short, readable pipelines:
 
 ```gleam
+// server/src/task/route.gleam
+
 import context.{type Context}
 import gleam/json
 import task

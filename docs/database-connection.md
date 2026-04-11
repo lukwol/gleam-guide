@@ -33,6 +33,8 @@ gleam add envoy gleam_otp
 `gleam.toml` gains two new entries:
 
 ```toml
+# server/gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
@@ -53,6 +55,8 @@ envoy = ">= 1.1.0 and < 2.0.0"          # [!code ++]
 The server needs three more values in `.env`[^2]:
 
 ```sh
+# .env
+
 # Database
 PGHOST=db
 PGPORT=5432
@@ -82,6 +86,8 @@ SERVER_PORT=8000                    # [!code ++]
 `config.gleam` defines a `Config` type and a `load` function that reads every setting from the environment at startup:
 
 ```gleam
+// server/src/config.gleam
+
 import envoy
 import gleam/int
 import gleam/result
@@ -131,6 +137,8 @@ pub fn load() -> Config {
 `context.gleam` wraps the config and the database pool into a single `Context` value that gets passed to every request handler:
 
 ```gleam
+// server/src/context.gleam
+
 import config.{type Config}
 import gleam/erlang/process
 import pog
@@ -154,6 +162,8 @@ pub fn db_conn(ctx: Context) -> pog.Connection {
 `database.gleam` owns the pool lifecycle — it creates a named pool, attaches it to an OTP supervisor, and returns the pool name:
 
 ```gleam
+// server/src/database.gleam
+
 import config.{type Config}
 import context.{type DbPoolName}
 import gleam/erlang/process
@@ -190,6 +200,8 @@ A few things worth noting:
 `server.gleam` now loads config and context before starting Mist, and configures the server from the environment rather than hardcoded values:
 
 ```gleam
+// server/src/server.gleam
+
 import config                                      // [!code ++]
 import context.{Context}                           // [!code ++]
 import database                                    // [!code ++]
@@ -225,6 +237,8 @@ pub fn main() -> Nil {
 The router now accepts and threads `Context` through to the route handlers:
 
 ```gleam
+// server/src/router.gleam
+
 import context.{type Context}                                                     // [!code ++]
 import gleam/http.{Delete, Get, Patch, Post, Put}
 import task/route as task_routes
@@ -261,6 +275,8 @@ fn handle_tasks(segments: List(String), req: Request, ctx: Context) -> Response 
 The handler stubs now accept `Context` as a parameter, ready for the real implementations:
 
 ```gleam
+// server/src/task/route.gleam
+
 import context.{type Context}                                                 // [!code ++]
 import wisp.{type Request, type Response}
 

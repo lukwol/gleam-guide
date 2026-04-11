@@ -27,6 +27,8 @@ The `--skip-github` flag skips generating GitHub Actions workflows, keeping thin
 Both `server` and `client` depend on `shared` via a local path reference. Add the following to their `gleam.toml`[^1]:
 
 ```toml
+# gleam.toml
+
 [dependencies]
 shared = { path = "../shared" }	        # [!code ++]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
