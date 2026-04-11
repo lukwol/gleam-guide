@@ -39,6 +39,7 @@ export default {
         items: [
           { text: "Client Setup", link: "/client-setup" },
           { text: "Tasks Screen", link: "/tasks-screen" },
+          { text: "Client-Side Routing", link: "/client-routing" },
         ],
       },
     ],
