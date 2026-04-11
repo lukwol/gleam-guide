@@ -2,7 +2,7 @@
 
 With the schema in place, it's time to add Squirrel. It reads plain `.sql` files and produces type-safe Gleam functions — the SQL stays as SQL, Squirrel just generates the wrappers.
 
-Six SQL files and a generated Gleam module:
+Five SQL files and a generated Gleam module:
 
 ```sh
 doable/
@@ -14,7 +14,6 @@ doable/
             │   ├── get_task.sql        # fetch a single task by id             [!code ++]
             │   ├── create_task.sql     # insert a new task                     [!code ++]
             │   ├── update_task.sql     # update an existing task               [!code ++]
-            │   ├── upsert_task.sql     # insert or update by id                [!code ++]
             │   └── delete_task.sql     # delete a task by id                   [!code ++]
             └── sql.gleam               # generated type-safe query functions   [!code ++]
 ```
@@ -152,29 +151,6 @@ RETURNING
   updated_at
 ```
 
-**`upsert_task.sql`**
-
-```sql
--- server/src/task/sql/upsert_task.sql
-
-INSERT INTO tasks (id, name, description, completed)
-VALUES ($1, $2, $3, $4)
-ON CONFLICT (id) DO UPDATE
-SET
-  name = EXCLUDED.name,
-  description = EXCLUDED.description,
-  completed = EXCLUDED.completed,
-  updated_at = NOW()
-RETURNING
-  id,
-  name,
-  description,
-  completed,
-  created_at,
-  updated_at,
-  (xmax = 0) AS inserted
-```
-
 **`delete_task.sql`**
 
 ```sql
@@ -188,7 +164,6 @@ A few things worth noting:
 
 - `$1`, `$2`, ...` — PostgreSQL's positional parameter syntax. Squirrel maps these to typed function arguments in the generated code.
 - `RETURNING` — tells Postgres to return the affected row. Squirrel uses the returned columns to generate the result type.
-- `(xmax = 0) AS inserted` in `upsert_task` — a Postgres trick to distinguish inserts from updates: `xmax` is `0` on a freshly inserted row and non-zero on an updated one. Squirrel picks this up as a `Bool` field named `inserted`.
 
 ## Generate the Gleam Module
 
@@ -233,4 +208,4 @@ The column types come directly from the schema — Squirrel infers them by query
 
 The query functions are ready but they need a `pog.Connection` to run against. The next step is loading server configuration from environment variables and setting up a supervised connection pool to pass through the router.
 
-[^1]: See commit [e7b36f1](https://github.com/lukwol/doable/commit/e7b36f1) on GitHub
+[^1]: See commit [f2efd4d](https://github.com/lukwol/doable/commit/f2efd4d27a926dba06bf67e155d65f2785436df0) on GitHub

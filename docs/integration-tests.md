@@ -24,7 +24,6 @@ doable/
             ├── create_task_test.gleam      # POST /api/tasks                             [!code ++]
             ├── show_task_test.gleam        # GET /api/tasks/:id                          [!code ++]
             ├── update_task_test.gleam      # PATCH /api/tasks/:id                        [!code ++]
-            ├── upsert_task_test.gleam      # PUT /api/tasks/:id                          [!code ++]
             └── delete_task_test.gleam      # DELETE /api/tasks/:id                       [!code ++]
 ```
 
@@ -490,58 +489,6 @@ pub fn not_empty_list_tasks_test() {
 
 `list.reverse(inputs)` reflects the `ORDER BY id DESC` in the `all_tasks` query — the most recently inserted task comes first.
 
-The upsert handler is worth highlighting because it returns `201 Created` on insert and `200 OK` on update. Two tests cover each branch:
-
-```gleam
-// routes/upsert_task_test.gleam
-
-pub fn upsert_task_creates_task_test() {
-  let ctx = test_context.get()
-  use ctx <- test_database.with_rollback(ctx)
-
-  let input = task.to_task_input(fixtures.task1)
-  let body = task.task_input_to_json(input)
-
-  let response =
-    simulate.request(http.Put, "/api/tasks/123456789")
-    |> simulate.json_body(body)
-    |> router.handle_request(ctx)
-
-  assert response.status == 201
-  let assert Ok(task) =
-    json.parse(simulate.read_body(response), task.task_decoder())
-
-  assert task.id == 123_456_789
-  assert task.to_task_input(task) == input
-}
-
-pub fn upsert_task_updates_task_test() {
-  let ctx = test_context.get()
-  use ctx <- test_database.with_rollback(ctx)
-
-  let db_conn = context.db_conn(ctx)
-  let assert Ok(created) =
-    repository.create_task(db_conn, task.to_task_input(fixtures.task1))
-
-  let updated_input = task.to_task_input(fixtures.task2)
-  let body = task.task_input_to_json(updated_input)
-
-  let response =
-    simulate.request(http.Put, "/api/tasks/" <> int.to_string(created.id))
-    |> simulate.json_body(body)
-    |> router.handle_request(ctx)
-
-  assert response.status == 200
-  let assert Ok(task) =
-    json.parse(simulate.read_body(response), task.task_decoder())
-
-  assert task.id == created.id
-  assert task.to_task_input(task) == updated_input
-}
-```
-
-The insert test uses a hardcoded high ID (`123456789`) unlikely to exist. The update test inserts first, then upserts the same ID to confirm the `200` branch.
-
 The remaining test files — `show_task_test.gleam`, `update_task_test.gleam`, and `delete_task_test.gleam` — follow the same patterns: seed with `repository.create_task` inside `with_rollback`, dispatch a simulated request, and assert on status and body.
 
 ## Running the Tests
@@ -554,8 +501,8 @@ cd server
 gleam test
 #   Compiled in 0.07s
 #    Running server_test.main
-# ................................
-# 32 passed, no failures
+# ..........................
+# 26 passed, no failures
 ```
 
 `gleeunit` discovers every function whose name ends in `_test` across all files in `test/`. Each dot represents one passing test.
@@ -564,6 +511,6 @@ gleam test
 
 The server is fully tested. The next step adds it to Docker Compose so the whole stack — database, migrations, and server — starts with a single `docker compose up`, making client development easier without needing to run `gleam run` separately.
 
-[^1]: See commit [47723c9](https://github.com/lukwol/doable/commit/47723c9) on GitHub
+[^1]: See commit [b64e8a4](https://github.com/lukwol/doable/commit/b64e8a484107c8f738a1a9b731e4a9df349eb7b7) on GitHub
 
-[^2]: See commit [7c17ec1](https://github.com/lukwol/doable/commit/7c17ec1) on GitHub
+[^2]: See commit [a8b7c7a](https://github.com/lukwol/doable/commit/b64e8a484107c8f738a1a9b731e4a9df349eb7b7) on GitHub

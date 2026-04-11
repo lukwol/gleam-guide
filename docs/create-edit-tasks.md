@@ -429,4 +429,4 @@ use <- cors(req)  // [!code highlight]
 
 The app now supports the full task lifecycle — listing, creating, and editing tasks. The next step is making it deployable: packaging the client into a Docker image and wiring everything together in Docker Compose.
 
-[^1]: See commit [9560529](https://github.com/lukwol/doable/commit/9560529) on GitHub
+[^1]: See commit [07961ee](https://github.com/lukwol/doable/commit/07961ee5f98ddd4eb9ef270842c5b907f3ac1e47) on GitHub

@@ -299,25 +299,6 @@ pub fn update_task(req: Request, ctx: Context, id: String) -> Response {
   |> wisp.json_body(wisp.ok(), _)
 }
 
-pub fn upsert_task(req: Request, ctx: Context, id: String) -> Response {
-  let db = context.db_conn(ctx)
-  use id <- web.parse_id(id)
-  use json <- wisp.require_json(req)
-  use task_input <- web.decode_body(json, task.task_input_decoder())
-  let task = task_input |> task.to_task(id)
-  use #(task, inserted) <- web.db_execute(repository.upsert_task(db, task))
-
-  let body =
-    task
-    |> task.task_to_json
-    |> json.to_string
-  let status = case inserted {
-    True -> wisp.created()
-    False -> wisp.ok()
-  }
-  wisp.json_body(status, body)
-}
-
 pub fn delete_task(_req: Request, ctx: Context, id: String) -> Response {
   let db = context.db_conn(ctx)
   use id <- web.parse_id(id)
@@ -331,7 +312,6 @@ A few things worth noting:
 
 - **`use` for early returns** — each `use` line is a callback that either calls `next` on success or returns an error response immediately. The result is an imperative-looking pipeline where failures short-circuit without nested `case` expressions.
 - **`wisp.require_json`** — provided by Wisp; parses the request body as JSON and returns a `decode.Dynamic` value, or responds with `400 Bad Request` if the body isn't valid JSON.
-- **`upsert_task` status** — the `inserted` flag from the database repository determines whether to return `201 Created` (new record) or `200 OK` (updated existing record). This is the correct REST semantics for `PUT`.
 - **`delete_task` discards the value** — `use _ <-` ignores the `Ok(Nil)` from `repository.delete_task`; only the error branch matters here.
 
 ## Verifying the API
@@ -377,18 +357,6 @@ curl -i -X PATCH http://localhost:8000/api/tasks/1 \
   -d '{"name":"Buy milk","description":"Whole milk","completed":true}'
 # 200 OK, {"id":1,"name":"Buy milk","description":"Whole milk","completed":true}
 
-# Upsert — insert a new task with a specific ID
-curl -i -X PUT http://localhost:8000/api/tasks/99 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Walk the dog","description":"Morning walk","completed":false}'
-# 201 Created, {"id":99,...}
-
-# Upsert — update the same task
-curl -i -X PUT http://localhost:8000/api/tasks/99 \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Walk the dog","description":"Evening walk","completed":true}'
-# 200 OK, {"id":99,...}
-
 # Delete a task
 curl -i -X DELETE http://localhost:8000/api/tasks/1
 # 204 No Content
@@ -414,4 +382,4 @@ The error cases confirm the helpers are working: a non-integer ID returns `404`,
 
 The REST API is fully implemented and backed by a real database. The next step is adding automated tests for the route handlers.
 
-[^1]: See commit [bf68025](https://github.com/lukwol/doable/commit/bf68025) on GitHub
+[^1]: See commit [db59c15](https://github.com/lukwol/doable/commit/db59c159facee16fe7a1f554b8d505632e3e7f51) on GitHub

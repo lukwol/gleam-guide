@@ -217,4 +217,4 @@ With the full backend running from a single command, it's time to start building
 
 [^1]: Based on the awesome [Gleam deployment guide](https://gleam.run/deployment/linux-server/)
 
-[^2]: See commit [c0e0ac0](https://github.com/lukwol/doable/commit/c0e0ac0) on GitHub
+[^2]: See commit [ff6bc4d](https://github.com/lukwol/doable/commit/ff6bc4db4dfb3eacbbc6b9eb31e3fb6fcba79322) on GitHub

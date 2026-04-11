@@ -34,8 +34,6 @@ shared = { path = "../shared" }	        # [!code ++]
 gleam_stdlib = ">= 0.44.0 and < 2.0.0"
 ```
 
-[^1]: See commit [46bd4ae](https://github.com/lukwol/doable/commit/46bd4ae5912781600b93d5ab3bae25de32a4d46d) on GitHub
-
 ## Project Structure
 
 The repository layout looks like this:
@@ -75,3 +73,5 @@ gleam test  # prints: 1 passed, no failures
 ## What's Next
 
 With the project scaffold in place, we'll start building the backend. The next chapter covers setting up the HTTP server, defining routes, and wiring everything together with Wisp and Mist.
+
+[^1]: See commit [46bd4ae](https://github.com/lukwol/doable/commit/46bd4ae5912781600b93d5ab3bae25de32a4d46d) on GitHub

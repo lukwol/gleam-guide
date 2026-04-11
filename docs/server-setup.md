@@ -49,8 +49,6 @@ wisp = ">= 2.2.1 and < 3.0.0"           # [!code ++]
 mist = ">= 5.0.4 and < 6.0.0"           # [!code ++]
 ```
 
-[^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
-
 ## Starting the Server
 
 `server.gleam` wires everything together and starts Mist on port 8000:
@@ -117,7 +115,7 @@ Wisp's `use` syntax threads the request through each layer in order. The result 
 ```gleam
 // server/src/router.gleam
 
-import gleam/http.{Delete, Get, Patch, Post, Put}
+import gleam/http.{Delete, Get, Patch, Post}
 import task/route as task_routes
 import web
 import wisp.{type Request, type Response}
@@ -139,9 +137,8 @@ fn handle_tasks(segments: List(String), req: Request) -> Response {
 
     [id], Get -> task_routes.show_task(req, id)
     [id], Patch -> task_routes.update_task(req, id)
-    [id], Put -> task_routes.upsert_task(req, id)
     [id], Delete -> task_routes.delete_task(req, id)
-    [_], _ -> wisp.method_not_allowed([Get, Patch, Put, Delete])
+    [_], _ -> wisp.method_not_allowed([Get, Patch, Delete])
     _, _ -> wisp.not_found()
   }
 }
@@ -153,7 +150,7 @@ The routing logic is split into two functions to keep each `case` focused. `hand
 
 ## Task Routes
 
-`task/route.gleam` defines the six handlers. For now they're stubs — each one returns the right status code and an empty placeholder body[^2]:
+`task/route.gleam` defines the five handlers. For now they're stubs — each one returns the right status code and an empty placeholder body[^2]:
 
 | Handler       | Method | Path             |
 | ------------- | ------ | ---------------- |
@@ -161,7 +158,6 @@ The routing logic is split into two functions to keep each `case` focused. `hand
 | `create_task` | POST   | `/api/tasks`     |
 | `show_task`   | GET    | `/api/tasks/:id` |
 | `update_task` | PATCH  | `/api/tasks/:id` |
-| `upsert_task` | PUT    | `/api/tasks/:id` |
 | `delete_task` | DELETE | `/api/tasks/:id` |
 
 ```gleam
@@ -189,19 +185,12 @@ pub fn update_task(_req: Request, _id: String) -> Response {
   |> wisp.json_body("{}")
 }
 
-pub fn upsert_task(_req: Request, _id: String) -> Response {
-  wisp.ok()
-  |> wisp.json_body("{}")
-}
-
 pub fn delete_task(_req: Request, _id: String) -> Response {
   wisp.no_content()
 }
 ```
 
 Using underscored parameters like `_req` and `_id` tells both the compiler and the reader that these values are intentionally unused for now. The status codes already reflect the intended final behaviour — `201 Created` for `create_task`, `204 No Content` for `delete_task` — so the stubs double as a lightweight contract for what the real implementations will return.
-
-[^2]: See commit [d440191](https://github.com/lukwol/doable/commit/d4401913ce856e3dcb73eeb3309d404246360516) on GitHub
 
 ## Verifying the API Routes
 
@@ -219,7 +208,6 @@ curl -i http://localhost:8000/api/tasks                 # 200 OK, []
 curl -i -X POST http://localhost:8000/api/tasks         # 201 Created, {}
 curl -i http://localhost:8000/api/tasks/1               # 200 OK, {}
 curl -i -X PATCH http://localhost:8000/api/tasks/1      # 200 OK, {}
-curl -i -X PUT http://localhost:8000/api/tasks/1        # 200 OK, {}
 curl -i -X DELETE http://localhost:8000/api/tasks/1     # 204 No Content
 
 curl -i -X DELETE http://localhost:8000/api/tasks       # 405 Method Not Allowed
@@ -233,3 +221,7 @@ If you prefer a GUI, [Postman](https://www.postman.com), [Insomnia](https://inso
 ## What's Next
 
 The routing skeleton is in place. The next step is setting up the PostgreSQL database with Docker Compose — once that's running, we'll come back and replace these stubs with handlers that actually read from and write to the database.
+
+[^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
+
+[^2]: See commit [b81ca35](https://github.com/lukwol/doable/commit/b81ca35039fda8192c4e95107d22621bb3f5dd7a) on GitHub

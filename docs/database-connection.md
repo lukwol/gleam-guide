@@ -240,7 +240,7 @@ The router now accepts and threads `Context` through to the route handlers:
 // server/src/router.gleam
 
 import context.{type Context}                                                     // [!code ++]
-import gleam/http.{Delete, Get, Patch, Post, Put}
+import gleam/http.{Delete, Get, Patch, Post}
 import task/route as task_routes
 import web
 import wisp.{type Request, type Response}
@@ -262,9 +262,8 @@ fn handle_tasks(segments: List(String), req: Request, ctx: Context) -> Response 
 
     [id], Get -> task_routes.show_task(req, ctx, id)                              // [!code highlight]
     [id], Patch -> task_routes.update_task(req, ctx, id)                          // [!code highlight]
-    [id], Put -> task_routes.upsert_task(req, ctx, id)                            // [!code highlight]
     [id], Delete -> task_routes.delete_task(req, ctx, id)                         // [!code highlight]
-    [_], _ -> wisp.method_not_allowed([Get, Patch, Put, Delete])
+    [_], _ -> wisp.method_not_allowed([Get, Patch, Delete])
     _, _ -> wisp.not_found()
   }
 }
@@ -296,11 +295,6 @@ pub fn show_task(_req: Request, _ctx: Context, _id: String) -> Response {     //
 }
 
 pub fn update_task(_req: Request, _ctx: Context, _id: String) -> Response {   // [!code highlight]
-  wisp.ok()
-  |> wisp.json_body("{}")
-}
-
-pub fn upsert_task(_req: Request, _ctx: Context, _id: String) -> Response {   // [!code highlight]
   wisp.ok()
   |> wisp.json_body("{}")
 }
@@ -351,6 +345,6 @@ Gleam modules compile to Erlang modules with the same name. `config:load()` call
 
 The server is now fully wired to the database. The next step is replacing the route stubs with real implementations that call into `task/sql.gleam`. But before we dive into that we need to prepare our model and the database repository.
 
-[^1]: See commit [5d92f08](https://github.com/lukwol/doable/commit/5d92f08) on GitHub
+[^1]: See commit [2c9cb83](https://github.com/lukwol/doable/commit/2c9cb8305f88a0cd2abc0987393e461686e78f0e) on GitHub
 
-[^2]: See commit [f13fc26](https://github.com/lukwol/doable/commit/f13fc26) on GitHub
+[^2]: See commit [7758bc5](https://github.com/lukwol/doable/commit/7758bc571d5b6d7381e28646287c931b212f137d) on GitHub

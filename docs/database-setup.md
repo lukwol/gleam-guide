@@ -137,4 +137,4 @@ The same credentials work in any GUI client — [DBeaver](https://dbeaver.io), [
 
 With the database running, the next step is creating the schema. We'll write a migration using the `migrate` service to set up the tasks table.
 
-[^1]: See commit [2f9bf51](https://github.com/lukwol/doable/commit/2f9bf51d4647c032e551686a9bb3e0f7cd1176ad) on GitHub
+[^1]: See commit [d8bce07](https://github.com/lukwol/doable/commit/d8bce0760791f7b0ae1f703825ec65cee5e1509d) on GitHub

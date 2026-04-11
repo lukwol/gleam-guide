@@ -204,4 +204,4 @@ Open `http://localhost:1234` in a browser, type a name, and click the button. Th
 
 The MVU skeleton is in place. The next step is building the actual task UI — fetching tasks from the API, rendering a task list, and wiring up the create, update, and delete interactions.
 
-[^1]: See commit [7a7e39d](https://github.com/lukwol/doable/commit/7a7e39d) on GitHub
+[^1]: See commit [b0e8614](https://github.com/lukwol/doable/commit/b0e86144564f7116fd154c82d35327750d58cb6e) on GitHub
