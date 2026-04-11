@@ -40,6 +40,7 @@ export default {
           { text: "Client Setup", link: "/client-setup" },
           { text: "Tasks Screen", link: "/tasks-screen" },
           { text: "Client-Side Routing", link: "/client-routing" },
+          { text: "Create and Edit Tasks", link: "/create-edit-tasks" },
         ],
       },
     ],
