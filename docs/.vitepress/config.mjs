@@ -41,6 +41,7 @@ export default {
           { text: "Tasks Screen", link: "/tasks-screen" },
           { text: "Client-Side Routing", link: "/client-routing" },
           { text: "Create and Edit Tasks", link: "/create-edit-tasks" },
+          { text: "Vite Build Tool", link: "/vite-build-tool" },
         ],
       },
     ],
