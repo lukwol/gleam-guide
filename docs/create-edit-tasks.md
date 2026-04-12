@@ -135,7 +135,7 @@ pub type Model {
 
 pub type Msg {
   FormSentMsg(task_form.Msg)
-  ApiCreatedTask(Result(task.Task, ApiError))
+  ApiCreatedTask(Result(Task, ApiError))
 }
 
 pub fn init() -> #(Model, Effect(Msg)) {
@@ -424,16 +424,16 @@ And each task item becomes a link to its edit page:
 ```gleam
 // client/src/page/tasks.gleam
 
-fn view_task(t: task.Task) -> Element(Msg) {
+fn view_task(task: Task) -> Element(Msg) {
   html.li([], [
-    html.a([attribute.href(route.to_path(route.EditTask(t.id)))], [  // [!code ++]
-      html.input([                                                   // [!code highlight]
-        attribute.type_("checkbox"),                                 // [!code highlight]
-        attribute.checked(t.completed),                              // [!code highlight]
-        attribute.disabled(True),                                    // [!code highlight]
-      ]),                                                            // [!code highlight]
-      element.text(t.name <> " — " <> t.description),                // [!code highlight]
-    ]),                                                              // [!code ++]
+    html.a([attribute.href(route.to_path(route.EditTask(t.id)))], [   // [!code ++]
+      html.input([                                                    // [!code highlight]
+        attribute.type_("checkbox"),                                  // [!code highlight]
+        attribute.checked(task.completed),                            // [!code highlight]
+        attribute.disabled(True),                                     // [!code highlight]
+      ]),                                                             // [!code highlight]
+      element.text(task.name <> " — " <> task.description),           // [!code highlight]
+    ]),                                                               // [!code ++]
   ])
 }
 ```

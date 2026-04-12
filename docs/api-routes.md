@@ -133,16 +133,16 @@ With the JSON functions in place, it's worth adding unit tests for the shared mo
 // shared/test/task_test.gleam
 
 import gleam/json
-import task
+import task.{Task, TaskInput}
 
-const task = task.Task(
+const task = Task(
   id: 1,
   name: "Buy groceries",
   description: "Milk, eggs, bread",
   completed: False,
 )
 
-const task_input = task.TaskInput(
+const task_input = TaskInput(
   name: "Buy groceries",
   description: "Milk, eggs, bread",
   completed: False,

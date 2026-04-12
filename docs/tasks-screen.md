@@ -215,11 +215,11 @@ The model now holds the task list and a loading flag:
 // client/src/client.gleam
 
 pub type Model {
-  Model(tasks: Result(List(task.Task), ApiError), loading: Bool)
+  Model(tasks: Result(List(Task), ApiError), loading: Bool)
 }
 
 pub type Msg {
-  ApiReturnedTasks(Result(List(task.Task), ApiError))
+  ApiReturnedTasks(Result(List(Task), ApiError))
 }
 ```
 
@@ -289,14 +289,14 @@ pub fn view(model: Model) -> Element(Msg) {
   ])
 }
 
-fn view_task(t: task.Task) -> Element(Msg) {
+fn view_task(task: Task) -> Element(Msg) {
   html.li([], [
     html.input([
       attribute.type_("checkbox"),
-      attribute.checked(t.completed),
+      attribute.checked(task.completed),
       attribute.disabled(True),
     ]),
-    element.text(t.name <> " — " <> t.description),
+    element.text(task.name <> " — " <> task.description),
   ])
 }
 ```
