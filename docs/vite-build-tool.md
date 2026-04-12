@@ -12,13 +12,13 @@ doable/
 │   ├── .gitignore               # Gleam lines restored after Vite overwrote them  [!code highlight]
 │   ├── gleam.toml               # lustre_dev_tools removed                        [!code highlight]
 │   ├── index.html               # Vite entry point                                [!code ++]
-│   ├── package.json             # vite + vite-gleam deps                          [!code ++]
+│   ├── package.json             # vite + vite-gleam dev deps                      [!code ++]
 │   ├── vite.config.js           # plugin + proxy config                           [!code ++]
 │   └── src/
 │       ├── api.gleam            # hardcoded URL → platform.api_base_url()         [!code highlight]
 │       ├── main.js              # JS entry that boots client.gleam                [!code ++]
-│       ├── platform.gleam       # api_base_url() backed by FFI                    [!code ++]
-│       └── platform_ffi.js      # window.location.origin                         [!code ++]
+│       ├── platform.gleam       # platform specific code backed by FFI            [!code ++]
+│       └── platform_ffi.js      # window.location.origin                          [!code ++]
 └── server/
     └── src/
         └── web.gleam            # CORS middleware removed                         [!code highlight]
@@ -39,7 +39,7 @@ Vite will ask which framework and variant to use — select **Vanilla** and **Ja
 `bun create vite .` overwrites `.gitignore` with its own template, dropping the Gleam-specific entries. Restore them afterwards.
 :::
 
-That rewrite drops the Gleam-specific entries. Add them back manually under a `# Gleam` comment:
+Add them back manually under a `# Gleam` comment:
 
 ```sh
 # Gleam               [!code ++]
@@ -57,7 +57,7 @@ Next, add the vite-gleam plugin, install everything, and remove `lustre_dev_tool
 
 ```sh
 gleam remove lustre_dev_tools
-bun add vite-gleam
+bun add --dev vite-gleam
 bun install
 ```
 
@@ -122,9 +122,7 @@ The `proxy` block tells Vite's dev server to forward any request whose path star
 
 ## API Base URL
 
-With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to a new platform-specific module.
-
-The hardcoded constant in `api.gleam` is replaced with a call to `platform`:
+With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to `platform`:
 
 ```gleam
 // client/src/platform.gleam
@@ -191,7 +189,19 @@ pub fn middleware(
   handle_request(req)
 }
 
-fn cors(req: Request, next: fn() -> Response) -> Response { ... }  // [!code --]
+fn cors(req: Request, next: fn() -> Response) -> Response {                       // [!code --]
+  let resp = case req.method {                                                    // [!code --]
+    http.Options -> wisp.ok()                                                     // [!code --]
+    _ -> next()                                                                   // [!code --]
+  }                                                                               // [!code --]
+  resp                                                                            // [!code --]
+  |> response.set_header("access-control-allow-origin", "*")                      // [!code --]
+  |> response.set_header(                                                         // [!code --]
+    "access-control-allow-methods",                                               // [!code --]
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS",                                     // [!code --]
+  )                                                                               // [!code --]
+  |> response.set_header("access-control-allow-headers", "content-type, accept")  // [!code --]
+}                                                                                 // [!code --]
 ```
 
 ## Running the Dev Server
@@ -207,6 +217,6 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
 
-[^1]: See commit [33c887f](https://github.com/lukwol/doable/commit/33c887f6d0dbd4e14dafa1c7729a1ef25527446e) on GitHub
+[^1]: See commit [2b44f0b](https://github.com/lukwol/doable/commit/2b44f0b1769b00ac5f5d0e0557dc9afa52ecd98a) on GitHub
 
 [^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland
