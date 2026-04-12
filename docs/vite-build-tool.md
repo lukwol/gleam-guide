@@ -15,10 +15,10 @@ doable/
 │   ├── package.json             # vite + vite-gleam dev deps                      [!code ++]
 │   ├── vite.config.js           # plugin + proxy config                           [!code ++]
 │   └── src/
-│       ├── api.gleam            # hardcoded URL → platform.api_base_url()         [!code highlight]
-│       ├── main.js              # JS entry that boots client.gleam                [!code ++]
-│       ├── platform.gleam       # platform specific code backed by FFI            [!code ++]
-│       └── platform_ffi.js      # window.location.origin                          [!code ++]
+│       ├── api.gleam            # hardcoded URL → browser.api_base_url()          [!code highlight]
+│       ├── browser.gleam        # api_base_url added                              [!code highlight]
+│       ├── browser_ffi.js       # window_location_origin added                    [!code highlight]
+│       └── main.js              # JS entry that boots client.gleam                [!code ++]
 └── server/
     └── src/
         └── web.gleam            # CORS middleware removed                         [!code highlight]
@@ -122,35 +122,44 @@ The `proxy` block tells Vite's dev server to forward any request whose path star
 
 ## API Base URL
 
-With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to `platform`:
+With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to `browser.api_base_url()`.
+
+`browser.gleam` already exists from the previous chapter — it gets a new public function and its backing FFI declaration:
 
 ```gleam
-// client/src/platform.gleam
+// client/src/browser.gleam
 
-pub fn api_base_url() -> String {
-  window_location_origin()
-}
+pub fn api_base_url() -> String {  // [!code ++]
+  window_location_origin()         // [!code ++]
+}                                  // [!code ++]
+                                   // [!code ++]
+@external(javascript, "./browser_ffi.js", "window_location_origin")  // [!code ++]
+fn window_location_origin() -> String                                 // [!code ++]
 
-@external(javascript, "./platform_ffi.js", "window_location_origin")
-fn window_location_origin() -> String
+@external(javascript, "./browser_ffi.js", "history_back")
+pub fn history_back() -> Nil
 ```
 
-`@external` declares a Gleam function that is implemented in another language. The three arguments are the target (`javascript`), the module path relative to this file, and the exported function name. The FFI implementation is a one-liner:
+`@external` declares a Gleam function that is implemented in another language. The three arguments are the target (`javascript`), the module path relative to this file, and the exported function name. `browser_ffi.js` gets the matching export:
 
 ```js
-// client/src/platform_ffi.js
+// client/src/browser_ffi.js
 
-export function window_location_origin() {
-  return window.location.origin;
+export function window_location_origin() {  // [!code ++]
+  return window.location.origin;            // [!code ++]
+}                                           // [!code ++]
+
+export function history_back() {
+  window.history.back();
 }
 ```
 
-`api.gleam` swaps the constant for a call to `platform.api_base_url()`:
+`api.gleam` swaps the constant for a call to `browser.api_base_url()`:
 
 ```gleam
 // client/src/api.gleam
 
-import platform  // [!code ++]
+import browser  // [!code ++]
 
 const api_base_url = "http://localhost:8000"  // [!code --]
 
@@ -158,8 +167,8 @@ fn with_json_request(
   path: String,
   callback: fn(Request(String)) -> Promise(Result(b, ApiError)),
 ) -> Promise(Result(b, ApiError)) {
-  let url = api_base_url <> path          // [!code --]
-  let url = platform.api_base_url() <> path  // [!code ++]
+  let url = api_base_url <> path             // [!code --]
+  let url = browser.api_base_url() <> path  // [!code ++]
   ...
 }
 ```
