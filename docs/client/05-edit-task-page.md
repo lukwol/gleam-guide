@@ -438,22 +438,40 @@ pub type Msg {
 }
 ```
 
-`update` and `view` each gain a matching branch:
+`update` gains a matching branch, and `view` delegates to the edit page's view function:
 
 ```gleam
 // client/src/router.gleam
 
-    EditTaskPageSentMsg(page_msg), EditTaskPage(page_model) -> {  // [!code ++]
-      let #(new_page_model, effect) = edit_task.update(page_model, page_msg)  // [!code ++]
+pub fn update(page: Page, msg: Msg) -> #(Page, Effect(Msg)) {
+  case msg, page {
+    OnRouteChanged(route), _ -> page_from_route(route)
+    TasksPageSentMsg(page_msg), TasksPage(page_model) -> {
+      let #(new_page_model, effect) = tasks.update(page_model, page_msg)
+      #(TasksPage(new_page_model), effect.map(effect, TasksPageSentMsg))
+    }
+    NewTaskPageSentMsg(page_msg), NewTaskPage(page_model) -> {
+      let #(new_page_model, effect) = new_task.update(page_model, page_msg)
+      #(NewTaskPage(new_page_model), effect.map(effect, NewTaskPageSentMsg))
+    }
+    EditTaskPageSentMsg(page_msg), EditTaskPage(page_model) -> {                // [!code ++]
+      let #(new_page_model, effect) = edit_task.update(page_model, page_msg)    // [!code ++]
       #(EditTaskPage(new_page_model), effect.map(effect, EditTaskPageSentMsg))  // [!code ++]
     }  // [!code ++]
-```
+    _, _ -> panic as "mismatched msg and page"
+  }
+}
 
-```gleam
-// client/src/router.gleam
-
-    EditTaskPage(page_model) ->  // [!code ++]
+pub fn view(page: Page) -> Element(Msg) {
+  case page {
+    TasksPage(page_model) ->
+      tasks.view(page_model) |> element.map(TasksPageSentMsg)
+    NewTaskPage(page_model) ->
+      new_task.view(page_model) |> element.map(NewTaskPageSentMsg)
+    EditTaskPage(page_model) ->                                       // [!code ++]
       edit_task.view(page_model) |> element.map(EditTaskPageSentMsg)  // [!code ++]
+  }
+}
 ```
 
 `page_from_route` maps the edit route to the page. The task ID flows directly from the URL into `edit_task.init`, which fires the fetch — no global state, no context:
@@ -461,10 +479,22 @@ pub type Msg {
 ```gleam
 // client/src/router.gleam
 
+fn page_from_route(route: route.Route) -> #(Page, Effect(Msg)) {
+  case route {
+    route.Tasks -> {
+      let #(page_model, effect) = tasks.init()
+      #(TasksPage(page_model), effect.map(effect, TasksPageSentMsg))
+    }
+    route.NewTask -> {
+      let #(page_model, effect) = new_task.init()
+      #(NewTaskPage(page_model), effect.map(effect, NewTaskPageSentMsg))
+    }
     route.EditTask(id) -> {                                                    // [!code ++]
       let #(page_model, effect) = edit_task.init(id)                           // [!code ++]
       #(EditTaskPage(page_model), effect.map(effect, EditTaskPageSentMsg))     // [!code ++]
     }                                                                          // [!code ++]
+  }
+}
 ```
 
 ## Edit Links in the Tasks List

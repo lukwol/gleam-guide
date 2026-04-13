@@ -1,6 +1,6 @@
 # New Task Page
 
-The tasks list shows data but offers no way to add anything. This chapter adds the first interactive page — a form for creating new tasks — along with the routing, API call, and a server fix the new method requires.
+The tasks list shows data but offers no way to add anything. This chapter adds the first interactive page — a form for creating new tasks — along with the routing, API call, and a server CORS fix the new method requires.
 
 Eight files change, three are new[^1]:
 
@@ -230,9 +230,7 @@ fn post_task(name: String, description: String) -> Effect(Msg) {
 
 `TaskInput` is the shared type used to serialize task creation payloads.
 
-::: info
 `use dispatch <- effect.from` is the standard Lustre pattern for bridging async work into the message system: `effect.from` provides `dispatch`, `promise.tap` calls it with the result, and the trailing `Nil` satisfies the `fn() -> Nil` return type.
-:::
 
 ## Wiring the Router
 

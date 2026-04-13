@@ -311,7 +311,11 @@ The `case` on `model.tasks` covers all four states:
 
 ## CORS on the Server
 
-While the dev server (`lustre_dev_tools`) runs on port 1234, the API server runs on port 8000. The browser blocks cross-origin requests by default, so `web.gleam` adds a `cors` middleware:
+While the dev server (`lustre_dev_tools`) runs on port 1234, the API server runs on port 8000. These are different origins, so `web.gleam` adds a `cors` middleware:
+
+::: info
+[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests between different origins by default. The server can opt in by including `Access-Control-Allow-*` headers in its responses.
+:::
 
 ```gleam
 // server/src/web.gleam

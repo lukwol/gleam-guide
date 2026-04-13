@@ -2,7 +2,7 @@
 
 The app is fully functional — now let's make it look good too. [Tailwind CSS](https://tailwindcss.com) provides low-level utility classes that compose into layouts, and [DaisyUI](https://daisyui.com) layers a set of semantic component classes on top — `btn`, `card`, `alert` — so you get good-looking UI without writing a single line of custom CSS. The [Heroicons](https://heroicons.com) icon set rounds it out.
 
-Nine files change, one is new[^1]:
+Eight files change, one is new[^1]:
 
 ```sh
 doable/
@@ -111,7 +111,7 @@ DaisyUI's design philosophy pairs well with Lustre's. Component classes (`btn`, 
 A pattern that appears throughout is using Gleam's `case` expression to conditionally compose class strings:
 
 ```gleam
-attribute.class(case t.completed {
+attribute.class(case task.completed {
   True -> "font-medium line-through text-base-content/50"
   False -> "font-medium"
 })
@@ -121,7 +121,7 @@ Because `attribute.class` takes an ordinary string, conditional styling is just 
 
 ## Tasks Screen
 
-`tasks.gleam` gets a full layout: a centred container, a header row with the page title and a primary "New Task" button, and a card list for the tasks themselves[^1].
+`tasks.gleam` gets a full layout: a centred container, a header row with the page title and a primary "New Task" button, and a card list for the tasks themselves.
 
 The outer container uses `min-h-screen bg-base-200` to fill the viewport with DaisyUI's subtle background colour, while `container mx-auto max-w-2xl` centres the content and caps its width.
 
@@ -165,10 +165,13 @@ pub fn view(model: Model) -> Element(Msg) {
             ],
           )
         Ok([]) ->
-          html.p(
-            [attribute.class("text-base-content/60 text-center p-8")],
-            [element.text("No tasks yet")],
-          )
+          html.div([attribute.class("card bg-base-100 shadow")], [
+            html.div([attribute.class("card-body items-center text-center")], [
+              html.p([attribute.class("text-base-content/60")], [
+                element.text("No tasks yet"),
+              ]),
+            ]),
+          ])
         Ok(tasks) ->
           html.ul([attribute.class("space-y-2")], list.map(tasks, view_task))
       },
@@ -180,39 +183,40 @@ pub fn view(model: Model) -> Element(Msg) {
 A few details worth noting:
 
 - The "New Task" link becomes `btn btn-primary` with a `heroicons--plus` icon rendered via an empty `span` — Iconify generates a CSS mask-image from the icon data at build time, so there's no SVG in the Gleam source at all.
-- `loading loading-spinner loading-lg` is a DaisyUI animated spinner — the loading state upgrades from a plain text "Loading…" to a proper indicator.
+- `loading loading-spinner loading-lg` is a DaisyUI animated spinner — the loading state upgrades from plain text to a proper indicator.
 - `alert alert-error` replaces the bare `<p>` for errors, giving it the red alert styling DaisyUI provides.
+- The empty state ("No tasks yet") is wrapped in a `card` so it sits visually consistent with the rest of the list.
 
 Each task row becomes a card:
 
 ```gleam
-fn view_task(t: Task) -> Element(Msg) {
+fn view_task(task: Task) -> Element(Msg) {
   html.li(
     [attribute.class("card bg-base-100 shadow hover:shadow-md transition-shadow")],
     [
       html.a(
         [
-          attribute.href(route.to_path(route.EditTask(t.id))),
+          attribute.href(route.to_path(route.EditTask(task.id))),
           attribute.class("card-body p-4 flex-row items-center gap-3"),
         ],
         [
           html.input([
             attribute.type_("checkbox"),
-            attribute.checked(t.completed),
+            attribute.checked(task.completed),
             attribute.disabled(True),
             attribute.class("checkbox checkbox-primary"),
           ]),
           html.div([attribute.class("flex-1 min-w-0")], [
             html.p(
               [
-                attribute.class(case t.completed {
+                attribute.class(case task.completed {
                   True -> "font-medium line-through text-base-content/50"
                   False -> "font-medium"
                 }),
               ],
-              [element.text(t.name)],
+              [element.text(task.name)],
             ),
-            case t.description {
+            case task.description {
               "" -> element.none()
               desc ->
                 html.p(
@@ -254,9 +258,7 @@ pub fn view(
 ) -> Element(Msg) {
   html.div([attribute.class("space-y-4")], [
     html.div([attribute.class("form-control")], [
-      html.label([attribute.class("label")], [
-        html.span([attribute.class("label-text")], [element.text("Name")]),
-      ]),
+      html.label([attribute.class("label")], [element.text("Name")]),
       html.input([
         attribute.type_("text"),
         attribute.placeholder("Task name"),
@@ -266,11 +268,7 @@ pub fn view(
       ]),
     ]),
     html.div([attribute.class("form-control")], [
-      html.label([attribute.class("label")], [
-        html.span([attribute.class("label-text")], [
-          element.text("Description"),
-        ]),
-      ]),
+      html.label([attribute.class("label")], [element.text("Description")]),
       html.textarea(
         [
           attribute.placeholder("Optional description"),
@@ -283,39 +281,32 @@ pub fn view(
     case completed {
       None -> element.none()
       Some(value) ->
-        html.div([attribute.class("form-control")], [
-          html.label(
-            [attribute.class("label cursor-pointer justify-start gap-3")],
-            [
-              html.input([
-                attribute.type_("checkbox"),
-                attribute.checked(value),
-                attribute.class("checkbox"),
-                event.on_check(UserUpdatedCompleted),
-              ]),
-              html.span([attribute.class("label-text")], [
-                element.text("Completed"),
-              ]),
-            ],
-          ),
+        html.label([attribute.class("label cursor-pointer justify-start gap-3")], [
+          html.input([
+            attribute.type_("checkbox"),
+            attribute.checked(value),
+            attribute.class("checkbox"),
+            event.on_check(UserUpdatedCompleted),
+          ]),
+          element.text("Completed"),
         ])
     },
   ])
 }
 ```
 
-`form-control` is a DaisyUI wrapper that handles spacing and alignment between label and input. `input input-bordered` and `textarea textarea-bordered` give the fields their standard border style. The checkbox for the completed field uses `cursor-pointer justify-start gap-3` to left-align the label and give it a pointer cursor — DaisyUI's default `label` centers content for toggle switches, so these overrides adapt it for a checkbox.
+`form-control` is a DaisyUI wrapper that handles spacing and alignment between label and input. `input input-bordered` and `textarea textarea-bordered` give the fields their standard border style. Labels use `element.text` directly — no extra wrapper span needed. The checkbox for the completed field uses `cursor-pointer justify-start gap-3` to left-align it and give it a pointer cursor — DaisyUI's default `label` centers content for toggle switches, so these overrides adapt it for a checkbox.
 
 ## New Task Page
 
-`new_task.gleam` gets the same page-level layout as the tasks screen — centred container, bold heading — and the action buttons acquire proper DaisyUI styling:
+`new_task.gleam` gets the same page-level layout as the tasks screen — centred container, bold heading. The form content and actions are wrapped in a `card` to give them a clean white surface against the grey background:
 
 ```gleam
 // client/src/page/new_task.gleam
 
 pub fn view(model: Model) -> Element(Msg) {
   html.div([attribute.class("min-h-screen bg-base-200")], [
-    html.div([attribute.class("container mx-auto p-4 max-w-lg")], [
+    html.div([attribute.class("container mx-auto p-4 max-w-2xl")], [
       html.div([attribute.class("flex items-center gap-2 mb-6")], [
         html.button(
           [
@@ -333,41 +324,45 @@ pub fn view(model: Model) -> Element(Msg) {
           element.text("New Task"),
         ]),
       ]),
-      case model.error {
-        None -> element.none()
-        Some(err) ->
-          html.div([attribute.class("alert alert-error mb-4")], [
-            element.text(err),
-          ])
-      },
-      task_form.view(model.name, model.description, None)
-        |> element.map(FormMsg),
-      html.div([attribute.class("flex gap-2 mt-6")], [
-        html.button(
-          [
-            attribute.disabled(model.submitting),
-            attribute.class("btn btn-primary"),
-            event.on_click(UserSubmittedForm),
-          ],
-          [
-            case model.submitting {
-              True ->
-                html.span(
-                  [attribute.class("loading loading-spinner loading-sm")],
-                  [],
-                )
-              False ->
-                html.span(
-                  [attribute.class("icon-[heroicons--archive-box-arrow-down] size-5")],
-                  [],
-                )
-            },
-            element.text(case model.submitting {
-              True -> "Saving..."
-              False -> "Save"
-            }),
-          ],
-        ),
+      html.div([attribute.class("card bg-base-100 shadow")], [
+        html.div([attribute.class("card-body")], [
+          case model.error {
+            None -> element.none()
+            Some(err) ->
+              html.div([attribute.class("alert alert-error mb-4")], [
+                element.text(err),
+              ])
+          },
+          task_form.view(model.name, model.description, None)
+            |> element.map(FormMsg),
+          html.div([attribute.class("flex gap-2 mt-6")], [
+            html.button(
+              [
+                attribute.disabled(model.submitting),
+                attribute.class("btn btn-primary"),
+                event.on_click(UserSubmittedForm),
+              ],
+              [
+                case model.submitting {
+                  True ->
+                    html.span(
+                      [attribute.class("loading loading-spinner loading-sm")],
+                      [],
+                    )
+                  False ->
+                    html.span(
+                      [attribute.class("icon-[heroicons--document-check] size-5")],
+                      [],
+                    )
+                },
+                element.text(case model.submitting {
+                  True -> "Saving..."
+                  False -> "Save"
+                }),
+              ],
+            ),
+          ]),
+        ]),
       ]),
     ]),
   ])
@@ -378,7 +373,7 @@ The Back button becomes `btn btn-ghost btn-sm btn-circle` — a small circular g
 
 ## Edit Task Page
 
-`edit_task.gleam` mirrors the new task page layout and adds a Delete button. The loading state — previously a `<p>Loading…</p>` — becomes a centred full-screen spinner:
+`edit_task.gleam` mirrors the new task page layout — same card wrapping, same `max-w-2xl` container — and adds a Delete button. The loading state — previously a `<p>Loading…</p>` — becomes a centred full-screen spinner:
 
 ```gleam
 // client/src/page/edit_task.gleam
@@ -401,7 +396,7 @@ pub fn view(model: Model) -> Element(Msg) {
       )
     False ->
       html.div([attribute.class("min-h-screen bg-base-200")], [
-        html.div([attribute.class("container mx-auto p-4 max-w-lg")], [
+        html.div([attribute.class("container mx-auto p-4 max-w-2xl")], [
           html.div([attribute.class("flex items-center gap-2 mb-6")], [
             html.button(
               [
@@ -419,59 +414,63 @@ pub fn view(model: Model) -> Element(Msg) {
               element.text("Edit Task"),
             ]),
           ]),
-          case model.error {
-            None -> element.none()
-            Some(err) ->
-              html.div([attribute.class("alert alert-error mb-4")], [
-                element.text(err),
-              ])
-          },
-          task_form.view(
-            model.task.name,
-            model.task.description,
-            Some(model.task.completed),
-          )
-            |> element.map(FormMsg),
-          html.div([attribute.class("flex gap-2 mt-6")], [
-            html.button(
-              [
-                attribute.disabled(model.submitting),
-                attribute.class("btn btn-primary"),
-                event.on_click(UserSubmittedForm),
-              ],
-              [
-                case model.submitting {
-                  True ->
-                    html.span(
-                      [attribute.class("loading loading-spinner loading-sm")],
-                      [],
-                    )
-                  False ->
-                    html.span(
-                      [attribute.class("icon-[heroicons--archive-box-arrow-down] size-5")],
-                      [],
-                    )
-                },
-                element.text(case model.submitting {
-                  True -> "Saving..."
-                  False -> "Save"
-                }),
-              ],
-            ),
-            html.button(
-              [
-                attribute.disabled(model.submitting),
-                attribute.class("btn btn-error"),
-                event.on_click(UserClickedDelete),
-              ],
-              [
-                html.span(
-                  [attribute.class("icon-[heroicons--trash] size-5")],
-                  [],
+          html.div([attribute.class("card bg-base-100 shadow")], [
+            html.div([attribute.class("card-body")], [
+              case model.error {
+                None -> element.none()
+                Some(err) ->
+                  html.div([attribute.class("alert alert-error mb-4")], [
+                    element.text(err),
+                  ])
+              },
+              task_form.view(
+                model.task.name,
+                model.task.description,
+                Some(model.task.completed),
+              )
+                |> element.map(FormMsg),
+              html.div([attribute.class("flex gap-2 mt-6")], [
+                html.button(
+                  [
+                    attribute.disabled(model.submitting),
+                    attribute.class("btn btn-primary"),
+                    event.on_click(UserSubmittedForm),
+                  ],
+                  [
+                    case model.submitting {
+                      True ->
+                        html.span(
+                          [attribute.class("loading loading-spinner loading-sm")],
+                          [],
+                        )
+                      False ->
+                        html.span(
+                          [attribute.class("icon-[heroicons--document-check] size-5")],
+                          [],
+                        )
+                    },
+                    element.text(case model.submitting {
+                      True -> "Saving..."
+                      False -> "Save"
+                    }),
+                  ],
                 ),
-                element.text("Delete"),
-              ],
-            ),
+                html.button(
+                  [
+                    attribute.disabled(model.submitting),
+                    attribute.class("btn btn-error"),
+                    event.on_click(UserClickedDelete),
+                  ],
+                  [
+                    html.span(
+                      [attribute.class("icon-[heroicons--trash] size-5")],
+                      [],
+                    ),
+                    element.text("Delete"),
+                  ],
+                ),
+              ]),
+            ]),
           ]),
         ]),
       ])
@@ -494,4 +493,4 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 The web app is complete. The next chapter wraps it in [Tauri](https://tauri.app) to turn it into a native desktop application.
 
-[^1]: See commit [89fafad](https://github.com/lukwol/doable/commit/89fafadc0a83ae849830209b4ebe109f9c140eb1) on GitHub
+[^1]: See commit [e2ea5b7](https://github.com/lukwol/doable/commit/e2ea5b782cec9f0d0130cdcfa56ed6435a19f869) on GitHub
