@@ -511,6 +511,6 @@ gleam test
 
 The server is fully tested. The next step adds it to Docker Compose so the whole stack — database, migrations, and server — starts with a single `docker compose up`, making client development easier without needing to run `gleam run` separately.
 
-[^1]: See commit [b64e8a4](https://github.com/lukwol/doable/commit/b64e8a484107c8f738a1a9b731e4a9df349eb7b7) on GitHub
+[^1]: See commit [e3eee0f](https://github.com/lukwol/doable/commit/e3eee0fd21332654c2a1e1945193639c3833c630) on GitHub
 
-[^2]: See commit [a8b7c7a](https://github.com/lukwol/doable/commit/a8b7c7a7502c88fc4f8cd63a937dcaceba7b05e5) on GitHub
+[^2]: See commit [b87703f](https://github.com/lukwol/doable/commit/b87703f3e71176f0729b356b6a76e436d62e06b6) on GitHub
