@@ -129,15 +129,15 @@ With the proxy in place, the API is reachable at the same origin as the page. `w
 ```gleam
 // client/src/browser.gleam
 
-pub fn api_base_url() -> String {  // [!code ++]
-  window_location_origin()         // [!code ++]
-}                                  // [!code ++]
-                                   // [!code ++]
-@external(javascript, "./browser_ffi.js", "window_location_origin")  // [!code ++]
-fn window_location_origin() -> String                                 // [!code ++]
-
 @external(javascript, "./browser_ffi.js", "history_back")
 pub fn history_back() -> Nil
+
+pub fn api_base_url() -> String {                                     // [!code ++]
+  window_location_origin()                                            // [!code ++]
+}                                                                     // [!code ++]
+
+@external(javascript, "./browser_ffi.js", "window_location_origin")   // [!code ++]
+fn window_location_origin() -> String                                 // [!code ++]
 ```
 
 `@external` declares a Gleam function that is implemented in another language. The three arguments are the target (`javascript`), the module path relative to this file, and the exported function name. `browser_ffi.js` gets the matching export:
@@ -145,13 +145,13 @@ pub fn history_back() -> Nil
 ```js
 // client/src/browser_ffi.js
 
-export function window_location_origin() {  // [!code ++]
-  return window.location.origin;            // [!code ++]
-}                                           // [!code ++]
-
 export function history_back() {
   window.history.back();
 }
+
+export function window_location_origin() {      // [!code ++]
+  return window.location.origin;                // [!code ++]
+}                                               // [!code ++]
 ```
 
 `api.gleam` swaps the constant for a call to `browser.api_base_url()`:

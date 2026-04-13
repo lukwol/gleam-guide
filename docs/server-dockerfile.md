@@ -191,25 +191,25 @@ With both the Dockerfile and Compose service in place, the entire stack starts w
 docker compose up
 ```
 
-:::: tip
+::: tip
 To force a rebuild of the server image, use:
 
 ```sh
 docker compose up --build
 ```
 
-::::
+:::
 
 The server is now reachable at `http://localhost:8000` without needing a separate terminal running `gleam run`.
 
-:::: info
+::: info
 To run the server locally with `gleam run` instead, stop the `server` service first so it doesn't conflict:
 
 ```sh
 docker compose stop server
 ```
 
-::::
+:::
 
 ## What's Next
 
