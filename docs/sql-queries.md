@@ -56,7 +56,7 @@ squirrel = ">= 4.6.0 and < 5.0.0"       # [!code ++]
 
 Squirrel connects to the database at code-generation time to validate queries and infer types — which is why we set the libpq environment variables in `.env` from the start.
 
-There's a catch: `.env` sets `PGHOST=db`, which is the hostname of the Postgres container inside the Docker network. That name doesn't resolve on the host machine. When running `gleamrun-msquirrel` locally, we need `PGHOST=localhost` instead.
+There's a catch: `.env` sets `PGHOST=db`, which is the hostname of the Postgres container inside the Docker network. That name doesn't resolve on the host machine. When running `gleam run -m squirrel` locally, we need `PGHOST=localhost` instead.
 
 Create `server/.envrc` to handle this. The file sits alongside `gleam.toml` in the `server/` directory:
 
@@ -76,7 +76,7 @@ dotenv ../.env
 export PGHOST=localhost
 ```
 
-Run `direnvallow` once to permit [direnv](https://direnv.net) to load it. After that, direnv loads `.envrc` automatically whenever you enter the directory — first pulling in the root `.env` via `dotenv`, then overriding `PGHOST` with `localhost`, so Squirrel can reach the database through the mapped port without touching the shared `.env` file used by `compose.yml`.
+Run `direnv allow` once to permit [direnv](https://direnv.net) to load it. After that, direnv loads `.envrc` automatically whenever you enter the directory — first pulling in the root `.env` via `dotenv`, then overriding `PGHOST` with `localhost`, so Squirrel can reach the database through the mapped port without touching the shared `.env` file used by `compose.yml`.
 
 ## SQL Queries
 

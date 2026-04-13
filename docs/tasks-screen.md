@@ -101,7 +101,6 @@ import gleam/fetch
 import gleam/http.{Get}
 import gleam/http/request.{type Request}
 import gleam/javascript/promise.{type Promise}
-import gleam/list
 import gleam/result
 
 const api_base_url = "http://localhost:8000"
@@ -110,7 +109,7 @@ pub fn get(path: String, decoder: Decoder(a)) -> Promise(Result(a, ApiError)) {
   use req <- with_json_request(path)
   req
   |> request.set_method(Get)
-  |> execute(expect: [200], decoder:)
+  |> execute(expect: 200, decoder:)
 }
 ```
 
@@ -147,7 +146,7 @@ fn with_json_request(
 
 fn execute(
   req: Request(String),
-  expect expect: List(Int),
+  expect expect: Int,
   decoder decoder: Decoder(a),
 ) -> Promise(Result(a, ApiError)) {
   req
@@ -156,7 +155,7 @@ fn execute(
   |> promise.map(result.map_error(_, FetchError))
   |> promise.map_try(fn(response) {
     use <- bool.guard(
-      !list.contains(expect, response.status),
+      response.status != expect,
       Error(UnexpectedStatus(response.status)),
     )
     response.body

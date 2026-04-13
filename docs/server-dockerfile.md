@@ -16,8 +16,8 @@ doable/
 ```dockerfile
 # server/Dockerfile
 
-ARG ERLANG_VERSION=28.4.1.0
-ARG GLEAM_VERSION=v1.15.2
+ARG ERLANG_VERSION=28.4.2.0
+ARG GLEAM_VERSION=v1.15.4
 
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam   # stage 1: compiler
 
