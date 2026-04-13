@@ -43,6 +43,7 @@ export default {
           { text: "New Task Page", link: "/new-task-page" },
           { text: "Edit Task Page", link: "/edit-task-page" },
           { text: "Vite Build Tool", link: "/vite-build-tool" },
+          { text: "Styling", link: "/styling" },
         ],
       },
     ],
