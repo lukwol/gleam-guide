@@ -2,9 +2,9 @@
 
 The tasks screen works, but the app lives at a single URL with no way to navigate between pages. This chapter introduces client-side routing — giving each page its own URL and wiring up the browser's history API so the back button works as expected[^1].
 
-The tasks page logic doesn't change at all. What changes is the structure around it: a `Route` type to describe URLs, a `Router` to map routes to pages, and a thinner `client.gleam` that hands off almost everything to the router.
+What changes is the structure around it: a `Route` type to describe URLs, a `Router` to map routes to pages, a dedicated service module for API calls, and a thinner `client.gleam` that hands off almost everything to the router.
 
-Four files change, three are new:
+Five files change, four are new:
 
 ```sh
 doable/
@@ -13,6 +13,8 @@ doable/
     └── src/
         ├── route.gleam         # Route type and URL parsing    [!code ++]
         ├── router.gleam        # Page type, routing logic      [!code ++]
+        ├── service/
+        │   └── task_service.gleam  # task API service          [!code ++]
         ├── page/
         │   └── tasks.gleam     # tasks page extracted          [!code ++]
         └── client.gleam        # delegates to router           [!code highlight]
@@ -73,15 +75,43 @@ pub fn from_uri(uri: Uri) -> Route {
 
 `to_path` converts a `Route` to its URL string. `from_uri` does the reverse — it parses a URI's path segments and returns the matching `Route`, falling back to `home_route` for anything unrecognised.
 
+## Task Service
+
+Before extracting the tasks page, the direct `api.get` call from `client.gleam` is lifted into its own module. `service/task_service.gleam` will be the home for all task-related API calls as the app grows:
+
+```gleam
+// client/src/service/task_service.gleam
+
+import api
+import error.{type ApiError}
+import gleam/dynamic/decode
+import gleam/javascript/promise.{type Promise}
+import task.{type Task}
+
+pub fn fetch_tasks() -> Promise(Result(List(Task), ApiError)) {
+  "/api/tasks"
+  |> api.get(decode.list(task.task_decoder()))
+}
+```
+
+`fetch_tasks` wraps the same `api.get` call that previously lived inline in `client.gleam` — the behaviour is identical, just better placed. Keeping API logic out of page modules means pages stay focused on UI, and adding or changing an endpoint only touches one file.
+
 ## Extracting the Tasks Page
 
-The MVU code from the previous chapter moves into `page/tasks.gleam`, unchanged. Each page gets its own module with the same shape: `Model`, `Msg`, `init`, `update`, and `view`. This keeps pages self-contained and easy to find — when something on the tasks page needs fixing, you know exactly where to look.
+The MVU code from the previous chapter moves into `page/tasks.gleam`. Each page gets its own module with the same shape: `Model`, `Msg`, `init`, `update`, and `view`. This keeps pages self-contained and easy to find — when something on the tasks page needs fixing, you know exactly where to look.
 
-```sh
-client/
-└── src/
-    └── page/
-        └── tasks.gleam   # Model, Msg, init, update, view
+The one adjustment is in `fetch_tasks`, which now delegates to the service instead of calling `api` directly:
+
+```gleam
+// client/src/page/tasks.gleam
+
+fn fetch_tasks() -> Effect(Msg) {
+  use dispatch <- effect.from
+  task_service.fetch_tasks()
+  |> promise.map(ApiReturnedTasks)
+  |> promise.tap(dispatch)
+  Nil
+}
 ```
 
 ## The Router
@@ -247,4 +277,4 @@ fn view(model: Model) -> Element(router.Msg) {
 
 The routing skeleton is in place. The next step is putting it to work — adding a create task page and a edit task page so users can actually manage their tasks.
 
-[^1]: See commit [94202c6](https://github.com/lukwol/doable/commit/94202c61d21a5dcf1a95c0c8a464177cfefbfcc3) on GitHub
+[^1]: See commit [938b881](https://github.com/lukwol/doable/commit/938b88190700cdb869b0334a6afcb6179a4c213d) on GitHub

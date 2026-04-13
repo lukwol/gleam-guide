@@ -187,60 +187,64 @@ A few details worth noting:
 - `alert alert-error` replaces the bare `<p>` for errors, giving it the red alert styling DaisyUI provides.
 - The empty state ("No tasks yet") is wrapped in a `card` so it sits visually consistent with the rest of the list.
 
-Each task row becomes a card:
+Each task row becomes a card with two independent interactive targets — a checkbox to toggle completion and a link to open the edit page:
 
 ```gleam
 fn view_task(task: Task) -> Element(Msg) {
   html.li(
     [attribute.class("card bg-base-100 shadow hover:shadow-md transition-shadow")],
     [
-      html.a(
-        [
-          attribute.href(route.to_path(route.EditTask(task.id))),
-          attribute.class("card-body p-4 flex-row items-center gap-3"),
-        ],
-        [
-          html.input([
-            attribute.type_("checkbox"),
-            attribute.checked(task.completed),
-            attribute.disabled(True),
-            attribute.class("checkbox checkbox-primary"),
-          ]),
-          html.div([attribute.class("flex-1 min-w-0")], [
-            html.p(
-              [
-                attribute.class(case task.completed {
-                  True -> "font-medium line-through text-base-content/50"
-                  False -> "font-medium"
-                }),
-              ],
-              [element.text(task.name)],
-            ),
-            case task.description {
-              "" -> element.none()
-              desc ->
-                html.p(
-                  [attribute.class("text-sm text-base-content/60 truncate")],
-                  [element.text(desc)],
-                )
-            },
-          ]),
-          html.span(
-            [
-              attribute.class(
-                "icon-[heroicons--chevron-right] text-base-content/40 text-xl",
+      html.div([attribute.class("card-body p-4 flex-row items-center gap-3")], [
+        html.input([
+          attribute.type_("checkbox"),
+          attribute.checked(task.completed),
+          attribute.class("checkbox checkbox-primary"),
+          event.on_check(fn(checked) { UserToggledTask(task, checked) }),
+        ]),
+        html.a(
+          [
+            attribute.href(route.to_path(route.EditTask(task.id))),
+            attribute.class("flex-1 min-w-0 flex items-center gap-3"),
+          ],
+          [
+            html.div([attribute.class("flex-1 min-w-0")], [
+              html.p(
+                [
+                  attribute.class(case task.completed {
+                    True -> "font-medium line-through text-base-content/50"
+                    False -> "font-medium"
+                  }),
+                ],
+                [element.text(task.name)],
               ),
-            ],
-            [],
-          ),
-        ],
-      ),
+              case task.description {
+                "" -> element.none()
+                desc ->
+                  html.p(
+                    [attribute.class("text-sm text-base-content/60 truncate")],
+                    [element.text(desc)],
+                  )
+              },
+            ]),
+            html.span(
+              [
+                attribute.class(
+                  "icon-[heroicons--chevron-right] text-base-content/40 text-xl",
+                ),
+              ],
+              [],
+            ),
+          ],
+        ),
+      ]),
     ],
   )
 }
 ```
 
-`card bg-base-100 shadow` gives each task a white card on the light-grey page background. The `hover:shadow-md transition-shadow` adds a subtle lift on hover, signalling that the row is clickable. The chevron icon on the right reinforces that.
+`card bg-base-100 shadow` gives each task a white card on the light-grey page background. The `hover:shadow-md transition-shadow` adds a subtle lift on hover.
+
+The card body is a `div` rather than an `<a>` — keeping the checkbox and the link as siblings, each with its own click target. The checkbox gets `checkbox checkbox-primary` styling; the `<a>` takes the remaining row space via `flex-1` and ends with a chevron to signal it's navigable.
 
 Completed tasks get the `line-through text-base-content/50` treatment — struck through and dimmed — while incomplete tasks stay fully opaque. The description is hidden entirely when empty (`element.none()`) rather than rendering a blank line, and `truncate` keeps long descriptions to a single line.
 
@@ -295,7 +299,7 @@ pub fn view(
 }
 ```
 
-`form-control` is a DaisyUI wrapper that handles spacing and alignment between label and input. `input input-bordered` and `textarea textarea-bordered` give the fields their standard border style. Labels use `element.text` directly — no extra wrapper span needed. The checkbox for the completed field uses `cursor-pointer justify-start gap-3` to left-align it and give it a pointer cursor — DaisyUI's default `label` centers content for toggle switches, so these overrides adapt it for a checkbox.
+`form-control` is a DaisyUI wrapper that handles spacing and alignment between label and input. `input input-bordered` and `textarea textarea-bordered` give the fields their standard border style. Labels use `element.text` directly — no extra wrapper span needed. The completed checkbox overrides DaisyUI's default label centering — designed for toggle switches — to left-align and add a pointer cursor.
 
 ## New Task Page
 
@@ -369,7 +373,7 @@ pub fn view(model: Model) -> Element(Msg) {
 }
 ```
 
-The Back button becomes `btn btn-ghost btn-sm btn-circle` — a small circular ghost button that sits beside the heading without drawing too much attention. The Save button shows a spinner in place of the icon while the form is submitting, providing immediate feedback without disabling the button label.
+The Back button becomes `btn btn-ghost btn-sm btn-circle` — a small circular ghost button that sits beside the heading without drawing too much attention. The Save button swaps its icon for a spinner and its label for "Saving..." while the form is submitting — immediate feedback that the request is in flight.
 
 ## Edit Task Page
 
@@ -493,4 +497,4 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 The web app is complete. The next chapter wraps it in [Tauri](https://tauri.app) to turn it into a native desktop application.
 
-[^1]: See commit [e2ea5b7](https://github.com/lukwol/doable/commit/e2ea5b782cec9f0d0130cdcfa56ed6435a19f869) on GitHub
+[^1]: See commit [e7731a1](https://github.com/lukwol/doable/commit/e7731a10e0df395d0750d2a9f3ecb41e13e7c2c7) on GitHub

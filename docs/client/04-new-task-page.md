@@ -2,7 +2,7 @@
 
 The tasks list shows data but offers no way to add anything. This chapter adds the first interactive page — a form for creating new tasks — along with the routing, API call, and a server CORS fix the new method requires.
 
-Eight files change, three are new[^1]:
+Nine files change, three are new[^1]:
 
 ```sh
 doable/
@@ -13,6 +13,8 @@ doable/
 │       ├── browser_ffi.js         # FFI implementation      [!code ++]
 │       ├── route.gleam            # NewTask route           [!code highlight]
 │       ├── router.gleam           # NewTaskPage wired in    [!code highlight]
+│       ├── service/
+│       │   └── task_service.gleam # post_task added         [!code highlight]
 │       └── page/
 │           ├── tasks.gleam        # New Task link added     [!code highlight]
 │           └── new_task.gleam     # new task form page      [!code ++]
@@ -71,6 +73,26 @@ pub fn post(
 ```
 
 The `json:` label on `body` makes call sites read like `api.post(path, decoder, json: body)` — intent is clear without any extra ceremony.
+
+## Extending the Task Service
+
+`task_service.gleam` gains `post_task`, which encapsulates the serialization and API call so pages never have to touch JSON directly:
+
+```gleam
+// client/src/service/task_service.gleam
+
+pub fn post_task(input: TaskInput) -> Promise(Result(Task, ApiError)) {   // [!code ++]
+  let body =                                                              // [!code ++]
+    input                                                                 // [!code ++]
+    |> task.task_input_to_json                                            // [!code ++]
+    |> json.to_string                                                     // [!code ++]
+                                                                          // [!code ++]
+  "/api/tasks"                                                            // [!code ++]
+  |> api.post(task.task_decoder(), json: body)                            // [!code ++]
+}                                                                         // [!code ++]
+```
+
+`post_task` takes a `TaskInput`, serializes it to JSON internally, and delegates to `api.post`. The encoding lives here, so `new_task.gleam` can pass a `TaskInput` value without knowing anything about JSON serialization.
 
 ## Browser FFI
 
@@ -215,20 +237,13 @@ The private `post_task` function builds the API call as an effect:
 
 fn post_task(name: String, description: String) -> Effect(Msg) {
   use dispatch <- effect.from
-  let body =
-    TaskInput(name:, description:, completed: False)
-    |> task.task_input_to_json
-    |> json.to_string
-
-  "/api/tasks"
-  |> api.post(task.task_decoder(), json: body)
+  TaskInput(name:, description:, completed: False)
+  |> task_service.post_task
   |> promise.map(ApiCreatedTask)
   |> promise.tap(dispatch)
   Nil
 }
 ```
-
-`TaskInput` is the shared type used to serialize task creation payloads.
 
 `use dispatch <- effect.from` is the standard Lustre pattern for bridging async work into the message system: `effect.from` provides `dispatch`, `promise.tap` calls it with the result, and the trailing `Nil` satisfies the `fn() -> Nil` return type.
 
@@ -363,4 +378,4 @@ pub fn middleware(
 
 Tasks can now be created. The next chapter adds the edit page — and along the way extracts the form fields into a shared component that both pages can reuse.
 
-[^1]: See commit [12ef3aa](https://github.com/lukwol/doable/commit/12ef3aa056bf591ba4821c678671fcfbb7c050ea) on GitHub
+[^1]: See commit [4d82122](https://github.com/lukwol/doable/commit/4d82122eb111d506fa0a12d5f02884f88310358a) on GitHub

@@ -2,21 +2,23 @@
 
 The new task page renders its form fields directly. As soon as the edit page is needed, those fields would have to be duplicated. This chapter extracts them into a shared component, refactors the new task page to use it, and then builds the edit page on top.
 
-Seven files change, two are new[^1]:
+Eight files change, two are new[^1]:
 
 ```sh
 doable/
 └── client/
     └── src/
-        ├── api.gleam                    # patch, delete added          [!code highlight]
-        ├── route.gleam                  # EditTask route               [!code highlight]
-        ├── router.gleam                 # EditTaskPage wired in        [!code highlight]
+        ├── api.gleam                    # patch, delete added              [!code highlight]
+        ├── route.gleam                  # EditTask route                   [!code highlight]
+        ├── router.gleam                 # EditTaskPage wired in            [!code highlight]
+        ├── service/
+        │   └── task_service.gleam       # fetch_task, patch, delete added  [!code highlight]
         ├── component/
-        │   └── task_form.gleam          # shared form fields           [!code ++]
+        │   └── task_form.gleam          # shared form fields               [!code ++]
         └── page/
-            ├── tasks.gleam              # edit links added             [!code highlight]
-            ├── new_task.gleam           # refactored to use task_form  [!code highlight]
-            └── edit_task.gleam          # edit task page               [!code ++]
+            ├── tasks.gleam              # toggle added, edit links         [!code highlight]
+            ├── new_task.gleam           # refactored to use task_form      [!code highlight]
+            └── edit_task.gleam          # edit task page                   [!code ++]
 ```
 
 ## Shared Form Component
@@ -90,7 +92,7 @@ pub type Msg {
 }
 ```
 
-`update` handles each form message through the `FormMsg` wrapper. `UserUpdatedCompleted` is explicitly handled and ignored — the new task page passes `None` to the form so the checkbox never appears, but the type system still requires an exhaustive match:
+`update` handles each form message through the `FormMsg` wrapper. `UserUpdatedCompleted` is explicitly handled and ignored — the checkbox never appears on this page, but exhaustive matching still requires covering it:
 
 ```gleam
 // client/src/page/new_task.gleam
@@ -182,7 +184,41 @@ pub fn delete(path: String) -> Promise(Result(Nil, ApiError)) {
 }
 ```
 
-`bool.guard` provides an early-return pattern: if the condition is true it returns the first argument; otherwise it evaluates the second. Here it short-circuits with an error if the status isn't `204 No Content`, or returns `Ok(Nil)` otherwise.
+`bool.guard` provides an early-return pattern: if the condition is true it returns the first argument; otherwise it evaluates the second. Here it returns an error if the status isn't `204 No Content`, and `Ok(Nil)` otherwise.
+
+## Extending the Task Service
+
+With `api.patch` and `api.delete` in place, `task_service.gleam` gains the three operations the edit page needs:
+
+```gleam
+// client/src/service/task_service.gleam
+
+pub fn fetch_task(task_id: Int) -> Promise(Result(Task, ApiError)) {   // [!code ++]
+  let path = "/api/tasks/" <> int.to_string(task_id)                   // [!code ++]
+  path                                                                 // [!code ++]
+  |> api.get(task.task_decoder())                                      // [!code ++]
+}                                                                      // [!code ++]
+
+pub fn patch_task(task: Task) -> Promise(Result(Task, ApiError)) {     // [!code ++]
+  let body =                                                           // [!code ++]
+    task                                                               // [!code ++]
+    |> task.to_task_input                                              // [!code ++]
+    |> task.task_input_to_json                                         // [!code ++]
+    |> json.to_string                                                  // [!code ++]
+                                                                       // [!code ++]
+  let path = "/api/tasks/" <> int.to_string(task.id)                   // [!code ++]
+  path                                                                 // [!code ++]
+  |> api.patch(task.task_decoder(), json: body)                        // [!code ++]
+}                                                                      // [!code ++]
+
+pub fn delete_task(task_id: Int) -> Promise(Result(Nil, ApiError)) {   // [!code ++]
+  let path = "/api/tasks/" <> int.to_string(task_id)                   // [!code ++]
+  path                                                                 // [!code ++]
+  |> api.delete                                                        // [!code ++]
+}                                                                      // [!code ++]
+```
+
+`fetch_task` mirrors `fetch_tasks` but targets a single task by ID. `patch_task` accepts the full `Task` record, converts it to `TaskInput` for serialization, then delegates to `api.patch`. `delete_task` only needs the ID — no body to build.
 
 ## Extending the Routes
 
@@ -378,15 +414,14 @@ pub fn view(model: Model) -> Element(Msg) {
 
 `Some(model.task.completed)` passes the current completion state to the form, so the checkbox appears and reflects the real value. The delete button is disabled alongside the save button — `submitting` guards both.
 
-The three private effects follow the same `use dispatch <- effect.from` pattern established in the new task page:
+The three private effects delegate to the task service and follow the same `use dispatch <- effect.from` pattern:
 
 ```gleam
 // client/src/page/edit_task.gleam
 
 fn fetch_task(task_id: Int) -> Effect(Msg) {
   use dispatch <- effect.from
-  "/api/tasks/" <> int.to_string(task_id)
-  |> api.get(task.task_decoder())
+  task_service.fetch_task(task_id)
   |> promise.map(ApiReturnedTask)
   |> promise.tap(dispatch)
   Nil
@@ -394,14 +429,7 @@ fn fetch_task(task_id: Int) -> Effect(Msg) {
 
 fn patch_task(task: Task) -> Effect(Msg) {
   use dispatch <- effect.from
-  let body =
-    task
-    |> task.to_task_input
-    |> task.task_input_to_json
-    |> json.to_string
-
-  "/api/tasks/" <> int.to_string(task.id)
-  |> api.patch(task.task_decoder(), json: body)
+  task_service.patch_task(task)
   |> promise.map(ApiUpdatedTask)
   |> promise.tap(dispatch)
   Nil
@@ -409,8 +437,7 @@ fn patch_task(task: Task) -> Effect(Msg) {
 
 fn delete_task(task_id: Int) -> Effect(Msg) {
   use dispatch <- effect.from
-  "/api/tasks/" <> int.to_string(task_id)
-  |> api.delete
+  task_service.delete_task(task_id)
   |> promise.map(ApiDeletedTask)
   |> promise.tap(dispatch)
   Nil
@@ -468,8 +495,8 @@ pub fn view(page: Page) -> Element(Msg) {
       tasks.view(page_model) |> element.map(TasksPageSentMsg)
     NewTaskPage(page_model) ->
       new_task.view(page_model) |> element.map(NewTaskPageSentMsg)
-    EditTaskPage(page_model) ->                                       // [!code ++]
-      edit_task.view(page_model) |> element.map(EditTaskPageSentMsg)  // [!code ++]
+    EditTaskPage(page_model) ->                                                 // [!code ++]
+      edit_task.view(page_model) |> element.map(EditTaskPageSentMsg)            // [!code ++]
   }
 }
 ```
@@ -497,31 +524,87 @@ fn page_from_route(route: route.Route) -> #(Page, Effect(Msg)) {
 }
 ```
 
+## Toggling Task Completion
+
+`tasks.gleam` gains two new messages and a new effect so completion can be toggled inline without leaving the list.
+
+Two new `Msg` variants handle the toggle lifecycle. `UserToggledTask` carries the task and the new completion state as a `Bool` — the value comes straight from the checkbox event rather than being derived from the model:
+
+```gleam
+// client/src/page/tasks.gleam
+
+pub type Msg {
+  ApiReturnedTasks(Result(List(Task), ApiError))
+  UserToggledTask(Task, Bool)                     // [!code ++]
+  ApiUpdatedTask(Result(Task, ApiError))          // [!code ++]
+}
+```
+
+`update` handles both, using `result.map` and `list.map` to swap the updated task in place — no full refetch needed:
+
+```gleam
+// client/src/page/tasks.gleam
+
+    UserToggledTask(task, completed) -> #(model, toggle_task(task, completed))  // [!code ++]
+    ApiUpdatedTask(Ok(updated)) -> #(                                           // [!code ++]
+      Model(                                                                    // [!code ++]
+        ..model,                                                                // [!code ++]
+        tasks: result.map(                                                      // [!code ++]
+          model.tasks,                                                          // [!code ++]
+          list.map(_, fn(t) {                                                   // [!code ++]
+            case t.id == updated.id {                                           // [!code ++]
+              True -> updated                                                   // [!code ++]
+              False -> t                                                        // [!code ++]
+            }                                                                   // [!code ++]
+          }),                                                                   // [!code ++]
+        ),                                                                      // [!code ++]
+      ),                                                                        // [!code ++]
+      effect.none(),                                                            // [!code ++]
+    )                                                                           // [!code ++]
+    ApiUpdatedTask(Error(_)) -> #(model, effect.none())                         // [!code ++]
+```
+
+`toggle_task` applies the new completion state and PATCHes it via the service:
+
+```gleam
+// client/src/page/tasks.gleam
+
+fn toggle_task(task: Task, completed: Bool) -> Effect(Msg) {                  // [!code ++]
+  use dispatch <- effect.from                                                 // [!code ++]
+  task_service.patch_task(Task(..task, completed:))                           // [!code ++]
+  |> promise.map(ApiUpdatedTask)                                              // [!code ++]
+  |> promise.tap(dispatch)                                                    // [!code ++]
+  Nil                                                                         // [!code ++]
+}                                                                             // [!code ++]
+```
+
+`toggle_task` takes the new `Bool` value directly from the checkbox event rather than flipping `!task.completed` from the closure — this avoids stale state if the checkbox is clicked before a previous PATCH response arrives. `Task(..task, completed:)` uses record spread to produce a copy with just the one field updated.
+
 ## Edit Links in the Tasks List
 
-Each task item in `tasks.gleam` becomes a link to its edit page:
+Each task item becomes a separate checkbox and link. Keeping them apart means clicking the checkbox toggles completion while clicking the text navigates to the edit page — two independent interactions on the same row:
 
 ```gleam
 // client/src/page/tasks.gleam
 
 fn view_task(task: Task) -> Element(Msg) {
   html.li([], [
-    html.a([attribute.href(route.to_path(route.EditTask(task.id)))], [  // [!code ++]
-      html.input([
-        attribute.type_("checkbox"),
-        attribute.checked(task.completed),
-        attribute.disabled(True),
-      ]),
+    html.input([                                                         // [!code ++]
+      attribute.type_("checkbox"),
+      attribute.checked(task.completed),
+      event.on_check(fn(checked) { UserToggledTask(task, checked) }),    // [!code ++]
+    ]),
+    html.a([attribute.href(route.to_path(route.EditTask(task.id)))], [   // [!code ++]
       element.text(task.name <> " — " <> task.description),
     ]),                                                                  // [!code ++]
   ])
 }
 ```
 
-The checkbox and text are wrapped inside the `<a>` tag so the entire row is clickable. `route.EditTask(task.id)` passes the ID to `route.to_path`, which constructs the correct URL — the same single source of truth as the new task link.
+`event.on_check` passes the new boolean directly into `UserToggledTask`. The link delegates URL construction to `route.to_path`, consistent with every other navigation in the app.
 
 ## What's Next
 
 The app now supports listing, creating, editing, and deleting tasks. The UI is still unstyled, and the CORS middleware is growing unwieldy. To address both, we'll migrate to [Vite](https://vite.dev) next.
 
-[^1]: See commit [29b43d3](https://github.com/lukwol/doable/commit/29b43d3e38b2128f5414586f0561ffb8347cd708) on GitHub
+[^1]: See commit [6d89f96](https://github.com/lukwol/doable/commit/6d89f9657e4c6f2a5741c168783f9921ae2cbc4f) on GitHub
