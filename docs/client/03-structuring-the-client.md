@@ -1,8 +1,6 @@
-# Client-Side Routing
+# Structuring the Client
 
-The tasks screen works, but the app lives at a single URL with no way to navigate between pages. This chapter introduces client-side routing — giving each page its own URL and wiring up the browser's history API so the back button works as expected[^1].
-
-What changes is the structure around it: a `Route` type to describe URLs, a `Router` to map routes to pages, a dedicated service module for API calls, and a thinner `client.gleam` that hands off almost everything to the router.
+The tasks screen works, but everything still lives in `client.gleam` — one file with no room to grow. This chapter gives the client a proper shape: a `Route` type to describe URLs, a `Router` to map routes to pages, a service module for API calls, and a slimmed-down `client.gleam` that hands off almost everything to the router[^1].
 
 Five files change, four are new:
 
@@ -225,7 +223,7 @@ fn page_from_route(route: route.Route) -> #(Page, Effect(Msg)) {
 
 `page_from_route` initialises the page for a given route and wraps its effect, ready to be returned from `update` or `init`.
 
-## The Thin Shell
+## Updating client.gleam
 
 With the router in place, `client.gleam` becomes pleasantly minimal:
 
@@ -275,6 +273,6 @@ fn view(model: Model) -> Element(router.Msg) {
 
 ## What's Next
 
-The routing skeleton is in place. The next step is putting it to work — adding a create task page and a edit task page so users can actually manage their tasks.
+The structure is in place. The next step is putting it to work — adding a new task page and an edit task page so users can actually manage their tasks.
 
 [^1]: See commit [938b881](https://github.com/lukwol/doable/commit/938b88190700cdb869b0334a6afcb6179a4c213d) on GitHub

@@ -1,4 +1,4 @@
-# Edit Task Page
+# Edit and Delete Tasks
 
 The new task page renders its form fields directly. As soon as the edit page is needed, those fields would have to be duplicated. This chapter extracts them into a shared component, refactors the new task page to use it, and then builds the edit page on top.
 
@@ -188,16 +188,31 @@ pub fn delete(path: String) -> Promise(Result(Nil, ApiError)) {
 
 ## Extending the Task Service
 
-With `api.patch` and `api.delete` in place, `task_service.gleam` gains the three operations the edit page needs:
+With `api.patch` and `api.delete` in place, `task_service.gleam` gains the three operations the edit page needs. The full module now covers every task API call in one place:
 
 ```gleam
 // client/src/service/task_service.gleam
 
-pub fn fetch_task(task_id: Int) -> Promise(Result(Task, ApiError)) {   // [!code ++]
-  let path = "/api/tasks/" <> int.to_string(task_id)                   // [!code ++]
-  path                                                                 // [!code ++]
-  |> api.get(task.task_decoder())                                      // [!code ++]
-}                                                                      // [!code ++]
+pub fn fetch_tasks() -> Promise(Result(List(Task), ApiError)) {
+  "/api/tasks"
+  |> api.get(decode.list(task.task_decoder()))
+}
+
+pub fn fetch_task(task_id: Int) -> Promise(Result(Task, ApiError)) {    // [!code ++]
+  let path = "/api/tasks/" <> int.to_string(task_id)                    // [!code ++]
+    path                                                                // [!code ++]
+    |> api.get(task.task_decoder())                                     // [!code ++]
+}                                                                       // [!code ++]
+
+pub fn post_task(input: TaskInput) -> Promise(Result(Task, ApiError)) {
+  let body =
+    input
+    |> task.task_input_to_json
+    |> json.to_string
+
+  "/api/tasks"
+  |> api.post(task.task_decoder(), json: body)
+}
 
 pub fn patch_task(task: Task) -> Promise(Result(Task, ApiError)) {     // [!code ++]
   let body =                                                           // [!code ++]
