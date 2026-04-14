@@ -119,6 +119,15 @@ attribute.class(case task.completed {
 
 Because `attribute.class` takes an ordinary string, conditional styling is just a `case` expression — no special utilities or class-merging helpers needed.
 
+::: tip Sorting Tailwind classes
+[Rustywind](https://github.com/avencera/rustywind) sorts Tailwind utility classes into a consistent canonical order — the same order the Tailwind Prettier plugin produces. To sort class strings inside `attribute.class(...)` calls, run it with a custom regex from the `client` directory:
+
+```sh
+rustywind --write --custom-regex 'attribute\.class\("([^"]+)"' src/
+```
+
+:::
+
 ## Tasks Screen
 
 `tasks.gleam` gets a full layout: a centred container, a header row with the page title and a primary "New Task" button, and a card list for the tasks themselves.
@@ -130,8 +139,8 @@ The outer container uses `min-h-screen bg-base-200` to fill the viewport with Da
 
 pub fn view(model: Model) -> Element(Msg) {
   html.div([attribute.class("min-h-screen bg-base-200")], [
-    html.div([attribute.class("container mx-auto p-4 max-w-2xl")], [
-      html.div([attribute.class("flex items-center justify-between mb-6")], [
+    html.div([attribute.class("container p-4 mx-auto max-w-2xl")], [
+      html.div([attribute.class("flex justify-between items-center mb-6")], [
         html.h1([attribute.class("text-3xl font-bold")], [
           element.text("Tasks"),
         ]),
@@ -165,8 +174,8 @@ pub fn view(model: Model) -> Element(Msg) {
             ],
           )
         Ok([]) ->
-          html.div([attribute.class("card bg-base-100 shadow")], [
-            html.div([attribute.class("card-body items-center text-center")], [
+          html.div([attribute.class("shadow card bg-base-100")], [
+            html.div([attribute.class("items-center text-center card-body")], [
               html.p([attribute.class("text-base-content/60")], [
                 element.text("No tasks yet"),
               ]),
@@ -194,7 +203,7 @@ fn view_task(task: Task) -> Element(Msg) {
   html.li(
     [attribute.class("card bg-base-100 shadow hover:shadow-md transition-shadow")],
     [
-      html.div([attribute.class("card-body p-4 flex-row items-center gap-3")], [
+      html.div([attribute.class("flex-row gap-3 items-center p-4 card-body")], [
         html.input([
           attribute.type_("checkbox"),
           attribute.checked(task.completed),
@@ -204,7 +213,7 @@ fn view_task(task: Task) -> Element(Msg) {
         html.a(
           [
             attribute.href(route.to_path(route.EditTask(task.id))),
-            attribute.class("flex-1 min-w-0 flex items-center gap-3"),
+            attribute.class("flex flex-1 gap-3 items-center min-w-0"),
           ],
           [
             html.div([attribute.class("flex-1 min-w-0")], [
@@ -267,7 +276,7 @@ pub fn view(
         attribute.type_("text"),
         attribute.placeholder("Task name"),
         attribute.value(name),
-        attribute.class("input input-bordered w-full"),
+        attribute.class("w-full input input-bordered"),
         event.on_input(UserUpdatedName),
       ]),
     ]),
@@ -276,7 +285,7 @@ pub fn view(
       html.textarea(
         [
           attribute.placeholder("Optional description"),
-          attribute.class("textarea textarea-bordered w-full"),
+          attribute.class("w-full textarea textarea-bordered"),
           event.on_input(UserUpdatedDescription),
         ],
         description,
@@ -285,7 +294,7 @@ pub fn view(
     case completed {
       None -> element.none()
       Some(value) ->
-        html.label([attribute.class("label cursor-pointer justify-start gap-3")], [
+        html.label([attribute.class("gap-3 justify-start cursor-pointer label")], [
           html.input([
             attribute.type_("checkbox"),
             attribute.checked(value),
@@ -310,8 +319,8 @@ pub fn view(
 
 pub fn view(model: Model) -> Element(Msg) {
   html.div([attribute.class("min-h-screen bg-base-200")], [
-    html.div([attribute.class("container mx-auto p-4 max-w-2xl")], [
-      html.div([attribute.class("flex items-center gap-2 mb-6")], [
+    html.div([attribute.class("container p-4 mx-auto max-w-2xl")], [
+      html.div([attribute.class("flex gap-2 items-center mb-6")], [
         html.button(
           [
             attribute.class("btn btn-ghost btn-sm btn-circle"),
@@ -328,12 +337,12 @@ pub fn view(model: Model) -> Element(Msg) {
           element.text("New Task"),
         ]),
       ]),
-      html.div([attribute.class("card bg-base-100 shadow")], [
+      html.div([attribute.class("shadow card bg-base-100")], [
         html.div([attribute.class("card-body")], [
           case model.error {
             None -> element.none()
             Some(err) ->
-              html.div([attribute.class("alert alert-error mb-4")], [
+              html.div([attribute.class("mb-4 alert alert-error")], [
                 element.text(err),
               ])
           },
@@ -400,8 +409,8 @@ pub fn view(model: Model) -> Element(Msg) {
       )
     False ->
       html.div([attribute.class("min-h-screen bg-base-200")], [
-        html.div([attribute.class("container mx-auto p-4 max-w-2xl")], [
-          html.div([attribute.class("flex items-center gap-2 mb-6")], [
+        html.div([attribute.class("container p-4 mx-auto max-w-2xl")], [
+          html.div([attribute.class("flex gap-2 items-center mb-6")], [
             html.button(
               [
                 attribute.class("btn btn-ghost btn-sm btn-circle"),
@@ -418,12 +427,12 @@ pub fn view(model: Model) -> Element(Msg) {
               element.text("Edit Task"),
             ]),
           ]),
-          html.div([attribute.class("card bg-base-100 shadow")], [
+          html.div([attribute.class("shadow card bg-base-100")], [
             html.div([attribute.class("card-body")], [
               case model.error {
                 None -> element.none()
                 Some(err) ->
-                  html.div([attribute.class("alert alert-error mb-4")], [
+                  html.div([attribute.class("mb-4 alert alert-error")], [
                     element.text(err),
                   ])
               },
@@ -497,4 +506,4 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 The web app is complete. The next chapter wraps it in [Tauri](https://tauri.app) to turn it into a native desktop application.
 
-[^1]: See commit [e7731a1](https://github.com/lukwol/doable/commit/e7731a10e0df395d0750d2a9f3ecb41e13e7c2c7) on GitHub
+[^1]: See commit [c9b2b59](https://github.com/lukwol/doable/commit/c9b2b59) on GitHub
