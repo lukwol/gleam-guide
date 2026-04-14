@@ -265,6 +265,28 @@ docker compose up -d
 
 Docker pulls the images from the registry, starts all services in dependency order, runs migrations, and brings the app up. Open port 80 in a browser — doable is live.
 
+## Gleam Shell on Production
+
+If you've ever used `rails console` in a Ruby on Rails project, this will feel familiar — a live REPL connected to the production database, great for inspecting data, running one-off queries, or seeding records without going through the API. Tools like [Kamal](https://kamal-deploy.org) make this kind of access a first-class feature; with Docker Compose it's just one `exec` away:
+
+```sh
+docker compose exec server ./entrypoint.sh shell
+```
+
+From there, `console:init()` connects to the production database and returns a connection:
+
+```erlang
+1> DbConn = console:init().
+
+2> 'task@repository':create_task(DbConn, {task_input, "Buy groceries", "Milk and eggs", false}).
+% {ok,{task,1,<<"Buy groceries">>,<<"Milk and eggs">>,false}}
+
+3> 'task@repository':all_tasks(DbConn).
+% {ok,[{task,1,<<"Buy groceries">>,<<"Milk and eggs">>,false}]}
+```
+
+This is the production database — any changes made here are real.
+
 ## Updating
 
 When you push a new version of an image, pull it on the server before restarting:
