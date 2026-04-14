@@ -1,4 +1,4 @@
-# Tauri
+# Desktop App
 
 The app runs in the browser — but it doesn't have to. [Tauri](https://tauri.app) is an incredible framework for building native desktop apps from web frontends — it wraps the Vite frontend in a native desktop window using the operating system's built-in webview. The Gleam code, HTML, and CSS don't change at all; Tauri simply provides the frame around them and a Rust backend that can talk to the OS.
 
@@ -239,6 +239,6 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 ## What's Next
 
-The webview's native `fetch` is cross-origin from a `tauri://` context — CORS blocks it. The next chapter replaces it with [Tauri's HTTP client plugin](https://v2.tauri.app/plugin/http-client/), which routes requests through Rust and sidesteps the restriction. It also adds a native desktop menu item with a keyboard shortcut to reload the task list.
+The app now runs on the desktop. The next chapter takes it further — setting up a mobile iOS and Android app with Tauri.
 
 [^1]: See commit [efff28f](https://github.com/lukwol/doable/commit/efff28f) on GitHub

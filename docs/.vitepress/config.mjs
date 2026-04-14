@@ -60,7 +60,7 @@ export default {
             text: "Production Deployment",
             link: "/client/08-production-deployment",
           },
-          { text: "Tauri", link: "/client/09-tauri" },
+          { text: "Desktop App", link: "/client/09-desktop-app" },
         ],
       },
     ],
