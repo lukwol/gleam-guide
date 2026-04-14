@@ -50,6 +50,7 @@ export default {
           { text: "Edit and Delete Tasks", link: "/client/05-edit-and-delete-tasks" },
           { text: "Vite Build Tool", link: "/client/06-vite-build-tool" },
           { text: "Styling", link: "/client/07-styling" },
+          { text: "Tauri", link: "/client/08-tauri" },
         ],
       },
     ],
