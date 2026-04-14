@@ -222,6 +222,6 @@ If you prefer a GUI, [Postman](https://www.postman.com), [Insomnia](https://inso
 
 The routing skeleton is in place. The next step is setting up the PostgreSQL database with Docker Compose — once that's running, we'll come back and replace these stubs with handlers that actually read from and write to the database.
 
-[^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39974b2dbb45e1b1de4a5c37e52ea0189ba) on GitHub
+[^1]: See commit [18c3c39](https://github.com/lukwol/doable/commit/18c3c39) on GitHub
 
-[^2]: See commit [b81ca35](https://github.com/lukwol/doable/commit/b81ca35039fda8192c4e95107d22621bb3f5dd7a) on GitHub
+[^2]: See commit [b81ca35](https://github.com/lukwol/doable/commit/b81ca35) on GitHub

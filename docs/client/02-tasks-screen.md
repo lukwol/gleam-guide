@@ -348,4 +348,4 @@ fn cors(next: fn() -> Response) -> Response {                                   
 
 The tasks screen now loads and renders task data from the API. The next step is routing — adding separate pages for creating and editing tasks.
 
-[^1]: See commit [44cf194](https://github.com/lukwol/doable/commit/44cf194ee1508f55c83a4a2ef2c924250edd2d4f) on GitHub
+[^1]: See commit [ea79a64](https://github.com/lukwol/doable/commit/ea79a64) on GitHub

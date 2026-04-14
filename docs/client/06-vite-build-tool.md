@@ -226,6 +226,6 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
 
-[^1]: See commit [8b9aeb2](https://github.com/lukwol/doable/commit/8b9aeb2ae53f645241f88c90bd20ad509a77ebaf) on GitHub
+[^1]: See commit [b7bc6e3](https://github.com/lukwol/doable/commit/b7bc6e3) on GitHub
 
 [^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland

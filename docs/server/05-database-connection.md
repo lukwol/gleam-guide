@@ -345,6 +345,6 @@ Gleam modules compile to Erlang modules with the same name. `config:load()` call
 
 The server is now fully wired to the database. The next step is replacing the route stubs with real implementations that call into `task/sql.gleam`. But before we dive into that we need to prepare our model and the database repository.
 
-[^1]: See commit [2c9cb83](https://github.com/lukwol/doable/commit/2c9cb8305f88a0cd2abc0987393e461686e78f0e) on GitHub
+[^1]: See commit [2c9cb83](https://github.com/lukwol/doable/commit/2c9cb83) on GitHub
 
-[^2]: See commit [7758bc5](https://github.com/lukwol/doable/commit/7758bc571d5b6d7381e28646287c931b212f137d) on GitHub
+[^2]: See commit [7758bc5](https://github.com/lukwol/doable/commit/7758bc5) on GitHub

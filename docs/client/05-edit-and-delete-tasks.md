@@ -622,4 +622,4 @@ fn view_task(task: Task) -> Element(Msg) {
 
 The app now supports listing, creating, editing, and deleting tasks. The UI is still unstyled, and the CORS middleware is growing unwieldy. To address both, we'll migrate to [Vite](https://vite.dev) next.
 
-[^1]: See commit [6d89f96](https://github.com/lukwol/doable/commit/6d89f9657e4c6f2a5741c168783f9921ae2cbc4f) on GitHub
+[^1]: See commit [136abbb](https://github.com/lukwol/doable/commit/136abbb) on GitHub

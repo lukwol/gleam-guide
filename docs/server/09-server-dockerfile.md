@@ -16,7 +16,7 @@ doable/
 ```dockerfile
 # server/Dockerfile
 
-ARG ERLANG_VERSION=28.4.2.0
+ARG ERLANG_VERSION=27.3.4.10
 ARG GLEAM_VERSION=v1.15.4
 
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam   # stage 1: compiler
@@ -217,4 +217,4 @@ With the full backend running from a single command, it's time to start building
 
 [^1]: Based on the awesome [Gleam deployment guide](https://gleam.run/deployment/linux-server/)
 
-[^2]: See commit [40246a8](https://github.com/lukwol/doable/commit/40246a8c072d268ee73789f622da4899ffa4e7fb) on GitHub
+[^2]: See commit [dddc9ba](https://github.com/lukwol/doable/commit/dddc9ba) on GitHub

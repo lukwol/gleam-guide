@@ -191,4 +191,4 @@ Type `\q` to exit.
 
 With the schema in place, the next step is writing the SQL queries. We'll use Squirrel to generate type-safe Gleam functions directly from plain `.sql` files.
 
-[^1]: See commit [0e3c9ae](https://github.com/lukwol/doable/commit/0e3c9aea59579f1710455795ed78c03ecd74a562) on GitHub
+[^1]: See commit [0e3c9ae](https://github.com/lukwol/doable/commit/0e3c9ae) on GitHub

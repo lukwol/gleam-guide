@@ -378,4 +378,4 @@ pub fn middleware(
 
 Tasks can now be created. The next chapter adds the edit page — and along the way extracts the form fields into a shared component that both pages can reuse.
 
-[^1]: See commit [4d82122](https://github.com/lukwol/doable/commit/4d82122eb111d506fa0a12d5f02884f88310358a) on GitHub
+[^1]: See commit [9923908](https://github.com/lukwol/doable/commit/9923908) on GitHub

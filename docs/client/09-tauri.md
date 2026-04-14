@@ -241,4 +241,4 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 The webview's native `fetch` is cross-origin from a `tauri://` context — CORS blocks it. The next chapter replaces it with [Tauri's HTTP client plugin](https://v2.tauri.app/plugin/http-client/), which routes requests through Rust and sidesteps the restriction. It also adds a native desktop menu item with a keyboard shortcut to reload the task list.
 
-[^1]: See commit [3b7426e](https://github.com/lukwol/doable/commit/3b7426e) on GitHub
+[^1]: See commit [efff28f](https://github.com/lukwol/doable/commit/efff28f) on GitHub

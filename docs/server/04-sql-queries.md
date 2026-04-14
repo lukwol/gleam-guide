@@ -208,4 +208,4 @@ The column types come directly from the schema — Squirrel infers them by query
 
 The query functions are ready but they need a `pog.Connection` to run against. The next step is loading server configuration from environment variables and setting up a supervised connection pool to pass through the router.
 
-[^1]: See commit [f2efd4d](https://github.com/lukwol/doable/commit/f2efd4d27a926dba06bf67e155d65f2785436df0) on GitHub
+[^1]: See commit [f2efd4d](https://github.com/lukwol/doable/commit/f2efd4d) on GitHub

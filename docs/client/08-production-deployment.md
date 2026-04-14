@@ -2,16 +2,14 @@
 
 The web app is feature-complete. This chapter ships it — building Docker images, pushing them to a registry, and running the full stack on a real server with a single command.
 
-Three files are added and one is tweaked[^1]:
+Three files are added[^1]:
 
 ```sh
 doable/
 ├── Caddyfile            # reverse proxy configuration    [!code ++]
 ├── compose.prod.yml     # production compose stack       [!code ++]
-├── client/
-│   └── Dockerfile       # client multi-stage build       [!code ++]
-└── server/
-    └── Dockerfile       # Erlang version pinned          [!code highlight]
+└── client/
+    └── Dockerfile       # client multi-stage build       [!code ++]
 ```
 
 ::: info Prerequisites
@@ -286,4 +284,4 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop application.
 
-[^1]: See commit [3edd257](https://github.com/lukwol/doable/commit/3edd257) on GitHub
+[^1]: See commit [ad86970](https://github.com/lukwol/doable/commit/ad86970) on GitHub

@@ -283,6 +283,6 @@ A few things worth noting:
 
 The domain types and database repository are in place. The next step is implementing the route handlers to call into `task/repository.gleam` and return real HTTP responses.
 
-[^1]: See commit [9110637](https://github.com/lukwol/doable/commit/91106373a7ab4070e39fa4d74e1edb22cbb56e45) on GitHub
+[^1]: See commit [9110637](https://github.com/lukwol/doable/commit/9110637) on GitHub
 
-[^2]: See commit [1979a89](https://github.com/lukwol/doable/commit/1979a8981584174d2e76b5d918b81cbf54ef5507) on GitHub
+[^2]: See commit [1979a89](https://github.com/lukwol/doable/commit/1979a89) on GitHub
