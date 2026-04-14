@@ -504,6 +504,6 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 ## What's Next
 
-The web app is complete. The next chapter wraps it in [Tauri](https://tauri.app) to turn it into a native desktop application.
+The web app is complete. The next chapter ships it to a real server — building Docker images, pushing them to a registry, and deploying the full stack to production.
 
 [^1]: See commit [c9b2b59](https://github.com/lukwol/doable/commit/c9b2b59) on GitHub

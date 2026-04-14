@@ -45,12 +45,22 @@ export default {
         items: [
           { text: "Client Setup", link: "/client/01-client-setup" },
           { text: "Tasks Screen", link: "/client/02-tasks-screen" },
-          { text: "Structuring the Client", link: "/client/03-structuring-the-client" },
+          {
+            text: "Structuring the Client",
+            link: "/client/03-structuring-the-client",
+          },
           { text: "Create Tasks", link: "/client/04-create-tasks" },
-          { text: "Edit and Delete Tasks", link: "/client/05-edit-and-delete-tasks" },
+          {
+            text: "Edit and Delete Tasks",
+            link: "/client/05-edit-and-delete-tasks",
+          },
           { text: "Vite Build Tool", link: "/client/06-vite-build-tool" },
           { text: "Styling", link: "/client/07-styling" },
-          { text: "Tauri", link: "/client/08-tauri" },
+          {
+            text: "Production Deployment",
+            link: "/client/08-production-deployment",
+          },
+          { text: "Tauri", link: "/client/09-tauri" },
         ],
       },
     ],
