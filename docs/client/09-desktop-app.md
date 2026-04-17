@@ -239,6 +239,6 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 ## What's Next
 
-The app runs on the desktop. Without the Vite dev server, `bun tauri build` loads assets directly from the filesystem and CORS blocks every API call. The next chapter fixes that by replacing the Vite proxy with Tauri's HTTP plugin.
+Unlike a browser, the desktop app has no way to reload the page — so if the tasks list is stale, the user is stuck. The next chapter fixes that by adding a View menu with a Reload action.
 
 [^1]: See commit [9dacd54](https://github.com/lukwol/doable/commit/9dacd54) on GitHub
