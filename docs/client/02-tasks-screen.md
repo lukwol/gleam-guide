@@ -309,6 +309,8 @@ The `case` on `model.tasks` covers all four states:
 
 `view_task` renders each task as a list item with a read-only checkbox. The checkbox reflects the task's `completed` state but `attribute.disabled(True)` prevents interaction for now.
 
+![Tasks screen showing a read-only list fetched from the API](/screenshots/tasks-readonly.png)
+
 ## CORS on the Server
 
 While the dev server (`lustre_dev_tools`) runs on port 1234, the API server runs on port 8000. These are different origins, so `web.gleam` adds a `cors` middleware:

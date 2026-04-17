@@ -200,6 +200,8 @@ On first run, `lustre_dev_tools` generates a `.lustre/` directory containing an 
 
 Open `http://localhost:1234` in a browser, type a name, and click the button. The greeting appears below — the Lustre setup is working.
 
+![Greeting app running in the browser](/screenshots/greeter.png)
+
 ## What's Next
 
 The MVU skeleton is in place. The next step is building the actual task UI — fetching tasks from the API, rendering a task list, and wiring up the create, update, and delete interactions.

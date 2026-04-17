@@ -429,6 +429,8 @@ pub fn view(model: Model) -> Element(Msg) {
 
 `Some(model.task.completed)` passes the current completion state to the form, so the checkbox appears and reflects the real value. The delete button is disabled alongside the save button — `submitting` guards both.
 
+![Edit task form before styling](/screenshots/edit-task-unstyled.png)
+
 The three private effects delegate to the task service and follow the same `use dispatch <- effect.from` pattern:
 
 ```gleam
@@ -617,6 +619,8 @@ fn view_task(task: Task) -> Element(Msg) {
 ```
 
 `event.on_check` passes the new boolean directly into `UserToggledTask`. The link delegates URL construction to `route.to_path`, consistent with every other navigation in the app.
+
+![Tasks list with interactive checkboxes and edit links, before styling](/screenshots/tasks-unstyled.png)
 
 ## What's Next
 

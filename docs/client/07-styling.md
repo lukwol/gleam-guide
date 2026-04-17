@@ -257,6 +257,8 @@ The card body is a `div` rather than an `<a>` — keeping the checkbox and the l
 
 Completed tasks get the `line-through text-base-content/50` treatment — struck through and dimmed — while incomplete tasks stay fully opaque. The description is hidden entirely when empty (`element.none()`) rather than rendering a blank line, and `truncate` keeps long descriptions to a single line.
 
+![Styled tasks screen with dark theme, cards, and a primary New Task button](/screenshots/tasks-styled.png)
+
 ## Task Form
 
 `task_form.gleam` provides the shared name, description, and completed fields used on both the new and edit pages. The bare `<label>` and `<input>` tags become proper DaisyUI form controls:
@@ -384,6 +386,8 @@ pub fn view(model: Model) -> Element(Msg) {
 
 The Back button becomes `btn btn-ghost btn-sm btn-circle` — a small circular ghost button that sits beside the heading without drawing too much attention. The Save button swaps its icon for a spinner and its label for "Saving..." while the form is submitting — immediate feedback that the request is in flight.
 
+![Styled new task form with dark theme and a primary Save button](/screenshots/new-task-styled.png)
+
 ## Edit Task Page
 
 `edit_task.gleam` mirrors the new task page layout — same card wrapping, same `max-w-2xl` container — and adds a Delete button. The loading state — previously a `<p>Loading…</p>` — becomes a centred full-screen spinner:
@@ -492,6 +496,8 @@ pub fn view(model: Model) -> Element(Msg) {
 ```
 
 The Delete button is `btn btn-error` — DaisyUI's red variant — making it visually distinct from the primary Save action. Both buttons are disabled while the form is submitting, preventing double-submissions.
+
+![Styled edit task form with dark theme, Save and Delete buttons](/screenshots/edit-task-styled.png)
 
 ## Running the Dev Server
 
