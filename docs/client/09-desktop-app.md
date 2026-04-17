@@ -37,8 +37,8 @@ The CLI asks five questions. You can answer them as follows:
 
 | Question                                                            | Answer                  |
 | ------------------------------------------------------------------- | ----------------------- |
-| What is your app name?                                              | `doable`                |
-| What should the window title be?                                    | `doable`                |
+| What is your app name?                                              | `Doable`                |
+| What should the window title be?                                    | `Doable`                |
 | Where are your web assets, relative to `src-tauri/tauri.conf.json`? | `../dist`               |
 | What is the url of your dev server?                                 | `http://localhost:5173` |
 | What is your frontend dev command?                                  | `bun run dev`           |
@@ -76,7 +76,7 @@ The web assets path points to `../dist` — Vite's output directory when buildin
 
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "doable",
+  "productName": "Doable",
   "version": "0.1.0",
   "identifier": "com.tauri.dev",
   "build": {
@@ -88,7 +88,7 @@ The web assets path points to `../dist` — Vite's output directory when buildin
   "app": {
     "windows": [
       {
-        "title": "doable",
+        "title": "Doable",
         "width": 800,
         "height": 600,
         "resizable": true,
@@ -241,4 +241,4 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 The app now runs on the desktop. The next chapter takes it further — setting up a mobile iOS and Android app with Tauri.
 
-[^1]: See commit [76f101d](https://github.com/lukwol/doable/commit/76f101d) on GitHub
+[^1]: See commit [861c565](https://github.com/lukwol/doable/commit/861c565) on GitHub
