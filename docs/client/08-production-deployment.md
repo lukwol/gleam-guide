@@ -132,7 +132,7 @@ services:
       dockerfile: server/Dockerfile
       platforms:
         - linux/amd64
-    image: user/doable-server:latest
+    image: lukwol/doable-server:latest
     restart: unless-stopped
     environment:
       - ENV
@@ -155,7 +155,7 @@ services:
       context: .
       dockerfile: client/Dockerfile
     platform: linux/amd64
-    image: user/doable-caddy:latest
+    image: lukwol/doable-caddy:latest
     restart: unless-stopped
     environment:
       - SERVER_PORT
@@ -178,7 +178,7 @@ A few differences from the dev compose file stand out:
 - **`image:`** — both `server` and `caddy` have an `image:` field alongside `build:`. When building, Docker tags the result with that name. When pushing, it pushes that tag to the registry. The remote server pulls images by this name — it doesn't need the source code at all.
 
 ::: info Docker Hub username
-The `user` prefix in `user/doable-server:latest` and `user/doable-caddy:latest` is a placeholder — replace it with your Docker Hub username before building. The prefix scopes the image to your account so `docker push` knows where to upload and the server knows where to pull from.
+The `lukwol` prefix in `lukwol/doable-server:latest` and `lukwol/doable-caddy:latest` is the Docker Hub username — replace it with your own before building. The prefix scopes the image to your account so `docker push` knows where to upload and the server knows where to pull from.
 :::
 
 - **`platforms: [linux/amd64]`** — production targets a `linux/amd64` server. This pins the build output regardless of what machine runs the build.
@@ -189,8 +189,8 @@ The `user` prefix in `user/doable-server:latest` and `user/doable-caddy:latest` 
 The `latest` tag is convenient for development but risky in production — `docker compose pull` on the server will silently replace whatever was running. In a real deployment, tag images by version or git SHA:
 
 ```yaml
-image: user/doable-server:1.2.0
-image: user/doable-server:3b7426e
+image: lukwol/doable-server:1.2.0
+image: lukwol/doable-server:3b7426e
 ```
 
 That way every deployment is explicit and rollbacks are straightforward.
@@ -273,8 +273,8 @@ Docker pulls the images from the registry, starts all services in dependency ord
 ```sh
 docker ps -a
 # CONTAINER ID   IMAGE                        COMMAND                  CREATED        STATUS                    PORTS                                   NAMES
-# 2e08f814f22c   user/doable-caddy:latest     "caddy run --config …"   16 hours ago   Up 16 hours               0.0.0.0:80->80/tcp, 443/tcp, 2019/tcp   doable-prod-caddy-1
-# a8887df98890   user/doable-server:latest    "/doable-server/entr…"   16 hours ago   Up 16 hours               8000/tcp                                doable-prod-server-1
+# 2e08f814f22c   lukwol/doable-caddy:latest     "caddy run --config …"   16 hours ago   Up 16 hours               0.0.0.0:80->80/tcp, 443/tcp, 2019/tcp   doable-prod-caddy-1
+# a8887df98890   lukwol/doable-server:latest    "/doable-server/entr…"   16 hours ago   Up 16 hours               8000/tcp                                doable-prod-server-1
 # 4f375470a9c0   migrate/migrate              "migrate -path /migr…"   16 hours ago   Exited (0) 16 hours ago                                           doable-prod-migrate-1
 # e035160303e3   postgres:18-alpine           "docker-entrypoint.s…"   16 hours ago   Up 16 hours (healthy)     0.0.0.0:5432->5432/tcp                  doable-prod-db-1
 ```
@@ -320,4 +320,4 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop and mobile application.
 
-[^1]: See commit [7a497c7](https://github.com/lukwol/doable/commit/7a497c7) on GitHub
+[^1]: See commit [b25ee33](https://github.com/lukwol/doable/commit/b25ee33) on GitHub
