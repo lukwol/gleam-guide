@@ -137,4 +137,4 @@ The chapters are meant to be read in order — each one builds on the code from 
 
 Throughout the guide, footnotes link to the specific commit where each change is introduced, so you can always diff against the reference if something isn't working.
 
-[^1]: The name is inspired by fantastic [Rails New tutorial by Typecraft](https://www.youtube.com/watch?v=oEDkhfsFMTg&list=PLHFP2OPUpCeZcPutT9yn4-e0bMmrn5Gd1).
+[^1]: The name is inspired by the fantastic [Rails New tutorial by Typecraft](https://www.youtube.com/watch?v=oEDkhfsFMTg&list=PLHFP2OPUpCeZcPutT9yn4-e0bMmrn5Gd1).

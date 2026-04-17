@@ -78,7 +78,6 @@ SERVER_PORT=8000                    # [!code ++]
   ::: info
   Binding to `0.0.0.0` is required when running inside Docker — binding to `localhost` would only accept connections from within the container itself, making the server unreachable from Caddy or the host machine.
   :::
-
 - `SERVER_PORT` — the port the HTTP server listens on.
 
 ## App Config

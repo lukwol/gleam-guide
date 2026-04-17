@@ -4,7 +4,7 @@ The app runs in the browser — but it doesn't have to. [Tauri](https://tauri.ap
 
 Because we already have a Vite project, the [manual setup](https://tauri.app/start/create-project/) path is the right one — it adds Tauri on top of what's already there rather than scaffolding everything from scratch. The approach is inspired by this [excellent write-up](https://www.wezm.net/v2/posts/2024/gleam-tauri/) by Wesley Moore.
 
-When setting up tauri whole `src-tauri/` is added[^1]:
+Setting up Tauri adds a whole `src-tauri/` directory alongside the existing client code[^1]:
 
 ```sh
 doable/
@@ -146,7 +146,7 @@ Tauri's Rust side is minimal scaffolding. `build.rs` runs the Tauri build helper
 // client/src-tauri/build.rs
 
 fn main() {
-  tauri_build::build()
+    tauri_build::build()
 }
 ```
 
@@ -157,19 +157,19 @@ The app logic lives in `lib.rs`, separated from `main.rs` so the same code compi
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
-    .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
-      Ok(())
-    })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    tauri::Builder::default()
+        .setup(|app| {
+            if cfg!(debug_assertions) {
+                app.handle().plugin(
+                    tauri_plugin_log::Builder::default()
+                        .level(log::LevelFilter::Info)
+                        .build(),
+                )?;
+            }
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 ```
 
@@ -182,7 +182,7 @@ pub fn run() {
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-  app_lib::run();
+    app_lib::run();
 }
 ```
 
@@ -239,6 +239,6 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 ## What's Next
 
-The app now runs on the desktop. The next chapter takes it further — setting up a mobile iOS and Android app with Tauri.
+The app runs on the desktop. Without the Vite dev server, `bun tauri build` loads assets directly from the filesystem and CORS blocks every API call. The next chapter fixes that by replacing the Vite proxy with Tauri's HTTP plugin.
 
-[^1]: See commit [990e3c0](https://github.com/lukwol/doable/commit/990e3c0) on GitHub
+[^1]: See commit [9dacd54](https://github.com/lukwol/doable/commit/9dacd54) on GitHub

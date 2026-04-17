@@ -162,7 +162,7 @@ WHERE id = $1
 
 A few things worth noting:
 
-- `$1`, `$2`, ...` — PostgreSQL's positional parameter syntax. Squirrel maps these to typed function arguments in the generated code.
+- `$1`, `$2`, ... — PostgreSQL's positional parameter syntax. Squirrel maps these to typed function arguments in the generated code.
 - `RETURNING` — tells Postgres to return the affected row. Squirrel uses the returned columns to generate the result type.
 
 ## Generate the Gleam Module

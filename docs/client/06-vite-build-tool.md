@@ -74,7 +74,7 @@ Vite's entry point is `index.html`. It references a JS module, which in turn imp
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <title>Doable</title>
   </head>
   <body>
     <div id="app"></div>
@@ -228,6 +228,6 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
 
-[^1]: See commit [8833d47](https://github.com/lukwol/doable/commit/8833d47) on GitHub
+[^1]: See commit [e295e97](https://github.com/lukwol/doable/commit/e295e97) on GitHub
 
 [^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland

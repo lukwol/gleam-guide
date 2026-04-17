@@ -268,7 +268,9 @@ cd doable
 docker compose up -d
 ```
 
-Docker pulls the images from the registry, starts all services in dependency order, runs migrations, and brings the app up. Open port 80 in a browser — doable is live.
+Docker pulls the images from the registry, starts all services in dependency order, and runs migrations.
+
+Open port 80 in a browser — doable is live.
 
 ```sh
 docker ps -a
@@ -318,6 +320,6 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 ## What's Next
 
-The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop and mobile application.
+The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop application.
 
-[^1]: See commit [0126fcf](https://github.com/lukwol/doable/commit/0126fcf) on GitHub
+[^1]: See commit [7fcc485](https://github.com/lukwol/doable/commit/7fcc485) on GitHub
