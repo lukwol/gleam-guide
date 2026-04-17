@@ -89,6 +89,12 @@ docker compose ps
 
 You should see `db` listed with status `running`.
 
+```sh
+docker ps -a
+# CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+# 52bcc6e06f8a   postgres:18-alpine   "docker-entrypoint.s…"   11 seconds ago   Up 11 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   doable-dev-db-1
+```
+
 ## Verifying the Database
 
 Connect to the running container with `psql` to confirm the database was created and is accepting connections:

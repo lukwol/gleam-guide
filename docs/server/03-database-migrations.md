@@ -123,6 +123,13 @@ docker compose logs migrate
 
 The `migrate` service is not configured with `restart: unless-stopped`, so it runs once and stops; `docker compose up` will start it again, but reruns are safe.
 
+```sh
+docker ps -a
+# CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                      PORTS                                         NAMES
+# aecf90bc4b8d   migrate/migrate      "migrate -path /migr…"   17 seconds ago   Exited (0) 14 seconds ago                                                 doable-dev-migrate-1
+# ea3d96689376   postgres:18-alpine   "docker-entrypoint.s…"   17 seconds ago   Up 16 seconds (healthy)     0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   doable-dev-db-1
+```
+
 ::: info
 To stop the stack, run `docker compose down` or if you want to start fresh — for example to re-run the init script — add `-v` to also remove the named volume and wipe the data:
 

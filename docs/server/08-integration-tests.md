@@ -137,6 +137,14 @@ docker compose up -d
 
 `-v` removes the named volume so Postgres reinitializes and the init script runs again.
 
+```sh
+docker ps -a
+# CONTAINER ID   IMAGE                COMMAND                  CREATED              STATUS                    PORTS                                         NAMES
+# 529bfb78d152   migrate/migrate      "migrate -path /migr…"   4 seconds ago        Exited (0) 1 second ago                                                 doable-dev-migrate-test-1
+# ae1d1805cee9   postgres:18-alpine   "docker-entrypoint.s…"   4 seconds ago        Up 3 seconds (healthy)    0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   doable-dev-db-1
+# aecf90bc4b8d   migrate/migrate      "migrate -path /migr…"   About a minute ago   Exited (0) 1 second ago                                                 doable-dev-migrate-1
+```
+
 ## Test Context
 
 Tests use the same route handlers as production but need a database connection they can roll back after each test. To support this, a second `TestContext` variant is introduced. Unlike `Context`, which holds only a pool name atom, `TestContext` holds a `pog.Connection` directly — either a pool-backed handle for read-only tests, or a transaction-scoped one inside `with_rollback`.

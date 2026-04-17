@@ -202,6 +202,15 @@ docker compose up --build
 
 The server is now reachable at `http://localhost:8000` without needing a separate terminal running `gleam run`.
 
+```sh
+docker ps -a
+# CONTAINER ID   IMAGE                COMMAND                  CREATED              STATUS                     PORTS                                         NAMES
+# 01d350b93964   doable-dev-server    "/doable-server/entr…"   3 seconds ago        Up 1 second                0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   doable-dev-server-1
+# 529bfb78d152   migrate/migrate      "migrate -path /migr…"   37 seconds ago       Exited (0) 2 seconds ago                                                 doable-dev-migrate-test-1
+# ae1d1805cee9   postgres:18-alpine   "docker-entrypoint.s…"   37 seconds ago       Up 36 seconds (healthy)    0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   doable-dev-db-1
+# aecf90bc4b8d   migrate/migrate      "migrate -path /migr…"   About a minute ago   Exited (0) 2 seconds ago                                                 doable-dev-migrate-1
+```
+
 ::: info
 To run the server locally with `gleam run` instead, stop the `server` service first so it doesn't conflict:
 
