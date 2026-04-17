@@ -241,4 +241,4 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 The app now runs on the desktop. The next chapter takes it further — setting up a mobile iOS and Android app with Tauri.
 
-[^1]: See commit [861c565](https://github.com/lukwol/doable/commit/861c565) on GitHub
+[^1]: See commit [990e3c0](https://github.com/lukwol/doable/commit/990e3c0) on GitHub

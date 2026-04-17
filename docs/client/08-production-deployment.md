@@ -320,4 +320,4 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop and mobile application.
 
-[^1]: See commit [b25ee33](https://github.com/lukwol/doable/commit/b25ee33) on GitHub
+[^1]: See commit [0126fcf](https://github.com/lukwol/doable/commit/0126fcf) on GitHub

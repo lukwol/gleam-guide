@@ -15,10 +15,10 @@ doable/
 │   ├── package.json             # vite + vite-gleam dev deps                      [!code ++]
 │   ├── vite.config.js           # plugin + proxy config                           [!code ++]
 │   └── src/
-│       ├── api.gleam            # hardcoded URL → browser.api_base_url()          [!code highlight]
-│       ├── browser.gleam        # api_base_url added                              [!code highlight]
-│       ├── browser_ffi.js       # window_location_origin added                    [!code highlight]
-│       └── main.js              # JS entry that boots client.gleam                [!code ++]
+│       ├── api.gleam            # base URL now derived from window.location.origin  [!code highlight]
+│       ├── browser.gleam        # window_location_origin added                      [!code highlight]
+│       ├── browser_ffi.js       # window_location_origin added                      [!code highlight]
+│       └── main.js              # JS entry that boots client.gleam                  [!code ++]
 └── server/
     └── src/
         └── web.gleam            # CORS middleware removed                         [!code highlight]
@@ -122,9 +122,9 @@ The `proxy` block tells Vite's dev server to forward any request whose path star
 
 ## API Base URL
 
-With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to `browser.api_base_url()`.
+With the proxy in place, the API is reachable at the same origin as the page. `window.location.origin` returns that origin at runtime — `http://localhost:5173` in development, whatever the deployment URL is in production. The hardcoded constant in `api.gleam` is replaced with a call to `browser.window_location_origin()`.
 
-`browser.gleam` already exists from the previous chapter — it gets a new public function and its backing FFI declaration:
+`browser.gleam` already exists from the previous chapter — it gets a new public FFI declaration:
 
 ```gleam
 // client/src/browser.gleam
@@ -132,12 +132,8 @@ With the proxy in place, the API is reachable at the same origin as the page. `w
 @external(javascript, "./browser_ffi.js", "history_back")
 pub fn history_back() -> Nil
 
-pub fn api_base_url() -> String {                                     // [!code ++]
-  window_location_origin()                                            // [!code ++]
-}                                                                     // [!code ++]
-
 @external(javascript, "./browser_ffi.js", "window_location_origin")   // [!code ++]
-fn window_location_origin() -> String                                 // [!code ++]
+pub fn window_location_origin() -> String                             // [!code ++]
 ```
 
 `@external` declares a Gleam function that is implemented in another language. The three arguments are the target (`javascript`), the module path relative to this file, and the exported function name. `browser_ffi.js` gets the matching export:
@@ -154,7 +150,7 @@ export function window_location_origin() {      // [!code ++]
 }                                               // [!code ++]
 ```
 
-`api.gleam` swaps the constant for a call to `browser.api_base_url()`:
+`api.gleam` swaps the constant for a private helper that delegates to `browser`:
 
 ```gleam
 // client/src/api.gleam
@@ -163,15 +159,21 @@ import browser  // [!code ++]
 
 const api_base_url = "http://localhost:8000"  // [!code --]
 
+fn api_base_url() -> String {             // [!code ++]
+  browser.window_location_origin()        // [!code ++]
+}                                         // [!code ++]
+
 fn with_json_request(
   path: String,
   callback: fn(Request(String)) -> Promise(Result(b, ApiError)),
 ) -> Promise(Result(b, ApiError)) {
-  let url = api_base_url <> path             // [!code --]
-  let url = browser.api_base_url() <> path  // [!code ++]
+  let url = api_base_url <> path        // [!code --]
+  let url = api_base_url() <> path      // [!code ++]
   ...
 }
 ```
+
+Keeping `api_base_url` private inside `api.gleam` means the `browser` module stays a thin wrapper over browser primitives — URL construction is an API concern, not a browser concern.
 
 ## Removing CORS
 
@@ -226,6 +228,6 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
 
-[^1]: See commit [b7bc6e3](https://github.com/lukwol/doable/commit/b7bc6e3) on GitHub
+[^1]: See commit [8833d47](https://github.com/lukwol/doable/commit/8833d47) on GitHub
 
 [^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland

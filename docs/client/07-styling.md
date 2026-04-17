@@ -512,4 +512,4 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 The web app is complete. The next chapter ships it to a real server — building Docker images, pushing them to a registry, and deploying the full stack to production.
 
-[^1]: See commit [c31df41](https://github.com/lukwol/doable/commit/c31df41) on GitHub
+[^1]: See commit [ebeff23](https://github.com/lukwol/doable/commit/ebeff23) on GitHub
