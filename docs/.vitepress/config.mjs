@@ -60,7 +60,7 @@ export default {
             text: "Production Deployment",
             link: "/client/08-production-deployment",
           },
-          { text: "Tauri Setup", link: "/client/09-tauri-setup" },
+          { text: "Desktop Setup", link: "/client/09-desktop-setup" },
           { text: "Desktop Additions", link: "/client/10-desktop-additions" },
           { text: "Tauri HTTP", link: "/client/11-tauri-http" },
           { text: "Mobile Setup", link: "/client/12-mobile-setup" },
