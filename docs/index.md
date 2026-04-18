@@ -91,22 +91,22 @@ The frontend follows the **[Elm Architecture](https://guide.elm-lang.org/archite
 This makes data flow explicit and unidirectional: user interactions dispatch messages, messages drive state transitions, state drives the view. No hidden side effects, no two-way binding.
 
 ```
- ┌───▶ User interaction
- │           │
- │           ▼
- │        Message ◀──────────────────┐
- │           │                       │
- │           ▼                       │
- │   update(model, msg) ──▶ Effect   │
- │           │               │       │
- │           ▼               ▼       │
- │        new Model     Effect runs  │
- │           │          (HTTP, …)    │
- │           ▼               │       │
- │      view(model)          └───────┘
- │           │
- │           ▼
- └──────────HTML
+                    ┌───▶ User interaction
+                    │           │
+                    │           ▼
+                    │        Message ◀──────────────────┐
+                    │           │                       │
+                    │           ▼                       │
+                    │   update(model, msg) ──▶ Effect   │
+                    │           │               │       │
+                    │           ▼               ▼       │
+                    │        new Model     Effect runs  │
+                    │           │          (HTTP, …)    │
+                    │           ▼               │       │
+                    │      view(model)          └───────┘
+                    │           │
+                    │           ▼
+                    └──────────HTML
 ```
 
 ## Who is this guide for
@@ -134,7 +134,7 @@ Before starting, make sure you have the following installed:
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
 
 ::: tip Web-only path
-If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Desktop Setup](/client/09-desktop-setup).
+If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Desktop Setup](/client/10-desktop-setup).
 :::
 
 ## How to Use This Guide

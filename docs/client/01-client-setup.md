@@ -52,22 +52,22 @@ Lustre structures every application around four things:
 When a `Msg` is dispatched, Lustre calls `update(model, msg)` to produce the next model, then calls `view(new_model)` to produce the new HTML. The cycle repeats for every event. Because `view` is a function, the UI is always a deterministic reflection of the model — there's no component state to keep in sync.
 
 ```
- ┌───▶ User interaction
- │           │
- │           ▼
- │        Message
- │           │
- │           ▼
- │   update(model, msg)
- │           │
- │           ▼
- │        new Model
- │           │
- │           ▼
- │      view(model)
- │           │
- │           ▼
- └───────── HTML
+                    ┌───▶ User interaction
+                    │           │
+                    │           ▼
+                    │        Message
+                    │           │
+                    │           ▼
+                    │   update(model, msg)
+                    │           │
+                    │           ▼
+                    │        new Model
+                    │           │
+                    │           ▼
+                    │      view(model)
+                    │           │
+                    │           ▼
+                    └───────── HTML
 ```
 
 This is the `lustre.simple` loop — no side effects. Once the app needs to make HTTP requests, `update` will also return effects alongside the new model, and those effects can dispatch further messages back into the loop. The full diagram is in the [Introduction](/#frontend).

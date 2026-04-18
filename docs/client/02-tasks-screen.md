@@ -188,22 +188,22 @@ pub fn main() {
 With `lustre.simple`, `init` returns `Model` and `update` returns `Model`. With `lustre.application`, both return `#(Model, Effect(Msg))` — a tuple pairing the new model with an optional side effect to run. Effects run outside the pure `update` function and feed their results back in as messages.
 
 ```
- ┌───▶ User interaction
- │           │
- │           ▼
- │        Message ◀──────────────────┐
- │           │                       │
- │           ▼                       │
- │   update(model, msg) ──▶ Effect   │
- │           │               │       │
- │           ▼               ▼       │
- │        new Model     Effect runs  │
- │           │          (HTTP, …)    │
- │           ▼               │       │
- │      view(model)          └───────┘
- │           │
- │           ▼
- └──────────HTML
+                    ┌───▶ User interaction
+                    │           │
+                    │           ▼
+                    │        Message ◀──────────────────┐
+                    │           │                       │
+                    │           ▼                       │
+                    │   update(model, msg) ──▶ Effect   │
+                    │           │               │       │
+                    │           ▼               ▼       │
+                    │        new Model     Effect runs  │
+                    │           │          (HTTP, …)    │
+                    │           ▼               │       │
+                    │      view(model)          └───────┘
+                    │           │
+                    │           ▼
+                    └──────────HTML
 ```
 
 ## Model and Messages
