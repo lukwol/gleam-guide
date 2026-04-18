@@ -1,6 +1,6 @@
 # Client Setup
 
-With the backend running in Docker, it's time to build the frontend. [Lustre](https://hexdocs.pm/lustre/) is a brilliant Gleam framework for building browser UIs using the Model-View-Update (MVU) architecture — this chapter adds it to the client project and builds a small greeting app to verify the setup before moving on to the real task UI.
+With the backend running in Docker, it's time to build the frontend. [Lustre](https://hexdocs.pm/lustre/) is a brilliant Gleam framework for building browser UIs using the Model-View-Update (MVU) architecture — in this chapter we'll add it to the client project and build a small greeting app to verify the setup before moving on to the real task UI.
 
 Two files change:
 

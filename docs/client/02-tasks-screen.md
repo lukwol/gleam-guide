@@ -1,6 +1,6 @@
 # Tasks Screen
 
-With the Lustre skeleton in place, it's time to replace the greeting app with the real task UI. This chapter fetches tasks from the API and renders them as a list — introducing effects, a dedicated HTTP client, and error handling along the way[^1].
+With the Lustre skeleton in place, it's time to replace the greeting app with the real task UI. In this chapter we'll fetch tasks from the API and render them as a list — introducing effects, a dedicated HTTP client, and error handling along the way[^1].
 
 Five files change, two are new:
 

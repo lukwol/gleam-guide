@@ -1,6 +1,6 @@
 # Mobile Setup
 
-Tauri isn't just a desktop framework — the same Gleam frontend can run on iOS and Android. The Rust backend handles the native layer on mobile just as it does on desktop. This chapter sets up both mobile targets and gets the app running on a simulator.
+Tauri isn't just a desktop framework — the same Gleam frontend can run on iOS and Android. The Rust backend handles the native layer on mobile just as it does on desktop. In this chapter we'll set up both mobile targets and get the app running on a simulator.
 
 Two commands do the bulk of the work:
 

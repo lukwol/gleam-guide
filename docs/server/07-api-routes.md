@@ -1,6 +1,6 @@
 # Implementing the API Routes
 
-With the database repository in place, this chapter wires everything together into a working API[^1].
+With the database repository in place, we'll now wire everything together into a working API[^1].
 
 Three files change, one test file is added:
 

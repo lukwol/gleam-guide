@@ -60,6 +60,7 @@ export default {
             text: "Production Deployment",
             link: "/client/08-production-deployment",
           },
+          { text: "Recap — The Web App", link: "/client/recap" },
           { text: "Desktop Setup", link: "/client/09-desktop-setup" },
           { text: "Desktop Additions", link: "/client/10-desktop-additions" },
           { text: "Native HTTP", link: "/client/11-native-http" },

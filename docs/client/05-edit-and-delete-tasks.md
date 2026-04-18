@@ -1,6 +1,6 @@
 # Edit and Delete Tasks
 
-The new task page renders its form fields directly. As soon as the edit page is needed, those fields would have to be duplicated. This chapter extracts them into a shared component, refactors the new task page to use it, and then builds the edit page on top.
+The new task page renders its form fields directly. As soon as the edit page is needed, those fields would have to be duplicated. In this chapter we'll extract them into a shared component, refactor the new task page to use it, and then build the edit page on top.
 
 Eight files change, two are new[^1]:
 

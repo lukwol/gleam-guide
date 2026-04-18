@@ -1,6 +1,6 @@
 # Connecting to the Database
 
-The query functions are ready but they need a [`pog.Connection`](https://hexdocs.pm/pog/pog.html#Connection) to run against. This chapter wires everything together: loading server settings from environment variables, setting up a supervised database connection pool, and threading it through the router to the route handlers.
+The query functions are ready but they need a [`pog.Connection`](https://hexdocs.pm/pog/pog.html#Connection) to run against. In this chapter we'll wire everything together: loading server settings from environment variables, setting up a supervised database connection pool, and threading it through the router to the route handlers.
 
 Three new files join the existing ones, and four are updated:
 

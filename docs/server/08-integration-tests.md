@@ -1,6 +1,6 @@
 # Integration Tests
 
-With the REST API complete, this chapter adds an automated test suite that exercises each route end-to-end — through the router, handlers, and real database queries — without running a live HTTP server.
+With the REST API complete, we'll now add an automated test suite that exercises each route end-to-end — through the router, handlers, and real database queries — without running a live HTTP server.
 
 Several new files are added across the project:
 

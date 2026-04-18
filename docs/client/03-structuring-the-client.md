@@ -1,6 +1,6 @@
 # Structuring the Client
 
-The tasks screen works, but everything still lives in `client.gleam` — one file with no room to grow. This chapter gives the client a proper shape: a `Route` type to describe URLs, a `Router` to map routes to pages, a service module for API calls, and a slimmed-down `client.gleam` that hands off almost everything to the router[^1].
+The tasks screen works, but everything still lives in `client.gleam` — one file with no room to grow. In this chapter we'll give the client a proper shape: a `Route` type to describe URLs, a `Router` to map routes to pages, a service module for API calls, and a slimmed-down `client.gleam` that hands off almost everything to the router[^1].
 
 Five files change, four are new:
 

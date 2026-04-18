@@ -1,6 +1,6 @@
 # Create Tasks
 
-The tasks list shows data but offers no way to add anything. This chapter adds the first interactive page — a form for creating new tasks — along with the routing, API call, and a server CORS fix the new method requires.
+The tasks list shows data but offers no way to add anything. In this chapter we'll add the first interactive page — a form for creating new tasks — along with the routing, API call, and a server CORS fix the new method requires.
 
 Nine files change, three are new[^1]:
 

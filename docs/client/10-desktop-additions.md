@@ -2,7 +2,7 @@
 
 Two things are missing from the desktop app: there's no way to reload the page if the task list goes stale, and dragging over text triggers browser-style selection.
 
-This chapter adds a View menu with a Reload action and a platform detection layer that disables text selection when running outside the browser. Nine files change, five are new[^1]:
+In this chapter we'll add a View menu with a Reload action and a platform detection layer that disables text selection when running outside the browser. Nine files change, five are new[^1]:
 
 ```sh
 doable/

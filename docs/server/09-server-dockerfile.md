@@ -1,6 +1,6 @@
 # Server Dockerfile
 
-With the server complete and tested, this chapter adds it to Docker Compose so the full backend — database, migrations, and server — starts with a single `docker compose up`. The key piece is a multi-stage Dockerfile[^1] that compiles the Gleam project into a minimal Erlang image[^2].
+With the server complete and tested, we'll now add it to Docker Compose so the full backend — database, migrations, and server — starts with a single `docker compose up`. The key piece is a multi-stage Dockerfile[^1] that compiles the Gleam project into a minimal Erlang image[^2].
 
 Two files change:
 

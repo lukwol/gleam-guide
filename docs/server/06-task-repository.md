@@ -1,6 +1,6 @@
 # Task Repository
 
-With the database connection wired through the server, this chapter introduces the domain model and a thin layer that maps raw SQL rows to typed Gleam values. It also adds a small shell helper that makes testing each function in `gleam shell` much more convenient.
+With the database connection wired through the server, we'll now introduce the domain model and a thin layer that maps raw SQL rows to typed Gleam values — plus a small shell helper that makes testing each function in `gleam shell` much more convenient.
 
 Four files change[^1] [^2]:
 
