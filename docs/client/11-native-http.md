@@ -1,4 +1,4 @@
-# Tauri HTTP
+# Native HTTP
 
 Running the app with `bun tauri dev` works fine — the Vite dev server is running and proxies `/api` requests, so there's no CORS issue. But `bun tauri build` produces a standalone desktop app with no dev server and no proxy. The webview loads static files directly from disk, so requests to `http://localhost:8000` run into CORS restrictions and fail.
 

@@ -62,7 +62,7 @@ export default {
           },
           { text: "Desktop Setup", link: "/client/09-desktop-setup" },
           { text: "Desktop Additions", link: "/client/10-desktop-additions" },
-          { text: "Tauri HTTP", link: "/client/11-tauri-http" },
+          { text: "Native HTTP", link: "/client/11-native-http" },
           { text: "Mobile Setup", link: "/client/12-mobile-setup" },
         ],
       },
