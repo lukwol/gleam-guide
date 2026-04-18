@@ -62,6 +62,7 @@ export default {
           },
           { text: "Tauri Setup", link: "/client/09-tauri-setup" },
           { text: "Desktop Additions", link: "/client/10-desktop-additions" },
+          { text: "Tauri HTTP", link: "/client/11-tauri-http" },
         ],
       },
     ],
