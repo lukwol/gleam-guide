@@ -10,6 +10,25 @@ doable/
 └── compose.yml   # runs Postgres in Docker    [!code ++]
 ```
 
+## Install Docker
+
+Docker Desktop bundles the Docker engine and the Compose plugin, and is the simplest option on any platform. Download it from [docker.com](https://docs.docker.com/get-started/get-docker/).
+
+On macOS it can also be installed via Homebrew:
+
+```sh
+brew install --cask docker
+```
+
+On Linux, the standalone [Docker Engine](https://docs.docker.com/engine/install/) plus the [Compose plugin](https://docs.docker.com/compose/install/linux/) is a lighter alternative to Desktop.
+
+Verify both the engine and the Compose plugin are available:
+
+```sh
+docker --version
+docker compose version
+```
+
 ## Environment Variables
 
 Create a `.env` file at the project root to hold the database credentials:

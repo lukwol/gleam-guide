@@ -1,5 +1,37 @@
 # Getting Started
 
+## Install Gleam
+
+Gleam compiles to Erlang by default, so both the Gleam compiler and Erlang need to be installed. Gleam's installer does not bundle Erlang — install it first.
+
+::: code-group
+
+```sh [macOS]
+brew install erlang gleam
+```
+
+```sh [Linux]
+# Erlang — use your distribution's package manager
+sudo apt install erlang      # Debian/Ubuntu
+sudo dnf install erlang      # Fedora
+
+# Gleam — download the precompiled binary for your architecture from
+# https://github.com/gleam-lang/gleam/releases and move it onto your PATH
+```
+
+```sh [Windows]
+scoop install erlang gleam
+```
+
+:::
+
+The [official install guide](https://gleam.run/getting-started/installing/) covers more options. Verify the toolchain with:
+
+```sh
+gleam --version
+erl -version
+```
+
 ## Creating Projects
 
 The application is made up of three Gleam projects living side by side in the same repository:

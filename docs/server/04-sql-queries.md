@@ -52,6 +52,47 @@ gleeunit = ">= 1.0.0 and < 2.0.0"
 squirrel = ">= 4.6.0 and < 5.0.0"       # [!code ++]
 ```
 
+## Install direnv
+
+[direnv](https://direnv.net) loads environment variables from a `.envrc` file whenever you enter a directory, and unloads them when you leave — perfect for overriding a single variable locally without touching the shared `.env`.
+
+::: code-group
+
+```sh [macOS]
+brew install direnv
+```
+
+```sh [Linux]
+sudo apt install direnv      # Debian/Ubuntu
+sudo dnf install direnv      # Fedora
+```
+
+```sh [Windows]
+scoop install direnv
+```
+
+:::
+
+direnv needs a one-line hook in your shell's startup file to activate:
+
+::: code-group
+
+```sh [zsh (~/.zshrc)]
+eval "$(direnv hook zsh)"
+```
+
+```sh [bash (~/.bashrc)]
+eval "$(direnv hook bash)"
+```
+
+```sh [fish (~/.config/fish/config.fish)]
+direnv hook fish | source
+```
+
+:::
+
+Open a new shell after adding the hook. The [official hook docs](https://direnv.net/docs/hook.html) cover other shells.
+
 ## Configure Database Access
 
 Squirrel connects to the database at code-generation time to validate queries and infer types — which is why we set the libpq environment variables in `.env` from the start.

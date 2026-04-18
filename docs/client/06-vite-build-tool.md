@@ -24,6 +24,28 @@ doable/
         └── web.gleam            # CORS middleware removed                         [!code highlight]
 ```
 
+## Install Bun
+
+[Bun](https://bun.sh) is a fast JavaScript runtime and package manager — this guide uses its CLI from here on. Any npm-compatible tool (`npm`, `pnpm`, `yarn`) works just as well; adapt the `bun` commands if you prefer one of those.
+
+::: code-group
+
+```sh [macOS & Linux]
+curl -fsSL https://bun.sh/install | bash
+```
+
+```sh [Windows (PowerShell)]
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+:::
+
+Restart the shell, then verify with:
+
+```sh
+bun --version
+```
+
 ## Initializing Vite
 
 Inside the `client/` directory, scaffold a new Vite project in-place:

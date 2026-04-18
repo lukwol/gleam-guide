@@ -66,15 +66,31 @@ Android development requires Android Studio. Download and install it from the [A
 - Android SDK Build-Tools
 - Android SDK Command-line Tools
 
-Three environment variables need to be set. On macOS, add these to your shell profile:
+Three environment variables need to be set. Add them to your shell profile — the paths depend on your operating system:
 
-```sh
+::: code-group
+
+```sh [macOS]
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk | tail -1)"
 ```
 
-`NDK_HOME` picks the latest NDK version installed — if you have multiple versions, replace the subshell with the exact path.
+```sh [Linux]
+export JAVA_HOME="/opt/android-studio/jbr"
+export ANDROID_HOME="$HOME/Android/Sdk"
+export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk | tail -1)"
+```
+
+```powershell [Windows (PowerShell)]
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:NDK_HOME = "$env:ANDROID_HOME\ndk\$((Get-ChildItem $env:ANDROID_HOME\ndk | Sort-Object Name | Select-Object -Last 1).Name)"
+```
+
+:::
+
+`NDK_HOME` picks the latest NDK version installed — if you have multiple versions, replace the subshell with the exact path. On Linux, adjust `JAVA_HOME` if Android Studio was installed somewhere other than `/opt/android-studio` (for example via Snap or the tar archive in `$HOME`). To make the Windows variables permanent across shells, set them through **System Properties → Environment Variables** instead.
 
 ::: tip If the build fails with "NDK not found"
 The `$(ls -1 $ANDROID_HOME/ndk | tail -1)` shell expression only works if `$ANDROID_HOME/ndk` exists and contains at least one numbered subdirectory. Open Android Studio's SDK Manager → SDK Tools and install **NDK (Side by side)** first. Then re-source your shell profile so `NDK_HOME` picks up the new path.

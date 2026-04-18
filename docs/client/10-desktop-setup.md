@@ -24,6 +24,29 @@ doable/
             └── main.rs           # binary that calls lib::run()           [!code ++]
 ```
 
+## Install Rust
+
+Tauri's backend compiles from Rust, so the Rust toolchain — `rustc`, `cargo`, and `rustup` — needs to be installed before the Tauri CLI can do anything.
+
+::: code-group
+
+```sh [macOS & Linux]
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+```sh [Windows]
+# Download and run rustup-init.exe from https://rustup.rs
+```
+
+:::
+
+Restart the shell so the new `~/.cargo/bin` directory is on `PATH`, then verify with:
+
+```sh
+rustc --version
+cargo --version
+```
+
 ## Initialization
 
 Inside `client/`, run the Tauri initializer:
