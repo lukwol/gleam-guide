@@ -624,6 +624,6 @@ fn view_task(task: Task) -> Element(Msg) {
 
 ## What's Next
 
-The app now supports listing, creating, editing, and deleting tasks. The UI is still unstyled, and the CORS middleware is growing unwieldy. To address both, we'll migrate to [Vite](https://vite.dev) next.
+The CRUD loop is complete — list, create, edit, delete all work. But the UI is unstyled, the CORS middleware is growing, and we're still using `lustre_dev_tools` as the dev server. Next, we'll swap it for [Vite](https://vite.dev): proxy the API (goodbye CORS), import `.gleam` directly, and unlock the plugin ecosystem we'll need for Tailwind.
 
 [^1]: See commit [136abbb](https://github.com/lukwol/doable/commit/136abbb) on GitHub

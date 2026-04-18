@@ -320,6 +320,6 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 ## What's Next
 
-The app runs in the browser, and now it runs in production too. The next chapter goes in a different direction — wrapping the frontend in [Tauri](https://tauri.app) to turn it into a native desktop application.
+Doable is live on the internet. The web track ends here — but the same Gleam frontend can run outside a browser, too. Next, we'll wrap it in [Tauri](https://tauri.app) to ship a native desktop app, with no changes to the Gleam, HTML, or CSS.
 
 [^1]: See commit [7fcc485](https://github.com/lukwol/doable/commit/7fcc485) on GitHub

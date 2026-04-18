@@ -510,6 +510,6 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 ## What's Next
 
-The web app is complete. The next chapter ships it to a real server — building Docker images, pushing them to a registry, and deploying the full stack to production.
+The web app is feature-complete, tested, and styled. The next question is: how do other people use it? Next, we'll containerise the client, hand it to [Caddy](https://caddyserver.com), and deploy the full stack — database, API, and frontend — to a real server.
 
 [^1]: See commit [a525337](https://github.com/lukwol/doable/commit/a525337) on GitHub

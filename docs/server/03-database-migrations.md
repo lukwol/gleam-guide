@@ -123,6 +123,10 @@ docker compose logs migrate
 
 The `migrate` service is not configured with `restart: unless-stopped`, so it runs once and stops; `docker compose up` will start it again, but reruns are safe.
 
+::: tip If `migrate` exits with an error
+The healthcheck only applies to *new* containers. If your `db` container was already running from chapter 2, the healthcheck isn't attached yet and `migrate` may race it. Run `docker compose down && docker compose up -d` to recreate both containers with the new config.
+:::
+
 ```sh
 docker ps -a
 # CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                      PORTS                                         NAMES
@@ -196,6 +200,6 @@ Type `\q` to exit.
 
 ## What's Next
 
-With the schema in place, the next step is writing the SQL queries. We'll use Squirrel to generate type-safe Gleam functions directly from plain `.sql` files.
+The `tasks` table exists, but nothing in Gleam knows how to query it yet. Next, we'll write plain `.sql` files and let [Squirrel](https://github.com/giacomocavalieri/squirrel) generate type-safe Gleam functions from them — no ORM, no string concatenation.
 
 [^1]: See commit [0e3c9ae](https://github.com/lukwol/doable/commit/0e3c9ae) on GitHub

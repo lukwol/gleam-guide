@@ -342,7 +342,7 @@ Gleam modules compile to Erlang modules with the same name. `config:load()` call
 
 ## What's Next
 
-The server is now fully wired to the database. The next step is replacing the route stubs with real implementations that call into `task/sql.gleam`. But before we dive into that we need to prepare our model and the database repository.
+The server holds a live database pool, but the route handlers still return empty JSON. Before wiring them up, we need a domain model — `Task` and `TaskInput` types in the `shared` project, plus a repository that turns raw Squirrel rows into typed values.
 
 [^1]: See commit [2c9cb83](https://github.com/lukwol/doable/commit/2c9cb83) on GitHub
 

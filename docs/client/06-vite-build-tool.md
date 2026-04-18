@@ -226,7 +226,7 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 ## What's Next
 
-With a proper build tool in place, adding CSS tooling is straightforward. The next chapter installs [Tailwind CSS](https://tailwindcss.com) and [DaisyUI](https://daisyui.com) and styles the app.
+Vite is doing the heavy lifting — proxying the API, bundling Gleam, hot-reloading the page. The app is fully functional but visually brutal. Next, we'll plug in [Tailwind CSS](https://tailwindcss.com), [DaisyUI](https://daisyui.com), and [Heroicons](https://heroicons.com) to turn it into something you'd actually want to look at.
 
 [^1]: See commit [e295e97](https://github.com/lukwol/doable/commit/e295e97) on GitHub
 

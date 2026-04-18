@@ -378,6 +378,6 @@ pub fn middleware(
 
 ## What's Next
 
-Tasks can now be created. The next chapter adds the edit page — and along the way extracts the form fields into a shared component that both pages can reuse.
+Users can create tasks, but not edit or delete them yet — and the form fields would have to be duplicated if we added an edit page naïvely. Next, we'll extract them into a shared component, then build editing and deletion on top.
 
 [^1]: See commit [9923908](https://github.com/lukwol/doable/commit/9923908) on GitHub

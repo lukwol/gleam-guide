@@ -222,7 +222,7 @@ docker compose stop server
 
 ## What's Next
 
-With the full backend running from a single command, it's time to start building the client.
+The server is containerised and the full backend boots with one command. Now the fun part: the frontend. Next, we'll build a browser UI in [Lustre](https://hexdocs.pm/lustre/) — Gleam's Elm-inspired framework — and use the same `shared` types we just finished defining.
 
 [^1]: Based on the awesome [Gleam deployment guide](https://gleam.run/deployment/linux-server/)
 

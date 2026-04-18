@@ -517,7 +517,7 @@ gleam test
 
 ## What's Next
 
-The server is fully tested. The next step adds it to Docker Compose so the whole stack — database, migrations, and server — starts with a single `docker compose up`, making client development easier without needing to run `gleam run` separately.
+The backend is implemented, tested, and green. To close out the server track, we'll package it into a Docker image so the whole stack — database, migrations, and API — starts with a single `docker compose up`, ready for the client to talk to.
 
 [^1]: See commit [e3eee0f](https://github.com/lukwol/doable/commit/e3eee0f) on GitHub
 

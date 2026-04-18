@@ -281,7 +281,7 @@ A few things worth noting:
 
 ## What's Next
 
-The domain types and database repository are in place. The next step is implementing the route handlers to call into `task/repository.gleam` and return real HTTP responses.
+The repository exposes a clean API over the database, returning `Task` values and typed errors. Next, we'll wire the five handler stubs to it — decoding JSON bodies, translating `DatabaseError` into HTTP status codes, and finally returning real task data over the wire.
 
 [^1]: See commit [9110637](https://github.com/lukwol/doable/commit/9110637) on GitHub
 

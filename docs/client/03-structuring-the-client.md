@@ -273,6 +273,6 @@ fn view(model: Model) -> Element(router.Msg) {
 
 ## What's Next
 
-The structure is in place. The next step is putting it to work — adding a new task page and an edit task page so users can actually manage their tasks.
+The client has a proper shape — routes, pages, and a service layer — but only one screen actually exists. Next, we'll put the structure to work by adding a New Task page, wiring up `POST /api/tasks`, and navigating back to the list on success.
 
 [^1]: See commit [e35bb9f](https://github.com/lukwol/doable/commit/e35bb9f) on GitHub

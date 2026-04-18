@@ -380,6 +380,6 @@ The error cases confirm the helpers are working: a non-integer ID returns `404`,
 
 ## What's Next
 
-The REST API is fully implemented and backed by a real database. The next step is adding automated tests for the route handlers.
+The API works end-to-end — but every verification so far has been `curl` typed by hand. Next, we'll add an integration test suite that exercises every route against a dedicated test database, rolled back between cases so tests stay isolated.
 
 [^1]: See commit [d5e0b85](https://github.com/lukwol/doable/commit/d5e0b85) on GitHub

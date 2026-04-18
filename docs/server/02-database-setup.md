@@ -141,6 +141,6 @@ The same credentials work in any GUI client — [DBeaver](https://dbeaver.io), [
 
 ## What's Next
 
-With the database running, the next step is creating the schema. We'll write a migration using the `migrate` service to set up the tasks table.
+Postgres is running but empty — no tables, no columns. Next, we'll define the `tasks` schema as a reversible SQL migration and let a `migrate` service run it automatically whenever the stack starts.
 
 [^1]: See commit [d8bce07](https://github.com/lukwol/doable/commit/d8bce07) on GitHub

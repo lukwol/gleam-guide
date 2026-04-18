@@ -348,6 +348,6 @@ fn cors(next: fn() -> Response) -> Response {                                   
 
 ## What's Next
 
-The tasks screen now loads and renders task data from the API. The next step is routing — adding separate pages for creating and editing tasks.
+Tasks load from the API and render as a list — but the app is still one page crammed into `client.gleam`. Next, we'll carve it into modules: a `Route` type, a router, per-page files, and a task service so adding new screens doesn't mean bloating one file.
 
 [^1]: See commit [ea79a64](https://github.com/lukwol/doable/commit/ea79a64) on GitHub

@@ -72,6 +72,6 @@ gleam test  # prints: 1 passed, no failures
 
 ## What's Next
 
-With the project scaffold in place, we'll start building the backend. The next chapter covers setting up the HTTP server, defining routes, and wiring everything together with Wisp and Mist.
+Three empty projects compile and say hello — now it's time to make one of them do something useful. Next, we'll turn `server` into an HTTP API with Wisp and Mist, routing `/api/tasks` requests to five stub handlers.
 
 [^1]: See commit [46bd4ae](https://github.com/lukwol/doable/commit/46bd4ae) on GitHub

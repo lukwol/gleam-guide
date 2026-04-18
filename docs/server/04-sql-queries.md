@@ -78,6 +78,10 @@ export PGHOST=localhost
 
 Run `direnv allow` once to permit [direnv](https://direnv.net) to load it. After that, direnv loads `.envrc` automatically whenever you enter the directory — first pulling in the root `.env` via `dotenv`, then overriding `PGHOST` with `localhost`, so Squirrel can reach the database through the mapped port without touching the shared `.env` file used by `compose.yml`.
 
+::: warning Don't forget `direnv allow`
+Without it, `.envrc` is silently ignored and Squirrel will fail to connect with a confusing `PGHOST=db` error — `db` only resolves inside the Docker network, not from your host. If you hit connection errors, re-run `direnv allow` in `server/` first.
+:::
+
 ## SQL Queries
 
 Squirrel looks for `.sql` files under `src/` and generates a corresponding `.gleam` module next to each directory of queries. Create the query files in `server/src/task/sql/`:
@@ -206,6 +210,6 @@ The column types come directly from the schema — Squirrel infers them by query
 
 ## What's Next
 
-The query functions are ready but they need a `pog.Connection` to run against. The next step is loading server configuration from environment variables and setting up a supervised connection pool to pass through the router.
+Squirrel gave us typed query functions — but they need a live `pog.Connection` to run against. Next, we'll load server config from `.env`, start a supervised connection pool, and thread it through the router so handlers can reach the database.
 
 [^1]: See commit [f2efd4d](https://github.com/lukwol/doable/commit/f2efd4d) on GitHub

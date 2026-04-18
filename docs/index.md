@@ -11,6 +11,8 @@ Doable lets users create, view, update, and delete tasks. Simple on the surface,
 - **Desktop App** — packaged as a native app via [Tauri](https://tauri.app)
 - **Mobile Apps** — deployed to [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) via Tauri
 
+![Doable — the finished task manager](/screenshots/tasks-styled.png)
+
 ## Architecture
 
 ### Development
@@ -130,6 +132,10 @@ Before starting, make sure you have the following installed:
 - [Rust](https://www.rust-lang.org/tools/install) — required by Tauri
 - [Xcode](https://developer.apple.com/xcode/) — required for iOS builds (macOS only); also install [Cocoapods](https://cocoapods.org) via Homebrew and follow [Tauri's iOS setup guide](https://tauri.app/start/prerequisites/#ios)
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
+
+::: tip Web-only path
+If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Desktop Setup](/client/09-desktop-setup).
+:::
 
 ## How to Use This Guide
 

@@ -204,6 +204,6 @@ Open `http://localhost:1234` in a browser, type a name, and click the button. Th
 
 ## What's Next
 
-The MVU skeleton is in place. The next step is building the actual task UI — fetching tasks from the API, rendering a task list, and wiring up the create, update, and delete interactions.
+The greeting app proves Lustre's MVU loop works — pressed a button, saw the state change, saw the view re-render. Next, we'll throw away the greeting and build the real tasks screen: an HTTP client, an `ApiError` type, and a list view backed by the server we just shipped.
 
 [^1]: See commit [0133384](https://github.com/lukwol/doable/commit/0133384) on GitHub

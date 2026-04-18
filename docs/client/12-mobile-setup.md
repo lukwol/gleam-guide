@@ -25,6 +25,10 @@ These are full native projects — Xcode and Android Studio can open them direct
 
 ## iOS Prerequisites
 
+::: warning Full Xcode, not Command Line Tools
+Tauri's iOS build needs the full Xcode app from the App Store. `xcode-select --install` only installs the Command Line Tools, which are missing the iOS SDK and simulators. If `bun tauri ios init` fails with "no iOS SDK found," this is why.
+:::
+
 iOS development requires macOS and a full Xcode installation — the Command Line Tools alone are not enough. Install it from the App Store, then install Cocoapods:
 
 ```sh
@@ -60,6 +64,10 @@ export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk | tail -1)"
 ```
 
 `NDK_HOME` picks the latest NDK version installed — if you have multiple versions, replace the subshell with the exact path.
+
+::: tip If the build fails with "NDK not found"
+The `$(ls -1 $ANDROID_HOME/ndk | tail -1)` shell expression only works if `$ANDROID_HOME/ndk` exists and contains at least one numbered subdirectory. Open Android Studio's SDK Manager → SDK Tools and install **NDK (Side by side)** first. Then re-source your shell profile so `NDK_HOME` picks up the new path.
+:::
 
 Then add the Rust targets for Android:
 
@@ -99,6 +107,10 @@ bun tauri android dev
 ```
 
 This compiles the Rust binary for the Android target, starts Vite, and launches the app on the running emulator or connected device. Start an Android Virtual Device from Android Studio's Device Manager first if no device is connected.
+
+::: tip First mobile build is *very* slow
+Building for iOS or Android compiles the full Rust toolchain for a new target triple plus a fresh Gradle/Xcode configuration. Expect 10–15 minutes on the first run. Subsequent builds are much faster thanks to incremental compilation — don't cancel the first build just because it looks stuck.
+:::
 
 To open the Android Studio project instead:
 
