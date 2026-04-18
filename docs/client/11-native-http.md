@@ -202,4 +202,4 @@ API requests work as before in dev. To verify the fix actually matters, run `bun
 
 The desktop build is production-ready: HTTP flows through Rust, CORS is a non-issue, and the same Gleam code runs in browser and webview. Next, we'll take the same frontend to iOS and Android — `bun tauri ios init`, `bun tauri android init`, and the app runs on a phone.
 
-[^1]: See commit [4d5664c](https://github.com/lukwol/doable/commit/4d5664c) on GitHub
+[^1]: See commit [e96c81f](https://github.com/lukwol/doable/commit/e96c81f) on GitHub

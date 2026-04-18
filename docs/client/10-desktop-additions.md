@@ -326,4 +326,4 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 The desktop experience feels native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. But `bun tauri build` hasn't been tried yet — and when it is, browser CORS blocks every API request. Next, we'll route HTTP through Tauri's Rust backend so the production build actually works.
 
-[^1]: See commits [3052847](https://github.com/lukwol/doable/commit/3052847) and [ca34123](https://github.com/lukwol/doable/commit/ca34123) on GitHub
+[^1]: See commits [7e5ecf2](https://github.com/lukwol/doable/commit/7e5ecf2) and [3474886](https://github.com/lukwol/doable/commit/3474886) on GitHub

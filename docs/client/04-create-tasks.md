@@ -380,4 +380,4 @@ pub fn middleware(
 
 Users can create tasks, but not edit or delete them yet — and the form fields would have to be duplicated if we added an edit page naïvely. Next, we'll extract them into a shared component, then build editing and deletion on top.
 
-[^1]: See commit [9923908](https://github.com/lukwol/doable/commit/9923908) on GitHub
+[^1]: See commit [ea9db58](https://github.com/lukwol/doable/commit/ea9db58) on GitHub

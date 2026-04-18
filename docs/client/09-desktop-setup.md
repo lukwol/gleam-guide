@@ -241,4 +241,4 @@ Tauri wraps the frontend only, so the Gleam server still needs to be running for
 
 Unlike a browser, the desktop app has no way to reload the page — so if the tasks list is stale, the user is stuck. The next chapter fixes that by adding a View menu with a Reload action.
 
-[^1]: See commit [9dacd54](https://github.com/lukwol/doable/commit/9dacd54) on GitHub
+[^1]: See commit [6e65ca1](https://github.com/lukwol/doable/commit/6e65ca1) on GitHub

@@ -158,7 +158,6 @@ export function window_location_origin() {      // [!code ++]
 import browser  // [!code ++]
 
 const api_base_url = "http://localhost:8000"  // [!code --]
-
 fn api_base_url() -> String {             // [!code ++]
   browser.window_location_origin()        // [!code ++]
 }                                         // [!code ++]
@@ -228,6 +227,6 @@ Vite starts at `http://localhost:5173`. API requests to `/api/*` are proxied to 
 
 Vite is doing the heavy lifting — proxying the API, bundling Gleam, hot-reloading the page. The app is fully functional but visually brutal. Next, we'll plug in [Tailwind CSS](https://tailwindcss.com), [DaisyUI](https://daisyui.com), and [Heroicons](https://heroicons.com) to turn it into something you'd actually want to look at.
 
-[^1]: See commit [e295e97](https://github.com/lukwol/doable/commit/e295e97) on GitHub
+[^1]: See commit [bd6292b](https://github.com/lukwol/doable/commit/bd6292b) on GitHub
 
 [^2]: [Using Gleam with Vite](https://erikarow.land/notes/gleam-vite) by Erika Rowland

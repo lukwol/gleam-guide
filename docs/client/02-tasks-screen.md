@@ -103,8 +103,6 @@ import gleam/http/request.{type Request}
 import gleam/javascript/promise.{type Promise}
 import gleam/result
 
-const api_base_url = "http://localhost:8000"
-
 pub fn get(path: String, decoder: Decoder(a)) -> Promise(Result(a, ApiError)) {
   use req <- with_json_request(path)
   req
@@ -121,6 +119,8 @@ pub fn get(path: String, decoder: Decoder(a)) -> Promise(Result(a, ApiError)) {
 
 ```gleam
 // client/src/api.gleam
+
+const api_base_url = "http://localhost:8000"
 
 fn with_json_request(
   path: String,
@@ -350,4 +350,4 @@ fn cors(next: fn() -> Response) -> Response {                                   
 
 Tasks load from the API and render as a list — but the app is still one page crammed into `client.gleam`. Next, we'll carve it into modules: a `Route` type, a router, per-page files, and a task service so adding new screens doesn't mean bloating one file.
 
-[^1]: See commit [ea79a64](https://github.com/lukwol/doable/commit/ea79a64) on GitHub
+[^1]: See commit [41ffae7](https://github.com/lukwol/doable/commit/41ffae7) on GitHub

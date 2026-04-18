@@ -275,4 +275,4 @@ fn view(model: Model) -> Element(router.Msg) {
 
 The client has a proper shape — routes, pages, and a service layer — but only one screen actually exists. Next, we'll put the structure to work by adding a New Task page, wiring up `POST /api/tasks`, and navigating back to the list on success.
 
-[^1]: See commit [e35bb9f](https://github.com/lukwol/doable/commit/e35bb9f) on GitHub
+[^1]: See commit [39dd592](https://github.com/lukwol/doable/commit/39dd592) on GitHub
