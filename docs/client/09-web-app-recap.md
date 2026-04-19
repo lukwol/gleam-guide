@@ -2,7 +2,11 @@
 
 You've reached a natural finish line. The web track is complete: a PostgreSQL database, a Gleam API server, an integration test suite, and a styled Lustre frontend — all running in production behind Caddy, all driven from a single `docker compose up`.
 
-![Doable running in the browser](/screenshots/tasks-styled.png)
+<figure>
+  <img src="/screenshots/tasks-styled-light-desktop.png" class="light-only">
+  <img src="/screenshots/tasks-styled-dark-desktop.png" class="dark-only">
+  <figcaption>Doable running in the browser</figcaption>
+</figure>
 
 ## What You've Built
 

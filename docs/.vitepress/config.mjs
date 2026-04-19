@@ -1,6 +1,15 @@
 import footnote from "markdown-it-footnote";
 
 export default {
+  head: [
+    ['style', {}, `
+      .dark-only { display: none; }
+      .dark .dark-only { display: block; }
+      .dark .light-only { display: none; }
+      figure { display: flex; flex-direction: column; align-items: center; }
+      figure img { border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); }
+    `],
+  ],
   title: "Gleam Guide",
   description: "A practical guide to building full-stack apps with Gleam",
   markdown: {

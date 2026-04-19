@@ -230,7 +230,10 @@ pub fn view(model: Model) -> Element(Msg) {
 
 The submit button is disabled while `submitting` is `True` and its label switches to `"Saving..."` for immediate feedback. The form lives directly in this module for now — the next chapter extracts it into a shared component when the edit page needs the same fields.
 
-![New task form before styling](/screenshots/new-task-unstyled.png)
+<figure>
+  <img src="/screenshots/new-task-unstyled.png">
+  <figcaption>New task form before styling</figcaption>
+</figure>
 
 The private `post_task` function builds the API call as an effect:
 

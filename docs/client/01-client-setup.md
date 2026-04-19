@@ -200,7 +200,10 @@ On first run, `lustre_dev_tools` generates a `.lustre/` directory containing an 
 
 Open `http://localhost:1234` in a browser, type a name, and click the button. The greeting appears below — the Lustre setup is working.
 
-![Greeting app running in the browser](/screenshots/greeter.png)
+<figure>
+  <img src="/screenshots/greeter.png">
+  <figcaption>Greeting app running in the browser</figcaption>
+</figure>
 
 ## What's Next
 

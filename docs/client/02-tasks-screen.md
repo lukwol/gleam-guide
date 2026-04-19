@@ -309,7 +309,10 @@ The `case` on `model.tasks` covers all four states:
 
 `view_task` renders each task as a list item with a read-only checkbox. The checkbox reflects the task's `completed` state but `attribute.disabled(True)` prevents interaction for now.
 
-![Tasks screen showing a read-only list fetched from the API](/screenshots/tasks-readonly.png)
+<figure>
+  <img src="/screenshots/tasks-readonly.png">
+  <figcaption>Tasks screen showing a read-only list fetched from the API</figcaption>
+</figure>
 
 ## CORS on the Server
 

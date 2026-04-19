@@ -11,7 +11,12 @@ Doable lets users create, view, update, and delete tasks. Simple on the surface,
 - **Desktop App** — packaged as a native app via [Tauri](https://tauri.app)
 - **Mobile Apps** — deployed to [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) via Tauri
 
-![Doable — the finished task manager](/screenshots/tasks-styled.png)
+<figure>
+  <img src="/screenshots/tasks-styled-white-mobile.png" class="light-only" style="max-width:480px">
+  <img src="/screenshots/tasks-styled-dark-mobile.png" class="dark-only" style="max-width:480px">
+  <figcaption>Doable — the finished task manager running on iOS</figcaption>
+</figure>
+
 
 ## Architecture
 
