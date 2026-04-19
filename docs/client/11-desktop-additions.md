@@ -180,12 +180,12 @@ Previously `client.gleam` forwarded all messages directly to the router. With th
 ```gleam
 // client/src/client.gleam
 
-import platform                                                         // [!code ++]
 import browser                                                          // [!code ++]
 import lustre
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import modem
+import platform                                                         // [!code ++]
 import router
 import tauri/menu                                                       // [!code ++]
 
@@ -331,4 +331,4 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 The desktop experience feels native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. But `bun tauri build` hasn't been tried yet — and when it is, browser CORS blocks every API request. Next, we'll route HTTP through Tauri's Rust backend so the production build actually works.
 
-[^1]: See commit [0107204](https://github.com/lukwol/doable/commit/0107204) on GitHub
+[^1]: See commit [711da83](https://github.com/lukwol/doable/commit/711da83) on GitHub

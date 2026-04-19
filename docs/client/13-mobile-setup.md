@@ -371,4 +371,4 @@ bun tauri android dev --open
 
 The app now runs on both an iOS simulator and an Android emulator. But mobile has the same stale-data problem the desktop View menu fixed — only worse, because there's no menu and no Cmd+R to fall back on. The next chapter adds pull-to-refresh so a swipe from the top of the list reloads the tasks.
 
-[^1]: See commit [bb97eec](https://github.com/lukwol/doable/commit/bb97eec) on GitHub
+[^1]: See commit [47c5571](https://github.com/lukwol/doable/commit/47c5571) on GitHub
