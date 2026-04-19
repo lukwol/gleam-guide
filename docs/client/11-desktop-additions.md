@@ -180,6 +180,7 @@ Previously `client.gleam` forwarded all messages directly to the router. With th
 ```gleam
 // client/src/client.gleam
 
+import platform                                                         // [!code ++]
 import browser                                                          // [!code ++]
 import lustre
 import lustre/effect.{type Effect}
@@ -208,12 +209,16 @@ fn init(_) -> #(Model, Effect(Msg)) {                                           
   #(
     Model(page:),
     effect.batch([modem.init(router.on_url_change), router_effect]),            // [!code --]
-    effect.batch([                                                              // [!code ++]
-      modem.init(router.on_url_change) |> effect.map(RouterSentMsg),            // [!code ++]
-      router_effect |> effect.map(RouterSentMsg),                               // [!code ++]
-      menu.subscribe(MenuSentEvent),                                            // [!code ++]
-    ]),                                                                         // [!code ++]
-  )
+  )                                                                             // [!code --]
+  let effects = [                                                               // [!code ++]
+    modem.init(router.on_url_change) |> effect.map(RouterSentMsg),              // [!code ++]
+    router_effect |> effect.map(RouterSentMsg),                                 // [!code ++]
+  ]                                                                             // [!code ++]
+  let effects = case platform.is_desktop() {                                    // [!code ++]
+    True -> [menu.subscribe(MenuSentEvent), ..effects]                          // [!code ++]
+    False -> effects                                                            // [!code ++]
+  }                                                                             // [!code ++]
+  #(Model(page:), effect.batch(effects))                                        // [!code ++]
 }
 
 fn update(model: Model, msg: router.Msg) -> #(Model, Effect(router.Msg)) {      // [!code --]
@@ -240,7 +245,7 @@ fn view(model: Model) -> Element(Msg) {                                         
 }
 ```
 
-`effect.map(RouterSentMsg)` wraps every effect produced by the router so its messages arrive at the top level as `RouterSentMsg(...)`. `menu.subscribe(MenuSentEvent)` registers the listener once at startup. When Reload is triggered, `MenuSentEvent("reload")` arrives and calls `browser.reload_page()`. Unknown menu events are silently ignored — a safe default as the menu grows.
+`effect.map(RouterSentMsg)` wraps every effect produced by the router so its messages arrive at the top level as `RouterSentMsg(...)`. `menu.subscribe(MenuSentEvent)` is only added to the effect batch when `platform.is_desktop()` returns `True` — the browser never subscribes to menu events. When Reload is triggered, `MenuSentEvent("reload")` arrives and calls `browser.reload_page()`. Unknown menu events are silently ignored — a safe default as the menu grows.
 
 ## Reload FFI
 
@@ -326,4 +331,4 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 The desktop experience feels native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. But `bun tauri build` hasn't been tried yet — and when it is, browser CORS blocks every API request. Next, we'll route HTTP through Tauri's Rust backend so the production build actually works.
 
-[^1]: See commits [7e5ecf2](https://github.com/lukwol/doable/commit/7e5ecf2) and [3474886](https://github.com/lukwol/doable/commit/3474886) on GitHub
+[^1]: See commit [0107204](https://github.com/lukwol/doable/commit/0107204) on GitHub
