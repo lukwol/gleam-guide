@@ -22,18 +22,6 @@ doable/
         └── style.css                  # safe-area-inset-top               [!code highlight]
 ```
 
-## Initialization
-
-Inside `client/`, run both mobile initializers:
-
-```sh
-cd client
-bun tauri ios init
-bun tauri android init
-```
-
-Each creates a platform project under `src-tauri/gen/`. These are full native projects — Xcode and Android Studio can open them directly if you need to configure anything beyond what Tauri exposes.
-
 ## iOS Prerequisites
 
 ::: warning Full Xcode, not Command Line Tools
@@ -106,6 +94,18 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 - `armv7-linux-androideabi` — older 32-bit ARM devices
 - `i686-linux-android` — 32-bit x86 emulator
 - `x86_64-linux-android` — 64-bit x86 emulator
+
+## Initialization
+
+With both toolchains in place, run the mobile initializers inside `client/`:
+
+```sh
+cd client
+bun tauri ios init
+bun tauri android init
+```
+
+Each creates a platform project under `src-tauri/gen/`. These are full native projects — Xcode and Android Studio can open them directly if you need to configure anything beyond what Tauri exposes.
 
 ## Splitting Desktop and Mobile Setup
 
