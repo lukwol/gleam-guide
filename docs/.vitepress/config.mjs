@@ -74,6 +74,7 @@ export default {
           { text: "Desktop Additions", link: "/client/11-desktop-additions" },
           { text: "Native HTTP", link: "/client/12-native-http" },
           { text: "Mobile Setup", link: "/client/13-mobile-setup" },
+          { text: "Pull-to-Refresh", link: "/client/14-pull-to-refresh" },
         ],
       },
     ],
