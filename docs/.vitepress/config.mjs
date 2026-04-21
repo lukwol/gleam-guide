@@ -75,6 +75,7 @@ export default {
           { text: "Native HTTP", link: "/client/12-native-http" },
           { text: "Mobile Setup", link: "/client/13-mobile-setup" },
           { text: "Pull-to-Refresh", link: "/client/14-pull-to-refresh" },
+          { text: "Production Builds", link: "/client/15-production-builds" },
         ],
       },
     ],
