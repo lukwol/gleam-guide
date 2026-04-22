@@ -187,7 +187,7 @@ While here, `tauri.conf.json` gets a proper app identifier to replace the placeh
 }
 ```
 
-The identifier is used by the OS to distinguish the app — it appears in system preferences, update registries, and app bundles. Replace `com.lukwol.doable` with your own reverse-domain identifier before distributing.
+The identifier is how the OS distinguishes the app — it shows up in system preferences, update registries, and app bundles. We'll come back to swapping it for your own reverse-domain identifier when we cover distribution in chapter 15.
 
 ## Running
 
@@ -200,6 +200,6 @@ API requests work as before in dev. To verify the fix actually matters, run `bun
 
 ## What's Next
 
-The desktop build is production-ready: HTTP flows through Rust, CORS is a non-issue, and the same Gleam code runs in browser and webview. Next, we'll take the same frontend to iOS and Android — `bun tauri ios init`, `bun tauri android init`, and the app runs on a phone.
+The desktop build is production-ready: HTTP flows through Rust, CORS is no longer a problem, and the same Gleam code runs in both the browser and the webview. Next, we'll take that same frontend to iOS and Android — two init commands, and the app runs on a phone.
 
 [^1]: See commit [e6d3499](https://github.com/lukwol/doable/commit/e6d3499) on GitHub

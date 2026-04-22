@@ -1,4 +1,4 @@
-# Production Builds
+# Deploy to Device
 
 The app runs in dev on simulators and emulators — but `localhost:8000` is hardcoded. That breaks on physical devices, where the server isn't reachable at `localhost`, and it breaks in production builds, where the server lives behind a real domain. This chapter fixes the URL logic, then takes the app through production builds on simulators, emulators, and real devices[^1].
 
@@ -13,9 +13,9 @@ doable/
     │   └── tauri.conf.json            # iOS team ID                        [!code highlight]
     └── src/
         ├── api.gleam                  # platform + mode + host URL logic   [!code highlight]
-        ├── mode.gleam                 # Development / Production            [!code ++]
+        ├── mode.gleam                 # Development / Production           [!code ++]
         └── vite/
-            ├── env.gleam              # MODE + TAURI_DEV_HOST externals     [!code ++]
+            ├── env.gleam              # MODE + TAURI_DEV_HOST externals    [!code ++]
             └── env_ffi.js             # import.meta.env bridge             [!code ++]
 ```
 
@@ -133,7 +133,7 @@ Distributing to a simulator or device requires an Apple Developer team ID. Add i
 
 Find your team ID in [Apple Developer](https://developer.apple.com/account) under **Membership Details**. With this set, `bun tauri ios build` handles signing automatically — no manual certificate management needed.
 
-The app's bundle identifier is `com.lukwol.doable`, set back in chapter 12. Both the iOS bundle identifier and the Android application ID follow this value — replace it with your own reverse-domain identifier in `tauri.conf.json` before distributing.
+Before distributing, swap the bundle identifier in `tauri.conf.json` for your own reverse-domain value. Both iOS and Android pick it up from that one field — it was set to `com.lukwol.doable` back in chapter 12 as a placeholder.
 
 ## Running on iOS Simulator
 
@@ -194,14 +194,14 @@ Create and manage AVDs through Android Studio's **Device Manager** — no CLI ne
 adb devices
 ```
 
-This confirms the emulator is connected. For a dev build, `bun tauri android dev` from chapter 13 still applies. For a production build:
+This confirms the emulator is connected. For a dev build, `bun tauri android dev` from chapter 13 still applies. To produce a standalone APK you can install directly on the emulator:
 
 ```sh
 cd client
 bun tauri android build --apk --debug
 ```
 
-The `--debug` flag auto-signs the APK with the local debug keystore, making it installable without any signing setup:
+`--debug` uses the local debug keystore to sign the APK, which lets it install without any extra setup. Dropping the flag produces a proper release build instead, but that APK has to be signed with a release keystore before it'll install anywhere — [Signing for Distribution](#signing-for-distribution) below walks through that.
 
 ```sh
 adb install -r \
@@ -210,22 +210,55 @@ adb install -r \
 
 The app appears in the emulator's launcher — tap it to open, or remove it the same way as on a real device.
 
-::: warning Production builds block cleartext HTTP
+::: tip `.apk` for the emulator, `.aab` for the Play Store
+Without `--apk`, `bun tauri android build` also produces an AAB (Android App Bundle) — the Play Store's distribution format, but not installable via `adb`.
+:::
+
+::: warning Release builds block cleartext HTTP
 Android release builds disallow plain HTTP by default. The `Production` branch in `api_base_url()` must point at an HTTPS URL — `http://your-domain.com` will be blocked. For local testing, use a tunneling tool (Tailscale, Cloudflare Tunnel, ngrok, or similar) to expose the local server over HTTPS.
 :::
 
 ## Running on an Android Device
 
-Connect a device over USB and enable USB debugging in the developer options. `adb devices` will list it alongside any running emulators. From there the workflow is identical to the emulator — `bun tauri android dev` for live development, `bun tauri android build` and `adb install` for production.
+Connect a device over USB and enable USB debugging in the developer options. List connected devices to confirm it shows up alongside any running emulators:
+
+```sh
+adb devices
+```
+
+Run in dev mode:
+
+```sh
+cd client
+bun tauri android dev
+```
+
+Like iOS, Tauri sets `TAURI_DEV_HOST` to the machine's LAN IP when a physical device is connected, so the `Development + Some(host)` branch in `api_base_url()` kicks in — API requests go to `http://<LAN IP>:8000` instead of `localhost`.
+
+For a standalone install:
+
+```sh
+bun tauri android build --apk --debug
+```
+
+Then install on the connected device:
+
+```sh
+adb install -r \
+  src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+```
 
 ## Signing for Distribution
 
-**iOS** — open the Xcode project with `bun tauri ios dev --open`. In the project's **Signing & Capabilities** tab, enable **Automatically manage signing** and select your team. Xcode will create and manage the required certificates and provisioning profiles. For App Store submission, use **Product → Archive** to build and upload through Xcode's distribution workflow.
+Anything you ship outside your own machine needs to be properly signed. Both platforms handle the bulk of this through their IDEs:
 
-**Android** — the debug keystore works for local testing but not for the Play Store or sharing outside your machine. To produce a release-signed APK, use Android Studio: **Build → Generate Signed Bundle / APK**, follow the keystore wizard, and use the resulting APK in place of the debug build.
+- **iOS** — Xcode's **Signing & Capabilities** tab manages certificates and provisioning profiles, and **Product → Archive** handles App Store submission. Start with Apple's [Code Signing overview](https://developer.apple.com/support/code-signing/).
+- **Android** — Android Studio's **Build → Generate Signed Bundle / APK** walks you through creating a keystore and signing an APK (for sideloading) or an AAB (for the Play Store, where [Play App Signing](https://developer.android.com/studio/publish/app-signing) takes over the final signing).
 
-## What's Next
+## That's a Wrap
 
-That's the full stack: a Gleam server backed by Postgres, a Lustre frontend, a Vite build pipeline, and a Tauri shell that runs the same code as a web app, a macOS/Windows/Linux desktop app, and an iOS/Android mobile app. The source is at [github.com/lukwol/doable](https://github.com/lukwol/doable).
+And that's the full stack: a Gleam server backed by Postgres, a Lustre frontend, a Vite build pipeline, and a Tauri shell that runs the same code as a web app, a macOS/Windows/Linux desktop app, and an iOS/Android mobile app — all sharing types and validation written once in Gleam.
+
+Thanks for sticking with me all the way through. If any of it helped, I'd love to hear about it — and the full source is at [github.com/lukwol/doable](https://github.com/lukwol/doable) if you want to fork it, star it, or use it as a starting point for your own project. Happy building.
 
 [^1]: See commit [fe95c4c](https://github.com/lukwol/doable/commit/fe95c4c) on GitHub

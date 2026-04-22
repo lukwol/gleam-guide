@@ -56,7 +56,7 @@ cd client
 bun tauri init
 ```
 
-The CLI asks five questions. You can answer them as follows:
+The CLI asks six questions. Answer them like this:
 
 | Question                                                            | Answer                  |
 | ------------------------------------------------------------------- | ----------------------- |
@@ -136,12 +136,12 @@ The web assets path points to `../dist` — Vite's output directory when buildin
 }
 ```
 
-A few things worth noting:
+Quick tour of the fields that matter:
 
-- `beforeDevCommand` and `beforeBuildCommand` tell Tauri to start Vite before opening the window. Running `bun tauri dev` is enough — there's no need to start the Vite dev server separately.
+- `beforeDevCommand` and `beforeBuildCommand` tell Tauri to start Vite before opening the window. Running `bun tauri dev` is enough — no need to start Vite separately.
 - `devUrl` points at the Vite dev server. In dev mode, Tauri loads the page from this URL and waits for it to be ready before showing the window.
-- `csp` is `null` for now — Content Security Policy is important for production apps, but we'll leave it open during development.
-- The `icon` list covers the formats each target platform expects. The `icons/` directory is pre-populated with placeholder icons by the initializer.
+- `csp` is `null` for now. Content Security Policy matters for production, but we'll leave it open while developing.
+- The `icon` list covers the formats each target platform expects. The initializer drops placeholder icons into `icons/` so builds work out of the box.
 
 ## Capabilities
 
@@ -243,7 +243,7 @@ tauri-plugin-log = "2"
 
 The `[lib]` section compiles the crate as three output types so the same code works as a shared library, a dynamic library (for mobile), and a normal Rust library. `tauri-build` is a build-time dependency only; the runtime dependencies are `tauri` itself plus `serde`/`serde_json` for JSON serialization and `tauri-plugin-log` for logging.
 
-The initializer scaffolds `edition = "2021"` and an older `rust-version`. Both are bumped manually to `edition = "2024"` and the current stable `rust-version` to get the latest Rust language improvements.
+The initializer still scaffolds `edition = "2021"` and an older `rust-version`. Bump both to `edition = "2024"` and the current stable `rust-version` so you get the latest Rust language improvements.
 
 ## Running the Desktop App
 
@@ -252,16 +252,16 @@ cd client
 bun tauri dev
 ```
 
-Tauri compiles the Rust binary (this takes a while on first run — Rust is building its entire dependency tree), starts the Vite dev server via `beforeDevCommand`, then opens the native window pointing at `http://localhost:5173`. Hot reloading works: editing a `.gleam` file triggers a Vite HMR update and the window refreshes.
+Tauri compiles the Rust binary, starts the Vite dev server via `beforeDevCommand`, then opens the native window pointing at `http://localhost:5173`. Hot reloading works out of the box: editing a `.gleam` file triggers a Vite HMR update and the window refreshes.
 
-::: tip First build time
-The initial `bun tauri dev` compiles hundreds of Rust crates. Subsequent runs are much faster thanks to incremental compilation.
+::: tip First build is slow — that's normal
+The first `bun tauri dev` compiles hundreds of Rust crates from scratch, so expect it to sit for a few minutes. Every run after that is much faster thanks to incremental compilation.
 :::
 
-Tauri wraps the frontend only, so the Gleam server still needs to be running for the `/api` routes to be available. But we already have it running as a service either via `docker compose` or manually with `gleam run`.
+Tauri only wraps the frontend, so the Gleam server still needs to be running for the `/api` routes to respond. Nothing to do here — it's already up as a service via `docker compose` (or `gleam run` if you're running it manually).
 
 ## What's Next
 
-Unlike a browser, the desktop app has no way to reload the page — so if the tasks list is stale, the user is stuck. The next chapter fixes that by adding a View menu with a Reload action.
+A browser has a refresh button; the desktop app doesn't. If the task list goes stale, the user is stuck. We'll fix that next by adding a View menu with a Reload action.
 
 [^1]: See commit [6e65ca1](https://github.com/lukwol/doable/commit/6e65ca1) on GitHub

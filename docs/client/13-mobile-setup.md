@@ -97,7 +97,7 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 
 ## Initialization
 
-With both toolchains in place, run the mobile initializers inside `client/`:
+That's the toolchain slog out of the way — from here on it's the fun part. With both toolchains in place, run the mobile initializers inside `client/`:
 
 ```sh
 cd client
@@ -109,61 +109,79 @@ Each creates a platform project under `src-tauri/gen/`. These are full native pr
 
 ## Splitting Desktop and Mobile Setup
 
-The previous chapter added a View menu and a menu-event handler in `lib.rs`. Neither exists on mobile — iOS and Android have no application menu bar, and the `tauri::menu` module isn't available on those targets. Compiling the desktop setup as-is for iOS or Android fails at the import line.
+The previous chapter added a View menu and a menu-event handler directly inside `run()`. Neither belongs on mobile — iOS and Android don't have an application menu bar, and Tauri doesn't expose the `tauri::menu` module on those targets at all. Compiling the desktop code as-is for iOS or Android fails right at the import line.
 
-The fix is to split the builder setup behind a trait with separate impls for desktop and mobile:
+Two things need to change: the `tauri::menu` import has to disappear on mobile, and `run()` has to run different setup logic depending on the target. A clean way to handle both at once is to lift the menu setup out of `run()` and place it behind a small extension trait — one implementation for desktop, a no-op implementation for mobile — each guarded by `#[cfg(desktop)]` or `#[cfg(mobile)]`:
 
 ```rust
 // client/src-tauri/src/lib.rs
 
-#[cfg(desktop)]                                                         // [!code ++]
+#[cfg(desktop)]                                                                                      // [!code ++]
 use tauri::{
     AppHandle, Emitter,
     menu::{Menu, MenuEvent, MenuItem, Submenu},
 };
-use tauri::{Builder, Runtime};                                          // [!code ++]
+use tauri::{Builder, Runtime};                                                                       // [!code ++]
 
-trait BuilderExt<R: Runtime> {                                          // [!code ++]
-    fn setup_platform(self) -> Self;                                    // [!code ++]
-}                                                                       // [!code ++]
+trait BuilderExt<R: Runtime> {                                                                       // [!code ++]
+    fn setup_platform(self) -> Self;                                                                 // [!code ++]
+}                                                                                                    // [!code ++]
 
-#[cfg(desktop)]                                                         // [!code ++]
-impl<R: Runtime> BuilderExt<R> for Builder<R> {                         // [!code ++]
-    fn setup_platform(self) -> Self {                                   // [!code ++]
-        self.setup(|app| {
-            let reload_item =
-                MenuItem::with_id(app.handle(), "reload", "Reload", true, Some("CmdOrCtrl+R"))?;
-            let view_submenu = Submenu::with_items(app.handle(), "View", true, &[&reload_item])?;
-            let menu = Menu::default(app.handle())?;
-            menu.append(&view_submenu)?;
-            app.set_menu(menu)?;
-            Ok(())
-        })
-        .on_menu_event(|app: &AppHandle<R>, event: MenuEvent| {
-            app.emit("menu-event", event.id().as_ref()).ok();
-        })
-    }
-}
+#[cfg(desktop)]                                                                                      // [!code ++]
+impl<R: Runtime> BuilderExt<R> for Builder<R> {                                                      // [!code ++]
+    fn setup_platform(self) -> Self {                                                                // [!code ++]
+        self.setup(|app| {                                                                           // [!code ++]
+            let reload_item =                                                                        // [!code ++]
+                MenuItem::with_id(app.handle(), "reload", "Reload", true, Some("CmdOrCtrl+R"))?;     // [!code ++]
+            let view_submenu = Submenu::with_items(app.handle(), "View", true, &[&reload_item])?;    // [!code ++]
+            let menu = Menu::default(app.handle())?;                                                 // [!code ++]
+            menu.append(&view_submenu)?;                                                             // [!code ++]
+            app.set_menu(menu)?;                                                                     // [!code ++]
+            Ok(())                                                                                   // [!code ++]
+        })                                                                                           // [!code ++]
+        .on_menu_event(|app: &AppHandle<R>, event: MenuEvent| {                                      // [!code ++]
+            app.emit("menu-event", event.id().as_ref()).ok();                                        // [!code ++]
+        })                                                                                           // [!code ++]
+    }                                                                                                // [!code ++]
+}                                                                                                    // [!code ++]
 
-#[cfg(mobile)]                                                          // [!code ++]
-impl<R: Runtime> BuilderExt<R> for Builder<R> {                         // [!code ++]
-    fn setup_platform(self) -> Self {                                   // [!code ++]
-        self                                                            // [!code ++]
-    }                                                                   // [!code ++]
-}                                                                       // [!code ++]
+#[cfg(mobile)]                                                                                       // [!code ++]
+impl<R: Runtime> BuilderExt<R> for Builder<R> {                                                      // [!code ++]
+    fn setup_platform(self) -> Self {                                                                // [!code ++]
+        self                                                                                         // [!code ++]
+    }                                                                                                // [!code ++]
+}                                                                                                    // [!code ++]
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_os::init())
-        .setup_platform()                                               // [!code ++]
+        .setup(|app| {                                                                               // [!code --]
+            let reload_item =                                                                        // [!code --]
+                MenuItem::with_id(app.handle(), "reload", "Reload", true, Some("CmdOrCtrl+R"))?;     // [!code --]
+            let view_submenu = Submenu::with_items(app.handle(), "View", true, &[&reload_item])?;   // [!code --]
+            let menu = Menu::default(app.handle())?;                                                 // [!code --]
+            menu.append(&view_submenu)?;                                                             // [!code --]
+            app.set_menu(menu)?;                                                                     // [!code --]
+            Ok(())                                                                                   // [!code --]
+        })                                                                                           // [!code --]
+        .on_menu_event(|app: &AppHandle, event: MenuEvent| {                                         // [!code --]
+            app.emit("menu-event", event.id().as_ref()).ok();                                        // [!code --]
+        })                                                                                           // [!code --]
+        .setup_platform()                                                                            // [!code ++]
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 ```
 
-`#[cfg(desktop)]` gates the menu imports and the desktop impl; `#[cfg(mobile)]` provides a no-op impl. Calling `.setup_platform()` resolves to whichever matches the current target, so the mobile build drops the menu entirely and the desktop build keeps it.
+The `.setup(...)` block and `.on_menu_event(...)` chain that previously lived in `run()` move into the desktop implementation verbatim — the bodies don't need to change, they simply get a new home. Back in `run()`, a single `.setup_platform()` call takes their place and resolves to the matching implementation at compile time.
+
+Three points worth highlighting before moving on:
+
+- **The `tauri::menu` import is now guarded by `#[cfg(desktop)]`.** Without the guard, the mobile build would fail on a missing module — the import is only meaningful on platforms where the desktop implementation exists.
+- **The trait is generic over `R: Runtime`.** Tauri's `Builder<R>` is itself generic over the runtime, so the extension trait has to follow suit. That's also why the `on_menu_event` closure now takes `&AppHandle<R>` rather than the bare `&AppHandle` it used before — the same type parameter, threaded through.
+- **The mobile implementation is simply `self`.** There's no platform-specific setup to perform on mobile yet, but `.setup_platform()` still needs an implementation to resolve to. In the next chapter, this is where the haptics plugin registration will land.
 
 ## Detecting Mobile in Gleam
 
@@ -357,10 +375,6 @@ adb reverse tcp:8000 tcp:8000
 `adb reverse --remove tcp:8000` tears down the forward when you're done. `adb reverse --list` shows any active rules.
 :::
 
-::: tip First mobile build is *very* slow
-Building for iOS or Android compiles the full Rust toolchain for a new target triple plus a fresh Gradle/Xcode configuration. Expect 10–15 minutes on the first run. Subsequent builds are much faster thanks to incremental compilation — don't cancel the first build just because it looks stuck.
-:::
-
 To open the Android Studio project instead:
 
 ```sh
@@ -369,6 +383,6 @@ bun tauri android dev --open
 
 ## What's Next
 
-The app now runs on both an iOS simulator and an Android emulator. But mobile has the same stale-data problem the desktop View menu fixed — only worse, because there's no menu and no Cmd+R to fall back on. The next chapter adds pull-to-refresh so a swipe from the top of the list reloads the tasks.
+The app now runs on an iOS simulator and an Android emulator — same Gleam code, two new platforms. Mobile has the same stale-data problem the View menu solved on desktop, though, and this time there's no menu bar and no Cmd+R to fall back on. Next up: pull-to-refresh, so a swipe from the top reloads the tasks.
 
 [^1]: See commit [47c5571](https://github.com/lukwol/doable/commit/47c5571) on GitHub

@@ -37,7 +37,7 @@ The CLI adds `tauri-plugin-haptics` to `Cargo.toml` and `@tauri-apps/plugin-hapt
 # client/src-tauri/Cargo.toml
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]  # [!code ++]
-tauri-plugin-haptics = "2"                                                   # [!code ++]
+tauri-plugin-haptics = "2"                                                  # [!code ++]
 ```
 
 The `[target.'cfg(...)'.dependencies]` table means the crate only compiles in when building for Android or iOS — the desktop build never sees it.
@@ -251,7 +251,9 @@ pub fn indicator(refreshing: Bool, pull_state: PullState) -> Element(msg) {
 }
 ```
 
-`progress` runs from `0.0` to `1.0` as the offset approaches `threshold`. While pulling, transitions are disabled so the indicator tracks the finger exactly. Once the finger lifts, transitions re-enable and the indicator snaps back smoothly.
+`progress` runs from `0.0` to `1.0` as the offset approaches `threshold`. While the finger's still down, CSS transitions are disabled so the indicator tracks it exactly — no lag, no easing.
+
+Once the finger lifts, transitions re-enable and the indicator snaps back smoothly.
 
 ## Wiring tasks.gleam
 
@@ -300,34 +302,34 @@ pub fn update(model: Model, msg: Msg) -> #(Model, Effect(Msg)) {
     UserToggledTask(task, completed) -> #(model, toggle_task(task, completed))
     ApiUpdatedTask(Ok(updated)) -> #(...)
     ApiUpdatedTask(Error(_)) -> #(model, effect.none())
-    UserStartedTouch(y) -> #(                                              // [!code ++]
-      Model(..model, pull_state: Pulling(start_y: y, offset: 0.0)),        // [!code ++]
+    UserStartedTouch(y) -> #(                                               // [!code ++]
+      Model(..model, pull_state: Pulling(start_y: y, offset: 0.0)),         // [!code ++]
       effect.none(),                                                        // [!code ++]
     )                                                                       // [!code ++]
     UserMovedTouch(y) ->                                                    // [!code ++]
       case model.pull_state {                                               // [!code ++]
         Idle | RefreshTriggered -> #(model, effect.none())                  // [!code ++]
-        Pulling(start_y:, offset: prev_offset) -> {                        // [!code ++]
+        Pulling(start_y:, offset: prev_offset) -> {                         // [!code ++]
           let offset =                                                      // [!code ++]
-            float.max(0.0, y -. start_y)                                   // [!code ++]
-            |> float.min(pull_refresh.threshold, _)                        // [!code ++]
+            float.max(0.0, y -. start_y)                                    // [!code ++]
+            |> float.min(pull_refresh.threshold, _)                         // [!code ++]
           let crossed =                                                     // [!code ++]
-            prev_offset <. pull_refresh.threshold                          // [!code ++]
-            && offset >=. pull_refresh.threshold                           // [!code ++]
+            prev_offset <. pull_refresh.threshold                           // [!code ++]
+            && offset >=. pull_refresh.threshold                            // [!code ++]
           let haptic = case crossed {                                       // [!code ++]
-            True -> haptics.impact_feedback(haptics.Light)                 // [!code ++]
-            False -> effect.none()                                         // [!code ++]
+            True -> haptics.impact_feedback(haptics.Light)                  // [!code ++]
+            False -> effect.none()                                          // [!code ++]
           }                                                                 // [!code ++]
           #(Model(..model, pull_state: Pulling(start_y:, offset:)), haptic) // [!code ++]
         }                                                                   // [!code ++]
       }                                                                     // [!code ++]
     UserEndedTouch ->                                                       // [!code ++]
-      case pull_refresh.release(model.pull_state) {                        // [!code ++]
+      case pull_refresh.release(model.pull_state) {                         // [!code ++]
         RefreshTriggered -> #(                                              // [!code ++]
-          Model(..model, loading: True, pull_state: Idle),                 // [!code ++]
+          Model(..model, loading: True, pull_state: Idle),                  // [!code ++]
           fetch_tasks(),                                                    // [!code ++]
         )                                                                   // [!code ++]
-        _ -> #(Model(..model, pull_state: Idle), effect.none())            // [!code ++]
+        _ -> #(Model(..model, pull_state: Idle), effect.none())             // [!code ++]
       }                                                                     // [!code ++]
   }
 }
@@ -349,6 +351,10 @@ pub fn view(model: Model) -> Element(Msg) {
   }                                     // [!code ++]
 }
 ```
+
+::: tip Why `is_mobile()` and not a user-agent check
+`platform.is_mobile()` returns `True` only inside the Tauri native app on iOS or Android — mobile browsers fall through to `Browser` and get `view_desktop`. That's deliberate: Safari and Chrome have their own built-in pull-to-refresh, and stacking ours on top would double-fire the gesture.
+:::
 
 `view_mobile` attaches the touch handlers to the container and overlays the indicator. `view_desktop` keeps the loading spinner. Both delegate the actual content to `view_content`, which takes a `loading_placeholder` parameter:
 
@@ -404,6 +410,6 @@ The gesture and visual indicator work the same way. Haptic feedback varies by de
 
 ## What's Next
 
-Pull-to-refresh works in dev, but the API URL is still hardcoded to `localhost:8000`. That's wrong for production builds and wrong for physical devices on a real network. The next chapter resolves the base URL by platform and build mode, then takes the app out of the simulator and onto real devices and release builds.
+Pull-to-refresh works in dev, but the API URL is still hardcoded to `localhost:8000` — which is wrong both for production builds and for a real phone on your home network. In the final chapter we'll resolve the base URL by platform and build mode, then take the app out of the simulator and onto real devices and release builds.
 
 [^1]: See commit [919a15c](https://github.com/lukwol/doable/commit/919a15c) on GitHub

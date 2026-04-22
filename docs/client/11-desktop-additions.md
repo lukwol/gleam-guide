@@ -68,9 +68,9 @@ pub fn run() {
 }
 ```
 
-A few things worth noting:
+A walk through what each piece does:
 
-- `Menu::default` gives the platform's built-in menu bar — on macOS that includes the application menu with Quit and Hide. The View submenu is appended on top rather than replacing it.
+- `Menu::default` gives us the platform's built-in menu bar — on macOS that includes the application menu with Quit and Hide. We append the View submenu on top rather than replacing it.
 - `MenuItem::with_id` assigns the string `"reload"` as the item's identifier. That id is what gets emitted when the user clicks — the label "Reload" is display only.
 - `Some("CmdOrCtrl+R")` registers the keyboard shortcut. `CmdOrCtrl` maps to Cmd on macOS and Ctrl on Windows and Linux.
 - `on_menu_event` emits a `"menu-event"` Tauri event carrying the item's id. That crosses the Rust/JS boundary and makes the event available to the Gleam frontend.
@@ -106,7 +106,9 @@ pub fn subscribe(to_msg: fn(String) -> msg) -> Effect(msg) {
 }
 ```
 
-`listen_menu_events` calls Tauri's `listen` API, which fires the callback every time a `"menu-event"` arrives. `subscribe` wraps it as a Lustre effect: `effect.from` provides the `dispatch` function, which gets threaded through as the callback. When the user clicks a menu item, the item's id string is dispatched as a message.
+`listen_menu_events` calls Tauri's `listen` API, which fires the callback every time a `"menu-event"` arrives.
+
+`subscribe` wraps it as a Lustre effect: `effect.from` hands us the `dispatch` function, which we thread through as the listener callback. The result — when the user clicks a menu item, its id string lands in the app as a regular message.
 
 ## Platform Detection
 
@@ -245,7 +247,9 @@ fn view(model: Model) -> Element(Msg) {                                         
 }
 ```
 
-`effect.map(RouterSentMsg)` wraps every effect produced by the router so its messages arrive at the top level as `RouterSentMsg(...)`. `menu.subscribe(MenuSentEvent)` is only added to the effect batch when `platform.is_desktop()` returns `True` — the browser never subscribes to menu events. When Reload is triggered, `MenuSentEvent("reload")` arrives and calls `browser.reload_page()`. Unknown menu events are silently ignored — a safe default as the menu grows.
+`effect.map(RouterSentMsg)` wraps every effect produced by the router so its messages arrive at the top level as `RouterSentMsg(...)`. `menu.subscribe(MenuSentEvent)` only joins the effect batch when `platform.is_desktop()` is `True` — the browser never subscribes to menu events it can't receive.
+
+When Reload fires, `MenuSentEvent("reload")` arrives and calls `browser.reload_page()`. Unknown menu events are silently ignored — a safe default as the menu grows.
 
 ## Reload FFI
 
@@ -329,6 +333,6 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 ## What's Next
 
-The desktop experience feels native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. But `bun tauri build` hasn't been tried yet — and when it is, browser CORS blocks every API request. Next, we'll route HTTP through Tauri's Rust backend so the production build actually works.
+The desktop experience is starting to feel native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. There's one more thing to sort out before production: `bun tauri build` works locally, but CORS blocks every API request the moment the app runs outside the dev server. Next, we'll route HTTP through Tauri's Rust backend to get around it.
 
 [^1]: See commit [711da83](https://github.com/lukwol/doable/commit/711da83) on GitHub
