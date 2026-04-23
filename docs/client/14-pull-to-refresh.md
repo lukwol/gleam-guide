@@ -217,16 +217,17 @@ pub fn indicator(refreshing: Bool, pull_state: PullState) -> Element(msg) {
     False -> "transform 0.2s ease-out, opacity 0.2s ease-out"
   }
   let icon = case refreshing {
-    True -> html.span([attr.class("loading loading-spinner loading-lg")], [])
+    True ->
+      html.span([attribute.class("loading loading-spinner loading-lg")], [])
     False ->
       html.span(
         [
-          attr.class("icon-[heroicons--arrow-down] text-3xl"),
-          attr.style(
+          attribute.class("text-3xl icon-[heroicons--arrow-down]"),
+          attribute.style(
             "transform",
             "rotate(" <> float.to_string(progress *. 180.0) <> "deg)",
           ),
-          attr.style("transition", "transform 0.1s linear"),
+          attribute.style("transition", "transform 0.1s linear"),
         ],
         [],
       )
@@ -234,17 +235,17 @@ pub fn indicator(refreshing: Bool, pull_state: PullState) -> Element(msg) {
 
   html.div(
     [
-      attr.class(
+      attribute.class(
         "flex absolute inset-x-0 top-0 justify-center items-center h-12",
       ),
-      attr.style(
+      attribute.style(
         "transform",
         "translateY(calc("
           <> float.to_string(indicator_y)
           <> "px + env(safe-area-inset-top)))",
       ),
-      attr.style("opacity", indicator_opacity),
-      attr.style("transition", transition),
+      attribute.style("opacity", indicator_opacity),
+      attribute.style("transition", transition),
     ],
     [icon],
   )
@@ -412,4 +413,4 @@ The gesture and visual indicator work the same way. Haptic feedback varies by de
 
 Pull-to-refresh works in dev, but the API URL is still hardcoded to `localhost:8000` — which is wrong both for production builds and for a real phone on your home network. In the final chapter we'll resolve the base URL by platform and build mode, then take the app out of the simulator and onto real devices and release builds.
 
-[^1]: See commit [919a15c](https://github.com/lukwol/doable/commit/919a15c) on GitHub
+[^1]: See commit [1fc3340](https://github.com/lukwol/doable/commit/1fc3340) on GitHub
