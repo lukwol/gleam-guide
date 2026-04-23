@@ -1,6 +1,7 @@
 import footnote from "markdown-it-footnote";
 
 export default {
+  base: '/gleam-guide/',
   head: [
     ['style', {}, `
       .dark-only { display: none; }
