@@ -34,6 +34,10 @@ iOS development requires macOS and a full Xcode installation — the Command Lin
 brew install cocoapods
 ```
 
+::: tip Need a specific Xcode version?
+The App Store only offers the latest. Grab older builds from [Apple's developer downloads](https://developer.apple.com/download/), or manage multiple versions with [xcodes](https://github.com/XcodesOrg/xcodes) (CLI) / [XcodesApp](https://github.com/XcodesOrg/XcodesApp) (GUI).
+:::
+
 Add the Rust targets for iOS devices and simulators:
 
 ```sh
