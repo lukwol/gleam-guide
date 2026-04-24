@@ -258,11 +258,11 @@ When Reload fires, `MenuSentEvent("reload")` arrives and calls `browser.reload_p
 ```gleam
 // client/src/browser.gleam
 
-@external(javascript, "./browser_ffi.js", "history_back")
-pub fn history_back() -> Nil
-
 @external(javascript, "./browser_ffi.js", "window_location_origin")
 pub fn window_location_origin() -> String
+
+@external(javascript, "./browser_ffi.js", "history_back")
+pub fn history_back() -> Nil
 
 @external(javascript, "./browser_ffi.js", "reload_page")    // [!code ++]
 pub fn reload_page() -> Nil                                 // [!code ++]
@@ -271,12 +271,12 @@ pub fn reload_page() -> Nil                                 // [!code ++]
 ```js
 // client/src/browser_ffi.js
 
-export function history_back() {
-  window.history.back();
-}
-
 export function window_location_origin() {
   return window.location.origin;
+}
+
+export function history_back() {
+  window.history.back();
 }
 
 export function reload_page() {    // [!code ++]
@@ -335,4 +335,4 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 The desktop experience is starting to feel native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. There's one more thing to sort out before production: `bun tauri build` works locally, but CORS blocks every API request the moment the app runs outside the dev server. Next, we'll route HTTP through Tauri's Rust backend to get around it.
 
-[^1]: See commit [711da83](https://github.com/lukwol/doable/commit/711da83) on GitHub
+[^1]: See commit [e62f84f](https://github.com/lukwol/doable/commit/e62f84f) on GitHub

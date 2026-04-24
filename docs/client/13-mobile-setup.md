@@ -385,4 +385,4 @@ bun tauri android dev --open
 
 The app now runs on an iOS simulator and an Android emulator — same Gleam code, two new platforms. Mobile has the same stale-data problem the View menu solved on desktop, though, and this time there's no menu bar and no Cmd+R to fall back on. Next up: pull-to-refresh, so a swipe from the top reloads the tasks.
 
-[^1]: See commit [47c5571](https://github.com/lukwol/doable/commit/47c5571) on GitHub
+[^1]: See commit [8bcd127](https://github.com/lukwol/doable/commit/8bcd127) on GitHub

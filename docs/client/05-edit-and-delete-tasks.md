@@ -630,6 +630,6 @@ fn view_task(task: Task) -> Element(Msg) {
 
 ## What's Next
 
-The CRUD loop is complete — list, create, edit, delete all work. But the UI is unstyled, the CORS middleware is growing, and we're still using `lustre_dev_tools` as the dev server. Next, we'll swap it for [Vite](https://vite.dev): proxy the API (goodbye CORS), import `.gleam` directly, and unlock the plugin ecosystem we'll need for Tailwind.
+The CRUD loop is complete — list, create, edit, delete all work. The UI still needs styling, though, and before we get to Tauri later in the guide we'll want a JS build tool to hook into its ecosystem. Next up: bringing [Vite](https://vite.dev) into the project alongside [vite-gleam](https://github.com/nicktobey/vite-gleam) before fully transitioning to Tauri.
 
-[^1]: See commit [e4def21](https://github.com/lukwol/doable/commit/e4def21) on GitHub
+[^1]: See commit [52f31d1](https://github.com/lukwol/doable/commit/52f31d1) on GitHub

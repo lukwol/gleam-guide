@@ -2,19 +2,18 @@
 
 With the Lustre skeleton in place, it's time to replace the greeting app with the real task UI. In this chapter we'll fetch tasks from the API and render them as a list — introducing effects, a dedicated HTTP client, and error handling along the way[^1].
 
-Five files change, two are new:
+Six files change, four are new:
 
 ```sh
 doable/
-├── client/
-│   ├── gleam.toml          # 4 new dependencies            [!code highlight]
-│   └── src/
-│       ├── error.gleam     # ApiError type                 [!code ++]
-│       ├── api.gleam       # HTTP client                   [!code ++]
-│       └── client.gleam    # tasks screen                  [!code highlight]
-└── server/
+└── client/
+    ├── gleam.toml              # 4 new deps + dev proxy config  [!code highlight]
     └── src/
-        └── web.gleam       # CORS middleware               [!code highlight]
+        ├── error.gleam         # ApiError type                  [!code ++]
+        ├── api.gleam           # HTTP client                    [!code ++]
+        ├── browser.gleam       # window.location.origin FFI     [!code ++]
+        ├── browser_ffi.js      # FFI implementation             [!code ++]
+        └── client.gleam        # tasks screen                   [!code highlight]
 ```
 
 ## Install Dependencies
@@ -120,13 +119,17 @@ pub fn get(path: String, decoder: Decoder(a)) -> Promise(Result(a, ApiError)) {
 ```gleam
 // client/src/api.gleam
 
-const api_base_url = "http://localhost:8000"
+import browser
+
+fn api_base_url() -> String {
+  browser.window_location_origin()
+}
 
 fn with_json_request(
   path: String,
   callback: fn(Request(String)) -> Promise(Result(b, ApiError)),
 ) -> Promise(Result(b, ApiError)) {
-  let url = api_base_url <> path
+  let url = api_base_url() <> path
   request.to(url)
   |> result.replace_error(InvalidUrl(url))
   |> result.map(request.set_header(_, "accept", "application/json"))
@@ -134,6 +137,8 @@ fn with_json_request(
   |> promise.try_await(callback)
 }
 ```
+
+`api_base_url` reads the page's own origin at runtime — `http://localhost:1234` in dev, whatever the deployment URL is in production. The `browser` module is a thin FFI wrapper introduced a few sections below.
 
 1. `request.to` parses the URL, returning `Error(Nil)` on failure. `result.replace_error` swaps that for a meaningful `InvalidUrl`.
 2. `result.map` adds the `accept` header to the request.
@@ -314,43 +319,48 @@ The `case` on `model.tasks` covers all four states:
   <figcaption>Tasks screen showing a read-only list fetched from the API</figcaption>
 </figure>
 
-## CORS on the Server
+## Browser FFI
 
-While the dev server (`lustre_dev_tools`) runs on port 1234, the API server runs on port 8000. These are different origins, so `web.gleam` adds a `cors` middleware:
-
-::: info
-[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests between different origins by default. The server can opt in by including `Access-Control-Allow-*` headers in its responses.
-:::
+`api_base_url` reaches for `window.location.origin`, which isn't in the Gleam standard library. A tiny FFI module bridges the gap:
 
 ```gleam
-// server/src/web.gleam
+// client/src/browser.gleam
 
-pub fn middleware(
-  req: Request,
-  handle_request: fn(Request) -> Response,
-) -> Response {
-  use <- wisp.log_request(req)
-  use <- wisp.rescue_crashes
-  use req <- wisp.handle_head(req)
-  use <- cors                                                                       // [!code ++]
-  handle_request(req)
-}
-
-fn cors(next: fn() -> Response) -> Response {                                       // [!code ++]
-  next()                                                                            // [!code ++]
-  |> response.set_header("access-control-allow-origin", "*")                        // [!code ++]
-  |> response.set_header(                                                           // [!code ++]
-    "access-control-allow-methods",                                                 // [!code ++]
-    "GET, POST, PATCH, PUT, DELETE, OPTIONS",                                       // [!code ++]
-  )                                                                                 // [!code ++]
-  |> response.set_header("access-control-allow-headers", "content-type, accept")    // [!code ++]
-}                                                                                   // [!code ++]
+@external(javascript, "./browser_ffi.js", "window_location_origin")
+pub fn window_location_origin() -> String
 ```
 
-`cors` runs the rest of the pipeline and appends the required headers to every response. This is a development convenience — in production the API and frontend are served from the same origin via Caddy, so no CORS headers are needed there.
+```js
+// client/src/browser_ffi.js
+
+export function window_location_origin() {
+  return window.location.origin;
+}
+```
+
+`@external` declares a Gleam function that's implemented in another language. The three arguments are the target (`javascript`), the module path relative to this file, and the exported function name. Callers use `browser.window_location_origin()` like any other Gleam function — the FFI boundary is invisible.
+
+## Proxying the API in Dev
+
+`window.location.origin` returns `http://localhost:1234` in dev — but the API runs on port 8000. Hitting it directly would be a cross-origin request, which the browser blocks by default.
+
+`lustre_dev_tools` has a built-in dev proxy for exactly this situation. A two-line addition to `gleam.toml` tells it to forward `/api/*` requests to the Gleam server:
+
+```toml
+# client/gleam.toml
+
+[tools.lustre.dev]                                     # [!code ++]
+proxy = { from = "/api", to = "http://localhost:8000/api" }  # [!code ++]
+```
+
+The browser sends the request to the dev server (same origin — no CORS), the dev server relays it to `localhost:8000`, and the response flows back the same way.
+
+::: info
+[CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) (Cross-Origin Resource Sharing) is a browser security mechanism that blocks requests between different origins by default. Proxying through the dev server keeps everything same-origin, so no `Access-Control-Allow-*` headers are needed on the server. In production the API and frontend are served from the same origin via Caddy, so the setup stays consistent.
+:::
 
 ## What's Next
 
 Tasks load from the API and render as a list — but the app is still one page crammed into `client.gleam`. Next, we'll carve it into modules: a `Route` type, a router, per-page files, and a task service so adding new screens doesn't mean bloating one file.
 
-[^1]: See commit [41ffae7](https://github.com/lukwol/doable/commit/41ffae7) on GitHub
+[^1]: See commit [32972c7](https://github.com/lukwol/doable/commit/32972c7) on GitHub

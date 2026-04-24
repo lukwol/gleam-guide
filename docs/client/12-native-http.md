@@ -202,4 +202,4 @@ API requests work as before in dev. To verify the fix actually matters, run `bun
 
 The desktop build is production-ready: HTTP flows through Rust, CORS is no longer a problem, and the same Gleam code runs in both the browser and the webview. Next, we'll take that same frontend to iOS and Android — two init commands, and the app runs on a phone.
 
-[^1]: See commit [e6d3499](https://github.com/lukwol/doable/commit/e6d3499) on GitHub
+[^1]: See commit [4afc501](https://github.com/lukwol/doable/commit/4afc501) on GitHub

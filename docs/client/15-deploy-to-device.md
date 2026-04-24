@@ -261,4 +261,4 @@ And that's the full stack: a Gleam server backed by Postgres, a Lustre frontend,
 
 Thanks for sticking with me all the way through. If any of it helped, I'd love to hear about it — and the full source is at [github.com/lukwol/doable](https://github.com/lukwol/doable) if you want to fork it, star it, or use it as a starting point for your own project. Happy building.
 
-[^1]: See commit [05dbbc3](https://github.com/lukwol/doable/commit/05dbbc3) on GitHub
+[^1]: See commit [f285e2d](https://github.com/lukwol/doable/commit/f285e2d) on GitHub

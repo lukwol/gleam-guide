@@ -322,4 +322,4 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 Doable is live on the internet. The web track ends here — take a moment to read the [Recap](/client/09-web-app-recap) for a summary of everything you've built, then decide whether to call it done or keep going into the desktop and mobile bonus chapters.
 
-[^1]: See commit [6b996dc](https://github.com/lukwol/doable/commit/6b996dc) on GitHub
+[^1]: See commit [99ac11a](https://github.com/lukwol/doable/commit/99ac11a) on GitHub

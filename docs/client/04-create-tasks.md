@@ -1,26 +1,23 @@
 # Create Tasks
 
-The tasks list shows data but offers no way to add anything. In this chapter we'll add the first interactive page — a form for creating new tasks — along with the routing, API call, and a server CORS fix the new method requires.
+The tasks list shows data but offers no way to add anything. In this chapter we'll add the first interactive page — a form for creating new tasks — along with the routing and API call it needs.
 
-Nine files change, three are new[^1]:
+Eight files change, one is new[^1]:
 
 ```sh
 doable/
-├── client/
-│   └── src/
-│       ├── api.gleam              # post added              [!code highlight]
-│       ├── browser.gleam          # history_back FFI        [!code ++]
-│       ├── browser_ffi.js         # FFI implementation      [!code ++]
-│       ├── route.gleam            # NewTask route           [!code highlight]
-│       ├── router.gleam           # NewTaskPage wired in    [!code highlight]
-│       ├── service/
-│       │   └── task_service.gleam # post_task added         [!code highlight]
-│       └── page/
-│           ├── tasks.gleam        # New Task link added     [!code highlight]
-│           └── new_task.gleam     # new task form page      [!code ++]
-└── server/
+└── client/
     └── src/
-        └── web.gleam              # CORS preflight fix      [!code highlight]
+        ├── api.gleam              # post added              [!code highlight]
+        ├── browser.gleam          # history_back added      [!code highlight]
+        ├── browser_ffi.js         # history_back added      [!code highlight]
+        ├── route.gleam            # NewTask route           [!code highlight]
+        ├── router.gleam           # NewTaskPage wired in    [!code highlight]
+        ├── service/
+        │   └── task_service.gleam # post_task added         [!code highlight]
+        └── page/
+            ├── tasks.gleam        # New Task link added     [!code highlight]
+            └── new_task.gleam     # new task form page      [!code ++]
 ```
 
 ## Extending the Routes
@@ -96,24 +93,31 @@ pub fn post_task(input: TaskInput) -> Promise(Result(Task, ApiError)) {   // [!c
 
 ## Browser FFI
 
-After creating a task, the page navigates away. Going back requires calling `window.history.back()` — something the Gleam standard library doesn't expose. A small FFI pair bridges the gap:
-
-```javascript
-// client/src/browser_ffi.js
-
-export function history_back() {
-  window.history.back();
-}
-```
+After creating a task, the page navigates away. Going back requires calling `window.history.back()` — something the Gleam standard library doesn't expose. The existing `browser` module gets one more FFI pair:
 
 ```gleam
 // client/src/browser.gleam
 
-@external(javascript, "./browser_ffi.js", "history_back")
-pub fn history_back() -> Nil
+@external(javascript, "./browser_ffi.js", "window_location_origin")
+pub fn window_location_origin() -> String
+
+@external(javascript, "./browser_ffi.js", "history_back")    // [!code ++]
+pub fn history_back() -> Nil                                 // [!code ++]
 ```
 
-The `@external` attribute wires the Gleam declaration to the JavaScript implementation. Callers just use `browser.history_back()` like any other function — the FFI boundary is invisible.
+```js
+// client/src/browser_ffi.js
+
+export function window_location_origin() {
+  return window.location.origin;
+}
+
+export function history_back() {    // [!code ++]
+  window.history.back();            // [!code ++]
+}                                   // [!code ++]
+```
+
+`history_back` returns `Nil` — Gleam's equivalent of a void function — since `window.history.back()` is called for its side effect, not a value.
 
 ## The New Task Page
 
@@ -338,49 +342,8 @@ pub fn view(model: Model) -> Element(Msg) {
 
 The link uses `route.to_path` rather than a hardcoded string, so if the route's path ever changes the update happens in one place.
 
-## Server: Preflight Requests
-
-`POST` requests trigger a CORS preflight — the browser first sends an `OPTIONS` request to check whether the cross-origin call is allowed. The previous `cors` middleware forwarded every request to the router, which has no `OPTIONS` handler, resulting in a `404` and a blocked request.
-
-The fix intercepts `OPTIONS` before it reaches the router:
-
-```gleam
-// server/src/web.gleam
-
-fn cors(req: Request, next: fn() -> Response) -> Response {  // [!code highlight]
-  let resp = case req.method {                               // [!code ++]
-    http.Options -> wisp.ok()                                // [!code ++]
-    _ -> next()                                              // [!code ++]
-  }                                                          // [!code ++]
-  resp                                                       // [!code highlight]
-  |> response.set_header("access-control-allow-origin", "*")
-  |> response.set_header(
-    "access-control-allow-methods",
-    "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-  )
-  |> response.set_header("access-control-allow-headers", "content-type, accept")
-}
-```
-
-`cors` now receives the request so it can inspect the method. `OPTIONS` gets an immediate empty `200 OK` with the CORS headers attached; everything else passes through to the router as before. The call site in `middleware` updates accordingly:
-
-```gleam
-// server/src/web.gleam
-
-pub fn middleware(
-  req: Request,
-  handle_request: fn(Request) -> Response,
-) -> Response {
-  use <- wisp.log_request(req)
-  use <- wisp.rescue_crashes
-  use req <- wisp.handle_head(req)
-  use <- cors(req)                  // [!code highlight]
-  handle_request(req)
-}
-```
-
 ## What's Next
 
 Users can create tasks, but not edit or delete them yet — and the form fields would have to be duplicated if we added an edit page naïvely. Next, we'll extract them into a shared component, then build editing and deletion on top.
 
-[^1]: See commit [ea9db58](https://github.com/lukwol/doable/commit/ea9db58) on GitHub
+[^1]: See commit [c25c476](https://github.com/lukwol/doable/commit/c25c476) on GitHub

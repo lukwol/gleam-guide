@@ -524,4 +524,4 @@ Open `http://localhost:5173`. The app now has a proper layout: a task list rende
 
 The web app is feature-complete, tested, and styled. The next question is: how do other people use it? Next, we'll containerise the client, hand it to [Caddy](https://caddyserver.com), and deploy the full stack — database, API, and frontend — to a real server.
 
-[^1]: See commit [2f55b48](https://github.com/lukwol/doable/commit/2f55b48) on GitHub
+[^1]: See commit [0e161c6](https://github.com/lukwol/doable/commit/0e161c6) on GitHub
