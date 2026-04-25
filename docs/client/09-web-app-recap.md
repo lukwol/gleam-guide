@@ -46,7 +46,7 @@ If you came to this guide to learn how to build a full-stack web app in Gleam �
 
 The same Lustre frontend you just built can run outside the browser, too. The next four chapters wrap it in [Tauri](https://tauri.app):
 
-- **[Desktop Setup](/client/10-desktop-setup)** — turn the Vite project into a native macOS/Windows/Linux app with no changes to the Gleam code.
+- **[Tauri Setup](/client/10-tauri-setup)** — turn the Vite project into a native macOS/Windows/Linux app with no changes to the Gleam code.
 - **[Desktop Additions](/client/11-desktop-additions)** — a View menu, Cmd+R reload, and platform detection.
 - **[Native HTTP](/client/12-native-http)** — route API calls through Tauri's Rust backend so production desktop builds escape browser CORS.
 - **[Mobile Setup](/client/13-mobile-setup)** — the same frontend on iOS and Android simulators.

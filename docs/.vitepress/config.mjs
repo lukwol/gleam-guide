@@ -71,7 +71,7 @@ export default {
             link: "/client/08-production-deployment",
           },
           { text: "Recap — The Web App", link: "/client/09-web-app-recap" },
-          { text: "Desktop Setup", link: "/client/10-desktop-setup" },
+          { text: "Tauri Setup", link: "/client/10-tauri-setup" },
           { text: "Desktop Additions", link: "/client/11-desktop-additions" },
           { text: "Native HTTP", link: "/client/12-native-http" },
           { text: "Mobile Setup", link: "/client/13-mobile-setup" },

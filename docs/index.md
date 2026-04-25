@@ -133,7 +133,7 @@ Before starting, make sure you have the following installed:
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
 
 ::: tip Web-only path
-If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Desktop Setup](/client/10-desktop-setup).
+If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Tauri Setup](/client/10-tauri-setup).
 :::
 
 ## How to Use This Guide
