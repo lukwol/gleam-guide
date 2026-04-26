@@ -112,19 +112,21 @@ import gleam/option.{None, Some}     // [!code ++]
 import tauri/commands                // [!code ++]
 
 fn api_base_url() -> String {                                           // [!code --]
-fn api_base_url() -> Promise(String) {                                  // [!code ++]
-  use tauri_is_dev <- promise.await(commands.tauri_is_dev())            // [!code ++]
-  use tauri_dev_host <- promise.map(commands.tauri_dev_host())          // [!code ++]
   case platform.platform() {                                            // [!code --]
     Browser -> browser.window_location_origin()                         // [!code --]
     _ -> "http://localhost:8000"                                        // [!code --]
+  }                                                                     // [!code --]
+}                                                                       // [!code --]
+fn api_base_url() -> Promise(String) {                                  // [!code ++]
+  use tauri_is_dev <- promise.await(commands.tauri_is_dev())            // [!code ++]
+  use tauri_dev_host <- promise.map(commands.tauri_dev_host())          // [!code ++]
   case platform.platform(), tauri_is_dev, tauri_dev_host {              // [!code ++]
     Browser, _, _ -> browser.window_location_origin()                   // [!code ++]
     _, True, Some(host) -> "http://" <> host <> ":8000"                 // [!code ++]
     _, True, None -> "http://localhost:8000"                            // [!code ++]
     _, False, _ -> "https://your-domain.com"                            // [!code ++]
-  }
-}
+  }                                                                     // [!code ++]
+}                                                                       // [!code ++]
 ```
 
 - **Browser** — `window.location.origin` works in any browser context, dev or production, because the Caddy proxy is there to forward `/api`.
@@ -141,8 +143,9 @@ fn with_json_request(
   path: String,
   callback: fn(Request(String)) -> Promise(Result(b, ApiError)),
 ) -> Promise(Result(b, ApiError)) {
+  let url = api_base_url() <> path                // [!code --]
   use base_url <- promise.await(api_base_url())   // [!code ++]
-  let url = base_url <> path                      // [!code highlight]
+  let url = base_url <> path                      // [!code ++]
   request.to(url)
   |> result.replace_error(InvalidUrl(url))
   |> result.map(request.set_header(_, "accept", "application/json"))
@@ -162,7 +165,7 @@ The production URL needs to be added to the desktop HTTP allowlist — requests 
   "identifier": "http:default",
   "allow": [
     { "url": "http://localhost:8000/**" },
-    { "url": "https://your-domain.com/**" }   // [!code ++]
+    { "url": "https://your-domain.com/**" } // [!code ++]
   ]
 }
 ```
