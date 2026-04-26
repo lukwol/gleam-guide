@@ -2,7 +2,7 @@
 
 A practical guide to building full-stack apps with [Gleam](https://gleam.run) — covering a JSON HTTP API, a browser frontend, and desktop and mobile apps for iOS and Android, all sharing types and validation logic written once.
 
-The guide walks through building **Doable**, a task manager, from scratch using Wisp, Mist, PostgreSQL, Lustre, and Tauri.
+The guide walks through building **[Doable](https://github.com/lukwol/doable)**, a task manager, from scratch using Wisp, Mist, PostgreSQL, Lustre, and Tauri.
 
 Read it online at [lukwol.github.io/gleam-guide](https://lukwol.github.io/gleam-guide/).
 
