@@ -1,6 +1,6 @@
 # Native HTTP
 
-Running the app with `bun tauri dev` works fine — the Vite dev server is running and proxies `/api` requests, so there's no CORS issue. But `bun tauri build` produces a standalone desktop app with no dev server and no proxy. The webview loads static files directly from disk, so requests to `http://localhost:8000` run into CORS restrictions and fail.
+Running the app with `bun tauri dev` works fine — `lustre_dev_tools` is running and proxies `/api` requests, so there's no CORS issue. But `bun tauri build` produces a standalone desktop app with no dev server and no proxy. The webview loads static files directly from disk, so requests to `http://localhost:8000` run into CORS restrictions and fail.
 
 Tauri's HTTP plugin solves this by routing requests through the Rust backend, which isn't subject to browser CORS policy. The webview calls the plugin instead of `fetch`, and Rust makes the actual HTTP request.
 
@@ -97,7 +97,7 @@ It works at the level of raw JS `Request` and `Response` objects — the same ty
 
 Two things change in `api.gleam`: the base URL becomes platform-aware, and a `send` function replaces direct calls to `fetch.send`.
 
-In a browser, `window.location.origin` points to the Vite dev server or the production Caddy server, both of which proxy `/api` requests. In the desktop app there's no proxy, so requests go directly to the server:
+In a browser, `window.location.origin` points to the `lustre_dev_tools` dev server or the production Caddy server, both of which proxy `/api` requests. In the desktop app there's no proxy, so requests go directly to the server:
 
 ```gleam
 // client/src/api.gleam
@@ -187,7 +187,7 @@ While here, `tauri.conf.json` gets a proper app identifier to replace the placeh
 }
 ```
 
-The identifier is how the OS distinguishes the app — it shows up in system preferences, update registries, and app bundles. We'll come back to swapping it for your own reverse-domain identifier when we cover distribution in chapter 15.
+The identifier is how the OS distinguishes the app — it shows up in system preferences, update registries, and app bundles. We'll come back to swapping it for your own reverse-domain identifier when we cover distribution in chapter 14.
 
 ## Running
 
@@ -202,4 +202,4 @@ API requests work as before in dev. To verify the fix actually matters, run `bun
 
 The desktop build is production-ready: HTTP flows through Rust, CORS is no longer a problem, and the same Gleam code runs in both the browser and the webview. Next, we'll take that same frontend to iOS and Android — two init commands, and the app runs on a phone.
 
-[^1]: See commit [4afc501](https://github.com/lukwol/doable/commit/4afc501) on GitHub
+[^1]: See commit [ae5db5e](https://github.com/lukwol/doable/commit/ae5db5e) on GitHub

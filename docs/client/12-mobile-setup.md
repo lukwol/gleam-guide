@@ -2,24 +2,23 @@
 
 Tauri isn't just a desktop framework — the same Gleam frontend can run on iOS and Android. The Rust backend handles the native layer on mobile just as it does on desktop. This chapter follows Tauri's [mobile development guide](https://v2.tauri.app/develop/) to set up both targets and get the app running on a simulator or emulator.
 
-Two init commands scaffold the native projects; a handful of file changes make the Rust, Gleam, CSS, and dev server mobile-friendly[^1]:
+Two init commands scaffold the native projects; a handful of file changes make the Rust, Gleam, and CSS mobile-friendly[^1]:
 
 ```sh
 doable/
 └── client/
-    ├── index.html                     # viewport meta updated             [!code highlight]
-    ├── vite.config.js                 # TAURI_DEV_HOST + fixed port       [!code highlight]
+    ├── gleam.toml                     # viewport meta in lustre.html      [!code highlight]
     ├── src-tauri/
-    │   ├── tauri.conf.json            # devUrl port 1420                  [!code highlight]
     │   ├── src/
     │   │   └── lib.rs                 # desktop/mobile setup split        [!code highlight]
     │   └── gen/                       # native projects                   [!code ++]
     │       ├── apple/                 # Xcode project for iOS             [!code ++]
     │       └── android/               # Gradle project for Android        [!code ++]
     └── src/
-        ├── main.js                    # body.mobile class                 [!code highlight]
-        ├── platform.gleam             # IOS + Android + is_mobile         [!code highlight]
-        └── style.css                  # safe-area-inset-top               [!code highlight]
+        ├── client.gleam               # IOS / Android body class          [!code highlight]
+        ├── client.css                 # safe-area-inset-top               [!code highlight]
+        └── app/
+            └── platform.gleam         # IOS + Android + is_mobile         [!code highlight]
 ```
 
 ## iOS Prerequisites
@@ -189,10 +188,10 @@ Three points worth highlighting before moving on:
 
 ## Detecting Mobile in Gleam
 
-`platform.gleam` already knew about macOS, Windows, and Linux. Two more variants cover the mobile platforms, and a matching `is_mobile` helper mirrors `is_desktop`:
+`app/platform.gleam` already knew about macOS, Windows, and Linux. Two more variants cover the mobile platforms, and a matching `is_mobile` helper mirrors `is_desktop`:
 
 ```gleam
-// client/src/platform.gleam
+// client/src/app/platform.gleam
 
 pub type Platform {
   Browser
@@ -235,31 +234,27 @@ pub fn is_mobile() -> Bool {           // [!code ++]
 
 Two things need attention on mobile: the status bar at the top shouldn't sit on top of the content, and the viewport should not let the user pinch-zoom the app into a desktop-like layout.
 
-`main.js` tags the body with a platform class the same way it does for desktop:
+`client.gleam` already tags `<body>` with `desktop` or `browser`. Adding a third arm for iOS and Android tags the body with `mobile`:
 
-```js
-// client/src/main.js
+```gleam
+// client/src/client.gleam
 
-import { main } from "./client.gleam";
-import { is_desktop, is_mobile } from "./platform.gleam";  // [!code highlight]
-import "./style.css";
+import app/platform.{Android, Browser, IOS, Linux, MacOS, Windows}     // [!code highlight]
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (is_mobile()) {                                       // [!code ++]
-    document.body.classList.add("mobile");                 // [!code ++]
-  } else if (is_desktop()) {                               // [!code ++]
-    document.body.classList.add("desktop");
-  } else {
-    document.body.classList.add("browser");
+pub fn main() {
+  case platform.platform() {
+    MacOS | Windows | Linux -> browser.add_body_class("desktop")
+    IOS | Android -> browser.add_body_class("mobile")                  // [!code ++]
+    Browser -> browser.add_body_class("browser")
   }
-  const dispatch = main({});
-});
+  ...
+}
 ```
 
-`style.css` extends the `user-select: none` rule to mobile and pads the app with the safe area inset so content clears the notch or status bar:
+`client.css` extends the `user-select: none` rule to mobile and pads the app with the safe area inset so content clears the notch or status bar:
 
 ```css
-/* client/src/style.css */
+/* client/src/client.css */
 
 body.mobile *,                                             /* [!code ++] */
 body.desktop * {
@@ -272,69 +267,16 @@ body.mobile > #app > * {                                   /* [!code ++] */
 }                                                          /* [!code ++] */
 ```
 
-For `env(safe-area-inset-top)` to resolve to a non-zero value, the viewport meta needs `viewport-fit=cover`. While here, `user-scalable=no` disables pinch-zoom so the app behaves like a native one:
+For `env(safe-area-inset-top)` to resolve to a non-zero value, the viewport meta needs `viewport-fit=cover`. While here, `user-scalable=no` disables pinch-zoom so the app behaves like a native one. `lustre_dev_tools` generates the HTML scaffold for us, so the meta tag goes in `gleam.toml` rather than a hand-written `index.html`:
 
-```html
-<!-- client/index.html -->
+```toml
+# client/gleam.toml
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
-/>
-```
-
-## Dev Server Configuration
-
-Tauri's mobile dev workflow needs two small changes to how Vite is started. The port must be fixed and known to Tauri, and the server has to optionally bind to a LAN-reachable host so the mobile runtime can connect:
-
-```js
-// client/vite.config.js
-
-import { defineConfig } from "vite";
-import gleam from "vite-gleam";
-import tailwindcss from "@tailwindcss/vite";
-
-const host = process.env.TAURI_DEV_HOST;                    // [!code ++]
-
-export default defineConfig({
-  plugins: [gleam(), tailwindcss()],
-
-  clearScreen: false,                                       // [!code ++]
-  server: {
-    port: 1420,                                             // [!code ++]
-    strictPort: true,                                       // [!code ++]
-    host: host || "127.0.0.1",                              // [!code ++]
-    hmr: host                                               // [!code ++]
-      ? {                                                   // [!code ++]
-          protocol: "ws",                                   // [!code ++]
-          host,                                             // [!code ++]
-          port: 1421,                                       // [!code ++]
-        }                                                   // [!code ++]
-      : undefined,                                          // [!code ++]
-    watch: {                                                // [!code ++]
-      ignored: ["**/src-tauri/**"],                         // [!code ++]
-    },                                                      // [!code ++]
-    proxy: {
-      "/api": "http://localhost:8000",
-    },
-  },
-});
-```
-
-`strictPort` prevents Vite from silently rolling over to another port — if 1420 is taken, the command fails instead of leaving Tauri pointing at the wrong URL. `TAURI_DEV_HOST` is set by the Tauri CLI when the dev server needs to be reachable over the network (for physical devices, in a later chapter); when unset, Vite binds to `127.0.0.1` as before. `clearScreen: false` keeps Tauri's build output visible when running alongside Vite.
-
-`tauri.conf.json` points `devUrl` at the same port:
-
-```json
-// client/src-tauri/tauri.conf.json
-
-{
-  "build": {
-    "devUrl": "http://localhost:5173",   // [!code --]
-    "devUrl": "http://localhost:1420",   // [!code ++]
-    ...
-  }
-}
+[tools.lustre.html]
+title = "Doable"
+meta = [                                                                                                              # [!code ++]
+  { name = "viewport", content = "width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" },       # [!code ++]
+]                                                                                                                     # [!code ++]
 ```
 
 ## Running on iOS
@@ -344,7 +286,7 @@ cd client
 bun tauri ios dev
 ```
 
-Tauri asks which simulator to use, compiles the Rust binary for the simulator target, starts the Vite dev server via `beforeDevCommand`, and launches the app in the iOS Simulator. API requests reach the Gleam server at `http://localhost:8000` directly — the simulator shares the host's network stack.
+Tauri asks which simulator to use, compiles the Rust binary for the simulator target, starts `lustre_dev_tools` via `beforeDevCommand`, and launches the app in the iOS Simulator. API requests reach the Gleam server at `http://localhost:8000` directly — the simulator shares the host's network stack.
 
 To target a specific simulator up front, pass its name:
 
@@ -367,7 +309,7 @@ cd client
 bun tauri android dev
 ```
 
-This compiles the Rust binary for the Android target, starts Vite, and launches the app on the running emulator.
+This compiles the Rust binary for the Android target, starts `lustre_dev_tools`, and launches the app on the running emulator.
 
 Unlike the iOS simulator, an Android emulator runs on its own virtual network — `localhost` inside the emulator means the emulator itself, not the host. API requests to `http://localhost:8000` fail until the host port is forwarded into the emulator:
 
@@ -389,4 +331,4 @@ bun tauri android dev --open
 
 The app now runs on an iOS simulator and an Android emulator — same Gleam code, two new platforms. Mobile has the same stale-data problem the View menu solved on desktop, though, and this time there's no menu bar and no Cmd+R to fall back on. Next up: pull-to-refresh, so a swipe from the top reloads the tasks.
 
-[^1]: See commit [8bcd127](https://github.com/lukwol/doable/commit/8bcd127) on GitHub
+[^1]: See commit [5eb389f](https://github.com/lukwol/doable/commit/5eb389f) on GitHub

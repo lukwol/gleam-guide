@@ -15,12 +15,12 @@ doable/
     │   └── src/
     │       └── lib.rs                  # menu construction + os plugin        [!code highlight]
     └── src/
-        ├── browser.gleam               # reload_page added                    [!code highlight]
-        ├── browser_ffi.js              # reload_page added                    [!code highlight]
-        ├── client.gleam                # Msg type + menu wiring               [!code highlight]
-        ├── main.js                     # platform body class                  [!code highlight]
-        ├── platform.gleam              # platform detection                   [!code ++]
-        ├── style.css                   # user-select CSS                      [!code highlight]
+        ├── browser.gleam               # reload_page + add_body_class         [!code highlight]
+        ├── browser_ffi.js              # reload_page + add_body_class         [!code highlight]
+        ├── client.gleam                # Msg type + menu wiring + body class  [!code highlight]
+        ├── client.css                  # user-select CSS                      [!code highlight]
+        ├── app/
+        │   └── platform.gleam          # platform detection                   [!code ++]
         └── tauri/
             ├── menu.gleam              # menu event subscription              [!code ++]
             ├── menu_ffi.js             # Tauri event listener                 [!code ++]
@@ -144,10 +144,10 @@ The `try/catch` matters: `@tauri-apps/plugin-os` throws when called outside a Ta
 pub fn platform_string() -> String
 ```
 
-`platform.gleam` maps the raw string to a typed value:
+`app/platform.gleam` maps the raw string to a typed value:
 
 ```gleam
-// client/src/platform.gleam
+// client/src/app/platform.gleam
 
 import tauri/os
 
@@ -177,21 +177,25 @@ pub fn is_desktop() -> Bool {
 
 ## Wiring the App
 
-Previously `client.gleam` forwarded all messages directly to the router. With the menu as a second source of messages, a top-level `Msg` type is needed:
+Previously `client.gleam` forwarded all messages directly to the router. With the menu as a second source of messages, a top-level `Msg` type is needed. While here, `main` also tags `<body>` with a platform class so the CSS rules below have something to target:
 
 ```gleam
 // client/src/client.gleam
 
+import app/platform.{Browser, Linux, MacOS, Windows}                    // [!code ++]
 import browser                                                          // [!code ++]
 import lustre
 import lustre/effect.{type Effect}
 import lustre/element.{type Element}
 import modem
-import platform                                                         // [!code ++]
 import router
 import tauri/menu                                                       // [!code ++]
 
 pub fn main() {
+  case platform.platform() {                                            // [!code ++]
+    MacOS | Windows | Linux -> browser.add_body_class("desktop")        // [!code ++]
+    Browser -> browser.add_body_class("browser")                        // [!code ++]
+  }                                                                     // [!code ++]
   let app = lustre.application(init, update, view)
   let assert Ok(_) = lustre.start(app, "#app", Nil)
 }
@@ -251,9 +255,9 @@ fn view(model: Model) -> Element(Msg) {                                         
 
 When Reload fires, `MenuSentEvent("reload")` arrives and calls `browser.reload_page()`. Unknown menu events are silently ignored — a safe default as the menu grows.
 
-## Reload FFI
+## Browser FFI
 
-`browser.reload_page` is a thin external that calls `window.location.reload()`:
+`browser.gleam` gains two thin externals: one to reload the page, and one to add a class to `<body>` so CSS can target the current platform.
 
 ```gleam
 // client/src/browser.gleam
@@ -264,8 +268,11 @@ pub fn window_location_origin() -> String
 @external(javascript, "./browser_ffi.js", "history_back")
 pub fn history_back() -> Nil
 
-@external(javascript, "./browser_ffi.js", "reload_page")    // [!code ++]
-pub fn reload_page() -> Nil                                 // [!code ++]
+@external(javascript, "./browser_ffi.js", "reload_page")           // [!code ++]
+pub fn reload_page() -> Nil                                        // [!code ++]
+
+@external(javascript, "./browser_ffi.js", "add_body_class")        // [!code ++]
+pub fn add_body_class(class_name: String) -> Nil                   // [!code ++]
 ```
 
 ```js
@@ -279,9 +286,13 @@ export function history_back() {
   window.history.back();
 }
 
-export function reload_page() {    // [!code ++]
-  window.location.reload();        // [!code ++]
-}                                  // [!code ++]
+export function reload_page() {               // [!code ++]
+  window.location.reload();                   // [!code ++]
+}                                             // [!code ++]
+
+export function add_body_class(class_name) {  // [!code ++]
+  document.body.classList.add(class_name);    // [!code ++]
+}                                             // [!code ++]
 ```
 
 ## Text Selection
@@ -289,38 +300,19 @@ export function reload_page() {    // [!code ++]
 Web pages select text on click-drag. One CSS rule scoped to `body.desktop` disables it across the entire app:
 
 ```css
-/* client/src/style.css */
+/* client/src/client.css */
 
 @import "tailwindcss";
 @plugin "daisyui";
 @plugin "@iconify/tailwind4";
 
-body.desktop * {             /* [!code ++] */
-  -webkit-user-select: none; /* [!code ++] */
-  user-select: none;         /* [!code ++] */
-}                            /* [!code ++] */
+body.desktop * {              /* [!code ++] */
+  -webkit-user-select: none;  /* [!code ++] */
+  user-select: none;          /* [!code ++] */
+}                             /* [!code ++] */
 ```
 
-`main.js` adds the class at startup using `is_desktop()`:
-
-```js
-// client/src/main.js
-
-import { main } from "./client.gleam";
-import { is_desktop } from "./platform.gleam";   // [!code ++]
-import "./style.css";
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (is_desktop()) {                            // [!code ++]
-    document.body.classList.add("desktop");      // [!code ++]
-  } else {                                       // [!code ++]
-    document.body.classList.add("browser");      // [!code ++]
-  }                                              // [!code ++]
-  const dispatch = main({});                     
-});                                              
-```
-
-Scoping the rule to `body.desktop` keeps the browser experience unchanged — text stays selectable when running in a regular browser tab.
+The matching `<body>` class is added in `client.gleam` at startup — see the snippet above. Scoping the rule to `body.desktop` keeps the browser experience unchanged: text stays selectable when running in a regular browser tab.
 
 ## Running
 
@@ -335,4 +327,4 @@ A View menu appears in the menu bar. Selecting View → Reload — or pressing C
 
 The desktop experience is starting to feel native: a View menu, a Cmd+R shortcut, and text that no longer selects on drag. There's one more thing to sort out before production: `bun tauri build` works locally, but CORS blocks every API request the moment the app runs outside the dev server. Next, we'll route HTTP through Tauri's Rust backend to get around it.
 
-[^1]: See commit [e62f84f](https://github.com/lukwol/doable/commit/e62f84f) on GitHub
+[^1]: See commit [63e810b](https://github.com/lukwol/doable/commit/63e810b) on GitHub

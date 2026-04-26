@@ -17,33 +17,32 @@ Doable lets users create, view, update, and delete tasks. Simple on the surface,
   <figcaption>Doable — the finished task manager running on iOS</figcaption>
 </figure>
 
-
 ## Architecture
 
 ### Development
 
-The database and Gleam API server run in Docker via `docker compose up`. The API server can also be run locally when actively developing it. The database is a single PostgreSQL container with two databases inside: one for development and one for integration tests. All three clients — browser, desktop, and mobile — share a single [Vite](https://vite.dev) dev server for hot reload, which proxies their API requests to the Gleam API server (in Docker) or a local instance, avoiding CORS issues. Integration tests simulate requests directly against the router, connected to the dedicated test database.
+The database and Gleam API server run in Docker via `docker compose up`. The API server can also be run locally when actively developing it. The database is a single PostgreSQL container with two databases inside: one for development and one for integration tests. All three clients — browser, desktop, and mobile — share a single [`lustre_dev_tools`](https://hexdocs.pm/lustre_dev_tools/) dev server for hot reload, which proxies their API requests to the Gleam API server (in Docker) or a local instance, avoiding CORS issues. Integration tests simulate requests directly against the router, connected to the dedicated test database.
 
 ```
-    ┌────────────────Docker────────────────┐                         
-    │┌─────────────PostgreSQL─────────────┐│                         
-    ││┌───────────────┐   ┌──────────────┐││                         
-    │││ Test Database │   │ Dev Database │││                         
-    ││└──────▲────────┘   └───────▲───▲──┘││                         
-    │└───────┼────────────────────┼───┼───┘│                         
-    │        │                    │   └────┼──────────┐              
-    │        │         ┌──────────┴───────┐│ ┌────────┴─────────┐    
-    │        │         │ Gleam API Server ││ │ Local API Server │    
-    │        │         └─────────────▲────┘│ └───▲──────────────┘    
-    └────────┼───────────────────────┼─────┘     │                   
-             │                       │           │                   
-             │                    ┌──┴───────────┴──┐                
-             │                    │ Vite Dev Server │                
-             │                    └────▲────▲────▲──┘                
-             │                         │    │    │                   
-             │                ┌────────┘    │    └───────────┐       
-             │                │             │                │       
-  ┌──────────┴────────┐  ┌────┴────┐  ┌─────┴───────┐  ┌─────┴──────┐
+    ┌────────────────Docker────────────────┐
+    │┌─────────────PostgreSQL─────────────┐│
+    ││┌───────────────┐   ┌──────────────┐││
+    │││ Test Database │   │ Dev Database │││
+    ││└──────▲────────┘   └───────▲───▲──┘││
+    │└───────┼────────────────────┼───┼───┘│
+    │        │                    │   └────┼──────────┐
+    │        │         ┌──────────┴───────┐│ ┌────────┴─────────┐
+    │        │         │ Gleam API Server ││ │ Local API Server │
+    │        │         └─────────────▲────┘│ └───▲──────────────┘
+    └────────┼───────────────────────┼─────┘     │
+             │                       │           │
+             │                  ┌────┴───────────┴───┐
+             │                  │ Lustre Dev Server  │
+             │                  └──▲──────▲───────▲──┘
+             │                     │      │       │
+             │                ┌────┘      │       └─────────┐
+             │                │           │                 │
+  ┌──────────┴────────┐  ┌────┴────┐  ┌───┴─────────┐  ┌────┴───────┐
   │ Integration Tests │  │ Browser │  │ Desktop App │  │ Mobile App │
   └───────────────────┘  └─────────┘  └─────────────┘  └────────────┘
 ```
@@ -66,12 +65,12 @@ In production, everything runs inside Docker. [Caddy](https://caddyserver.com) i
                 ││└──▲─────────▲───▲─┘  └──────────▲─────┘││
                 │└───┼─────────┼───┼───────────────┼──────┘│
                 └────┼─────────┼───┼───────────────┼───────┘
-                     │         │   │               │        
-                     │         │   └────────────┐  │        
-                     │         │                │  │        
-            ┌────────┴────┐  ┌─┴──────────┐  ┌──┴──┴───┐    
-            │ Desktop App │  │ Mobile App │  │ Browser │    
-            └─────────────┘  └────────────┘  └─────────┘    
+                     │         │   │               │
+                     │         │   └────────────┐  │
+                     │         │                │  │
+            ┌────────┴────┐  ┌─┴──────────┐  ┌──┴──┴───┐
+            │ Desktop App │  │ Mobile App │  │ Browser │
+            └─────────────┘  └────────────┘  └─────────┘
 ```
 
 ### Backend
@@ -133,7 +132,7 @@ Before starting, make sure you have the following installed:
 - [Android Studio](https://developer.android.com/studio) — required for Android builds; follow [Tauri's Android setup guide](https://tauri.app/start/prerequisites/#android) to configure the NDK and environment variables
 
 ::: tip Web-only path
-If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–8 of the Client track. Add the extra prerequisites when you reach [Tauri Setup](/client/10-tauri-setup).
+If you only want to build the server and the browser app, you can skip Rust, Xcode, Cocoapods, and Android Studio. You'll be able to follow the entire Server track and chapters 1–7 of the Client track. Add the extra prerequisites when you reach [Tauri Setup](/client/09-tauri-setup).
 :::
 
 ## How to Use This Guide

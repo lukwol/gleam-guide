@@ -2,13 +2,14 @@
 
 With the server complete and tested, we'll now add it to Docker Compose so the full backend — database, migrations, and server — starts with a single `docker compose up`. The key piece is a multi-stage Dockerfile[^1] that compiles the Gleam project into a minimal Erlang image[^2].
 
-Two files change:
+Three files change, two are new:
 
 ```sh
 doable/
-├── compose.yml          # server service added        [!code highlight]
+├── .dockerignore        # excludes git + build artefacts  [!code ++]
+├── compose.yml          # server service added            [!code highlight]
 └── server/
-    └── Dockerfile       # multi-stage Erlang build    [!code ++]
+    └── Dockerfile       # multi-stage Erlang build        [!code ++]
 ```
 
 ## Dockerfile
@@ -17,7 +18,7 @@ doable/
 # server/Dockerfile
 
 ARG ERLANG_VERSION=27.3.4.10
-ARG GLEAM_VERSION=v1.15.4
+ARG GLEAM_VERSION=v1.16.0
 
 FROM ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam   # stage 1: compiler
 
@@ -90,6 +91,23 @@ CMD ["run"]
 ```
 
 The final image is a fresh Alpine with just the Erlang runtime — no Gleam compiler, no build tools, no source code. Only the compiled shipment is copied in from the build stage. `CMD ["run"]` is the argument passed to `entrypoint.sh`, which starts the OTP application.
+
+## Dockerignore
+
+Whatever lives in the build context is shipped to the Docker daemon on every build. A small `.dockerignore` keeps `.git/` and Gleam's local build artefacts out of that context:
+
+```sh
+# .dockerignore
+
+# Git
+.git
+
+# Gleam
+**/build
+erl_crash.dump
+```
+
+Skipping these speeds builds up a little and avoids accidentally pulling host-specific compiled output into an image.
 
 ## Docker Compose
 
@@ -226,4 +244,4 @@ The server is containerised and the full backend boots with one command. Now the
 
 [^1]: Based on the awesome [Gleam deployment guide](https://gleam.run/deployment/linux-server/)
 
-[^2]: See commit [dddc9ba](https://github.com/lukwol/doable/commit/dddc9ba) on GitHub
+[^2]: See commit [31f7aa0](https://github.com/lukwol/doable/commit/31f7aa0) on GitHub

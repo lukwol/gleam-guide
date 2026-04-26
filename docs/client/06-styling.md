@@ -2,87 +2,113 @@
 
 The app is fully functional — now let's make it look good too. [Tailwind CSS](https://tailwindcss.com) provides low-level utility classes that compose into layouts, and [DaisyUI](https://daisyui.com) layers a set of semantic component classes on top — `btn`, `card`, `alert` — so you get good-looking UI without writing a single line of custom CSS. The [Heroicons](https://heroicons.com) icon set rounds it out.
 
-Eight files change, one is new[^1]:
+`lustre_dev_tools` knows how to drive the Tailwind CLI directly, so a tiny `package.json` for the npm-distributed plugins and a few `gleam.toml` entries are all the wiring needed. Nine files change, three are new[^1]:
 
 ```sh
 doable/
 └── client/
-    ├── package.json             # tailwindcss, daisyui, iconify added    [!code highlight]
-    ├── vite.config.js           # @tailwindcss/vite plugin added         [!code highlight]
-    ├── src/
-    │   ├── style.css            # CSS entry point                        [!code ++]
-    │   ├── main.js              # imports style.css                      [!code highlight]
-    │   ├── component/
-    │   │   └── task_form.gleam  # DaisyUI form controls                  [!code highlight]
-    │   └── page/
-    │       ├── tasks.gleam      # styled task list                       [!code highlight]
-    │       ├── new_task.gleam   # styled new task form                   [!code highlight]
-    │       └── edit_task.gleam  # styled edit task form                  [!code highlight]
-    └── ...
+    ├── .gitignore                  # /node_modules added                    [!code highlight]
+    ├── gleam.toml                  # lustre.bin: bun + tailwind             [!code highlight]
+    ├── package.json                # tailwindcss, daisyui, iconify          [!code ++]
+    └── src/
+        ├── client.css              # CSS entry point                        [!code ++]
+        ├── component/
+        │   └── task_form.gleam     # DaisyUI form controls                  [!code highlight]
+        └── page/
+            ├── tasks.gleam         # styled task list                       [!code highlight]
+            ├── new_task.gleam      # styled new task form                   [!code highlight]
+            └── edit_task.gleam     # styled edit task form                  [!code highlight]
+```
+
+## Install Bun
+
+[Bun](https://bun.sh) is a fast JavaScript runtime and package manager — we use it here only to install Tailwind, DaisyUI, and the Iconify packages from the npm registry. Any npm-compatible tool (`npm`, `pnpm`, `yarn`) works just as well; adapt the `bun` commands if you prefer one of those.
+
+::: code-group
+
+```sh [macOS & Linux]
+curl -fsSL https://bun.sh/install | bash
+```
+
+```sh [Windows (PowerShell)]
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+:::
+
+Restart the shell, then verify with:
+
+```sh
+bun --version
 ```
 
 ## Install Dependencies
 
-Three packages join the project: Tailwind itself, its official Vite plugin, and DaisyUI. The Heroicons icon set is pulled in through Iconify's Tailwind plugin, which turns icon names directly into CSS classes.
+Four packages join the project: the Tailwind CLI, DaisyUI, and Iconify's Tailwind plugin together with the Heroicons icon data.
 
 ```sh
 cd client
-bun add --dev @tailwindcss/vite tailwindcss @iconify/tailwind4 @iconify-json/heroicons
-bun add daisyui
+bun add --dev @tailwindcss/cli @iconify/tailwind4 @iconify-json/heroicons daisyui
 ```
 
-`package.json` gains the new entries:
+`bun` creates a fresh `package.json` and a `bun.lock`. The `package.json` should look like this:
 
 ```json
 // client/package.json
 
 {
+  "private": true,
   "devDependencies": {
-    "@iconify-json/heroicons": "^1.2.3",    // [!code ++]
-    "@iconify/tailwind4": "^1.2.3",          // [!code ++]
-    "@tailwindcss/vite": "^4.2.2",           // [!code ++]
-    "tailwindcss": "^4.2.2",                 // [!code ++]
-    "vite": "^8.0.8",
-    "vite-gleam": "^1.7.1"
-  },
-  "dependencies": {
-    "daisyui": "^5.5.19"                     // [!code ++]
+    "@iconify-json/heroicons": "^1.2.3",
+    "@iconify/tailwind4": "^1.2.3",
+    "@tailwindcss/cli": "^4.2.4",
+    "daisyui": "^5.5.19"
   }
 }
 ```
 
-- **tailwindcss** — the core utility class engine.
-- **@tailwindcss/vite** — the official Vite plugin that integrates Tailwind into the build pipeline.
+- **@tailwindcss/cli** — the standalone Tailwind compiler, which `lustre_dev_tools` invokes during `start` and `build`.
 - **daisyui** — semantic component classes (`btn`, `card`, `alert`, `checkbox`, …) that map to Tailwind utilities under the hood.
 - **@iconify/tailwind4** — a Tailwind plugin that generates utility classes for icon sets, e.g. `icon-[heroicons--plus]`.
 - **@iconify-json/heroicons** — the Heroicons icon data consumed by the Iconify plugin.
 
-Then register the plugin in `vite.config.js`:
+`bun add` also drops a `node_modules/` directory next to `package.json`. Add it to `.gitignore` so it stays out of version control:
 
-```js
-// client/vite.config.js
+```sh
+# Gleam
+*.beam
+*.ez
+/build
+erl_crash.dump
 
-import { defineConfig } from "vite";
-import gleam from "vite-gleam";
-import tailwindcss from "@tailwindcss/vite";  // [!code ++]
+#Added automatically by Lustre Dev Tools
+/.lustre
+/dist
 
-export default defineConfig({
-  plugins: [gleam(), tailwindcss()],           // [!code highlight]
-
-  server: {
-    proxy: {
-      "/api": "http://localhost:8000",
-    },
-  },
-});
+# Bun           [!code ++]
+/node_modules  [!code ++]
 ```
+
+## Wiring Tailwind into Lustre Dev Tools
+
+`lustre_dev_tools` can run external binaries as part of its dev and build pipelines. Two new `gleam.toml` entries point it at `bun` and at the Tailwind CLI binary that `bun add` placed inside `node_modules`:
+
+```toml
+# client/gleam.toml
+
+[tools.lustre.bin]                                     # [!code ++]
+bun = "system"                                         # [!code ++]
+tailwindcss = "./node_modules/.bin/tailwindcss"        # [!code ++]
+```
+
+`bun = "system"` tells `lustre_dev_tools` to use whichever `bun` is on `PATH`. Pointing `tailwindcss` at the project-local binary keeps the CLI version pinned by `bun.lock` rather than tied to whatever happens to be globally installed.
 
 ## CSS Entry Point
 
-Tailwind v4 is configured entirely through CSS — no `tailwind.config.js`. Create `src/style.css` with three lines:
+Tailwind v4 is configured entirely through CSS — no `tailwind.config.js`. Create `src/client.css` with three lines:
 
 ```css
-/* client/src/style.css */
+/* client/src/client.css */
 
 @import "tailwindcss";
 @plugin "daisyui";
@@ -91,18 +117,7 @@ Tailwind v4 is configured entirely through CSS — no `tailwind.config.js`. Crea
 
 `@import "tailwindcss"` activates the full utility class engine. The two `@plugin` lines load DaisyUI and Iconify as CSS-layer plugins. That's the entire configuration.
 
-Import the stylesheet in `main.js` so Vite picks it up:
-
-```js
-// client/src/main.js
-
-import { main } from "./client.gleam";
-import "./style.css";               // [!code ++]
-
-document.addEventListener("DOMContentLoaded", () => {
-  const dispatch = main({});
-});
-```
+`lustre_dev_tools` picks `src/client.css` up automatically (matching the project name), runs it through the Tailwind CLI, and links the result into the generated HTML — no manual import in any `.js` file is needed.
 
 ## DaisyUI Approach
 
@@ -515,13 +530,13 @@ The Delete button is `btn btn-error` — DaisyUI's red variant — making it vis
 
 ```sh
 cd client
-bun run dev
+gleam run -m lustre/dev start
 ```
 
-Open `http://localhost:5173`. The app now has a proper layout: a task list rendered as cards with completion state, loading spinners, error alerts, and form pages with consistent styling throughout.
+`lustre_dev_tools` shells out to the Tailwind CLI to compile `client.css`, watches both the Gleam source and the stylesheet for changes, and serves the result at `http://localhost:1234`. The app now has a proper layout: a task list rendered as cards with completion state, loading spinners, error alerts, and form pages with consistent styling throughout.
 
 ## What's Next
 
 The web app is feature-complete, tested, and styled. The next question is: how do other people use it? Next, we'll containerise the client, hand it to [Caddy](https://caddyserver.com), and deploy the full stack — database, API, and frontend — to a real server.
 
-[^1]: See commit [0e161c6](https://github.com/lukwol/doable/commit/0e161c6) on GitHub
+[^1]: See commit [d315770](https://github.com/lukwol/doable/commit/d315770) on GitHub

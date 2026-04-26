@@ -209,4 +209,4 @@ Open `http://localhost:1234` in a browser, type a name, and click the button. Th
 
 The greeting app proves Lustre's MVU loop works — pressed a button, saw the state change, saw the view re-render. Next, we'll throw away the greeting and build the real tasks screen: an HTTP client, an `ApiError` type, and a list view backed by the server we just shipped.
 
-[^1]: See commit [0133384](https://github.com/lukwol/doable/commit/0133384) on GitHub
+[^1]: See commit [30a1a18](https://github.com/lukwol/doable/commit/30a1a18) on GitHub

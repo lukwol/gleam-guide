@@ -2,14 +2,16 @@
 
 The web app is feature-complete. In this chapter we'll ship it — building Docker images, pushing them to a registry, and running the full stack on a real server with a single command.
 
-Three files are added[^1]:
+Five files change, three are new[^1]:
 
 ```sh
 doable/
-├── Caddyfile            # reverse proxy configuration    [!code ++]
-├── compose.prod.yml     # production compose stack       [!code ++]
+├── .dockerignore        # client build artefacts excluded   [!code highlight]
+├── Caddyfile            # reverse proxy configuration       [!code ++]
+├── compose.prod.yml     # production compose stack          [!code ++]
 └── client/
-    └── Dockerfile       # client multi-stage build       [!code ++]
+    ├── gleam.toml       # [tools.lustre.build] minify       [!code highlight]
+    └── Dockerfile       # client multi-stage build          [!code ++]
 ```
 
 ::: info Prerequisites
@@ -23,44 +25,89 @@ mkdir -p ~/doable
 That's the only server-side setup required.
 :::
 
+## Minified Builds
+
+For production we want `lustre_dev_tools` to minify the JavaScript and CSS it emits. One line in `gleam.toml` enables it:
+
+```toml
+# client/gleam.toml
+
+[tools.lustre.build]   # [!code ++]
+minify = true          # [!code ++]
+```
+
+This applies to `gleam run -m lustre/dev build` — the dev server (`start`) is unaffected.
+
 ## Client Dockerfile
 
-The development workflow ran the client entirely from the Vite dev server — no build, no static files. Production needs the opposite: a compiled bundle served by a proper HTTP server. Caddy is an excellent fit: single binary, automatic config reload, and a clean DSL for reverse-proxying.
+The development workflow ran the client entirely from the lustre_dev_tools dev server — no build, no static files. Production needs the opposite: a compiled bundle served by a proper HTTP server. Caddy is an excellent fit: single binary, automatic config reload, and a clean DSL for reverse-proxying.
 
-The build uses two stages — one for compiling the Gleam/Vite frontend, one for the Caddy image:
+The build pulls in three things — the Gleam compiler, Bun (for installing the Tailwind/DaisyUI/Iconify packages), and an Erlang base image to run `gleam` itself:
 
 ```dockerfile
 # client/Dockerfile
 
-ARG GLEAM_VERSION=v1.15.4
+ARG ERLANG_VERSION=27.3.4.10
+ARG GLEAM_VERSION=v1.16.0
 
 FROM --platform=${BUILDPLATFORM} ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
+FROM --platform=${BUILDPLATFORM} oven/bun:alpine AS bun
 
-FROM --platform=${BUILDPLATFORM} oven/bun:alpine AS build
+FROM --platform=${BUILDPLATFORM} erlang:${ERLANG_VERSION}-alpine AS build
+RUN apk add --no-cache nodejs
 COPY --from=gleam /bin/gleam /bin/gleam
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
+
 WORKDIR /doable/client
+
 COPY shared/gleam.toml /doable/shared/gleam.toml
 COPY client/gleam.toml client/manifest.toml ./
 RUN --mount=type=cache,target=/doable/client/build \
     gleam deps download
-COPY client/package.json client/bun.lock* ./
+
+COPY client/package.json client/bun.lock ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
+
 COPY shared/ /doable/shared/
 COPY client/ ./
 RUN --mount=type=cache,target=/doable/client/build \
-    bun run build
+    gleam run -m lustre/dev build
 
 FROM caddy:alpine
 COPY --from=build /doable/client/dist /srv
 COPY Caddyfile /etc/caddy/Caddyfile
 ```
 
-The pattern mirrors the server Dockerfile: copy manifests first, download dependencies, copy source, build. The deps layer only rebuilds when `gleam.toml`, `manifest.toml`, or `package.json` change — source edits don't trigger a re-download. `bun run build` calls Vite's production build, which compiles the Gleam code and emits the bundle to `dist/`.
+The pattern mirrors the server Dockerfile: copy manifests first, download dependencies, copy source, build. The deps layer only rebuilds when `gleam.toml`, `manifest.toml`, or `package.json` change — source edits don't trigger a re-download. `gleam run -m lustre/dev build` compiles the Gleam code, runs the Tailwind CLI over `client.css`, and emits the bundled output to `dist/`.
+
+`apk add --no-cache nodejs` brings in Node — the Tailwind CLI binary that `bun install` placed in `node_modules/.bin` is a Node script and won't run without it.
 
 The final stage is a plain `caddy:alpine` image. Only the compiled `dist/` directory and the Caddyfile are copied in — no Node, no Bun, no Gleam toolchain. The result is a lean image that's just Caddy and static files.
 
-`--platform=${BUILDPLATFORM}` tells Docker to run the build stages on the host machine's native architecture, even when targeting a different platform for deployment. The Gleam compilation and Bun build run natively — the final Caddy stage just copies the resulting files, so there's nothing to cross-compile.
+`--platform=${BUILDPLATFORM}` tells Docker to run the build stages on the host machine's native architecture, even when targeting a different platform for deployment. The Gleam compilation runs natively — the final Caddy stage just copies the resulting files, so there's nothing to cross-compile.
+
+## Dockerignore
+
+The earlier server chapter introduced a small `.dockerignore`. Now that the client also goes into Docker, extend it so build artefacts and `node_modules` don't get sent up with every build:
+
+```sh
+# .dockerignore
+
+# Git
+.git
+
+# Gleam
+**/build
+erl_crash.dump
+
+# Lustre Dev Tools    [!code ++]
+client/.lustre        [!code ++]
+client/dist           [!code ++]
+                      [!code ++]
+# Bun                 [!code ++]
+client/node_modules   [!code ++]
+```
 
 ## Caddyfile
 
@@ -320,6 +367,6 @@ If you're using versioned image tags (recommended), update the tag in `compose.y
 
 ## What's Next
 
-Doable is live on the internet. The web track ends here — take a moment to read the [Recap](/client/09-web-app-recap) for a summary of everything you've built, then decide whether to call it done or keep going into the desktop and mobile bonus chapters.
+Doable is live on the internet. The web track ends here — take a moment to read the [Recap](/client/08-web-app-recap) for a summary of everything you've built, then decide whether to call it done or keep going into the desktop and mobile bonus chapters.
 
-[^1]: See commit [99ac11a](https://github.com/lukwol/doable/commit/99ac11a) on GitHub
+[^1]: See commit [9875908](https://github.com/lukwol/doable/commit/9875908) on GitHub

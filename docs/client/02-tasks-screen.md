@@ -344,12 +344,15 @@ export function window_location_origin() {
 
 `window.location.origin` returns `http://localhost:1234` in dev — but the API runs on port 8000. Hitting it directly would be a cross-origin request, which the browser blocks by default.
 
-`lustre_dev_tools` has a built-in dev proxy for exactly this situation. A two-line addition to `gleam.toml` tells it to forward `/api/*` requests to the Gleam server:
+`lustre_dev_tools` has a built-in dev proxy for exactly this situation. A small addition to `gleam.toml` tells it to forward `/api/*` requests to the Gleam server, and while we're here we set the page title too:
 
 ```toml
 # client/gleam.toml
 
-[tools.lustre.dev]                                     # [!code ++]
+[tools.lustre.html]                                          # [!code ++]
+title = "Doable"                                             # [!code ++]
+
+[tools.lustre.dev]                                           # [!code ++]
 proxy = { from = "/api", to = "http://localhost:8000/api" }  # [!code ++]
 ```
 
@@ -363,4 +366,4 @@ The browser sends the request to the dev server (same origin — no CORS), the d
 
 Tasks load from the API and render as a list — but the app is still one page crammed into `client.gleam`. Next, we'll carve it into modules: a `Route` type, a router, per-page files, and a task service so adding new screens doesn't mean bloating one file.
 
-[^1]: See commit [32972c7](https://github.com/lukwol/doable/commit/32972c7) on GitHub
+[^1]: See commit [e604a08](https://github.com/lukwol/doable/commit/e604a08) on GitHub

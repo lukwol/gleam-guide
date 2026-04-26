@@ -413,4 +413,4 @@ The gesture and visual indicator work the same way. Haptic feedback varies by de
 
 Pull-to-refresh works in dev, but the API URL is still hardcoded to `localhost:8000` — which is wrong both for production builds and for a real phone on your home network. In the final chapter we'll resolve the base URL by platform and build mode, then take the app out of the simulator and onto real devices and release builds.
 
-[^1]: See commit [ee07523](https://github.com/lukwol/doable/commit/ee07523) on GitHub
+[^1]: See commit [e38f729](https://github.com/lukwol/doable/commit/e38f729) on GitHub

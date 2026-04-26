@@ -630,6 +630,6 @@ fn view_task(task: Task) -> Element(Msg) {
 
 ## What's Next
 
-The CRUD loop is complete — list, create, edit, delete all work. The UI still needs styling, though, and before we get to Tauri later in the guide we'll want a JS build tool to hook into its ecosystem. Next up: bringing [Vite](https://vite.dev) into the project alongside [vite-gleam](https://github.com/nicktobey/vite-gleam) before fully transitioning to Tauri.
+The CRUD loop is complete — list, create, edit, delete all work. The app is fully functional, just unstyled. Next, we'll plug in [Tailwind CSS](https://tailwindcss.com), [DaisyUI](https://daisyui.com), and [Heroicons](https://heroicons.com) to give it a proper look and feel.
 
-[^1]: See commit [52f31d1](https://github.com/lukwol/doable/commit/52f31d1) on GitHub
+[^1]: See commit [189973f](https://github.com/lukwol/doable/commit/189973f) on GitHub

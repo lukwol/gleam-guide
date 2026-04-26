@@ -346,4 +346,4 @@ The link uses `route.to_path` rather than a hardcoded string, so if the route's 
 
 Users can create tasks, but not edit or delete them yet — and the form fields would have to be duplicated if we added an edit page naïvely. Next, we'll extract them into a shared component, then build editing and deletion on top.
 
-[^1]: See commit [c25c476](https://github.com/lukwol/doable/commit/c25c476) on GitHub
+[^1]: See commit [d41f914](https://github.com/lukwol/doable/commit/d41f914) on GitHub

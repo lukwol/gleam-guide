@@ -1,8 +1,8 @@
 # Tauri Setup
 
-The app runs in the browser — but it doesn't have to. [Tauri](https://tauri.app) is an incredible framework for building native desktop apps from web frontends — it wraps the Vite frontend in a native desktop window using the operating system's built-in webview. The Gleam code, HTML, and CSS don't change at all; Tauri simply provides the frame around them and a Rust backend that can talk to the OS.
+The app runs in the browser — but it doesn't have to. [Tauri](https://tauri.app) is an incredible framework for building native desktop apps from web frontends — it wraps the Lustre frontend in a native desktop window using the operating system's built-in webview. The Gleam code, HTML, and CSS don't change at all; Tauri simply provides the frame around them and a Rust backend that can talk to the OS.
 
-Because we already have a Vite project, the [manual setup](https://tauri.app/start/create-project/) path is the right one — it adds Tauri on top of what's already there rather than scaffolding everything from scratch. The approach is inspired by this [excellent write-up](https://www.wezm.net/v2/posts/2024/gleam-tauri/) by Wesley Moore.
+Because we already have a Lustre project served by `lustre_dev_tools`, the [manual setup](https://tauri.app/start/create-project/) path is the right one — it adds Tauri on top of what's already there rather than scaffolding everything from scratch. The approach is inspired by this [excellent write-up](https://www.wezm.net/v2/posts/2024/gleam-tauri/) by Wesley Moore.
 
 Setting up Tauri adds a whole `src-tauri/` directory alongside the existing client code[^1]:
 
@@ -58,16 +58,16 @@ bun tauri init
 
 The CLI asks six questions. Answer them like this:
 
-| Question                                                            | Answer                  |
-| ------------------------------------------------------------------- | ----------------------- |
-| What is your app name?                                              | `Doable`                |
-| What should the window title be?                                    | `Doable`                |
-| Where are your web assets, relative to `src-tauri/tauri.conf.json`? | `../dist`               |
-| What is the url of your dev server?                                 | `http://localhost:5173` |
-| What is your frontend dev command?                                  | `bun run dev`           |
-| What is your frontend build command?                                | `bun run build`         |
+| Question                                                            | Answer                            |
+| ------------------------------------------------------------------- | --------------------------------- |
+| What is your app name?                                              | `Doable`                          |
+| What should the window title be?                                    | `Doable`                          |
+| Where are your web assets, relative to `src-tauri/tauri.conf.json`? | `../dist`                         |
+| What is the url of your dev server?                                 | `http://localhost:1234`           |
+| What is your frontend dev command?                                  | `gleam run -m lustre/dev start`   |
+| What is your frontend build command?                                | `gleam run -m lustre/dev build`   |
 
-The web assets path points to `../dist` — Vite's output directory when building for production. In development, Tauri loads the page from the dev URL instead, so `../dist` is only used during `bun tauri build`.
+The web assets path points to `../dist` — `lustre_dev_tools`'s output directory when building for production. In development, Tauri loads the page from the dev URL instead, so `../dist` is only used during `bun tauri build`.
 
 `@tauri-apps/cli` lands in `package.json` as a dev dependency:
 
@@ -75,16 +75,12 @@ The web assets path points to `../dist` — Vite's output directory when buildin
 // client/package.json
 
 {
+  "private": true,
   "devDependencies": {
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify/tailwind4": "^1.2.3",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/cli": "^4.2.4",
     "@tauri-apps/cli": "^2.10.1", // [!code ++]
-    "tailwindcss": "^4.2.2",
-    "vite": "^8.0.8",
-    "vite-gleam": "^1.7.1"
-  },
-  "dependencies": {
     "daisyui": "^5.5.19"
   }
 }
@@ -104,9 +100,9 @@ The web assets path points to `../dist` — Vite's output directory when buildin
   "identifier": "com.tauri.dev",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "bun run dev",
-    "beforeBuildCommand": "bun run build"
+    "devUrl": "http://localhost:1234",
+    "beforeDevCommand": "gleam run -m lustre/dev start",
+    "beforeBuildCommand": "gleam run -m lustre/dev build"
   },
   "app": {
     "windows": [
@@ -138,8 +134,8 @@ The web assets path points to `../dist` — Vite's output directory when buildin
 
 Quick tour of the fields that matter:
 
-- `beforeDevCommand` and `beforeBuildCommand` tell Tauri to start Vite before opening the window. Running `bun tauri dev` is enough — no need to start Vite separately.
-- `devUrl` points at the Vite dev server. In dev mode, Tauri loads the page from this URL and waits for it to be ready before showing the window.
+- `beforeDevCommand` and `beforeBuildCommand` tell Tauri to start `lustre_dev_tools` before opening the window. Running `bun tauri dev` is enough — no need to start the dev server separately.
+- `devUrl` points at the `lustre_dev_tools` dev server. In dev mode, Tauri loads the page from this URL and waits for it to be ready before showing the window.
 - `csp` is `null` for now. Content Security Policy matters for production, but we'll leave it open while developing.
 - The `icon` list covers the formats each target platform expects. The initializer drops placeholder icons into `icons/` so builds work out of the box.
 
@@ -252,7 +248,7 @@ cd client
 bun tauri dev
 ```
 
-Tauri compiles the Rust binary, starts the Vite dev server via `beforeDevCommand`, then opens the native window pointing at `http://localhost:5173`. Hot reloading works out of the box: editing a `.gleam` file triggers a Vite HMR update and the window refreshes.
+Tauri compiles the Rust binary, starts `lustre_dev_tools` via `beforeDevCommand`, then opens the native window pointing at `http://localhost:1234`. Hot reloading works out of the box: editing a `.gleam` file triggers a `lustre_dev_tools` reload and the window refreshes.
 
 ::: tip First build is slow — that's normal
 The first `bun tauri dev` compiles hundreds of Rust crates from scratch, so expect it to sit for a few minutes. Every run after that is much faster thanks to incremental compilation.
@@ -264,4 +260,4 @@ Tauri only wraps the frontend, so the Gleam server still needs to be running for
 
 A browser has a refresh button; the desktop app doesn't. If the task list goes stale, the user is stuck. We'll fix that next by adding a View menu with a Reload action.
 
-[^1]: See commit [9f49e92](https://github.com/lukwol/doable/commit/9f49e92) on GitHub
+[^1]: See commit [d06a921](https://github.com/lukwol/doable/commit/d06a921) on GitHub
