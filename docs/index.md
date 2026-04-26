@@ -2,7 +2,7 @@
 
 ## What We're Building
 
-Welcome to The Gleam Guide. We'll build **Doable**[^1] — a full-stack task manager — from scratch: a JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and desktop and mobile apps for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All four share types and validation logic written once in [Gleam](https://gleam.run).
+Welcome to the Full-stack Gleam guide. We'll build **Doable**[^1] — a full-stack task manager — from scratch: a JSON HTTP API compiled to [Erlang](https://www.erlang.org), a browser frontend compiled to [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript), and desktop and mobile apps for [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) using [Tauri](https://tauri.app). All four share types and validation logic written once in [Gleam](https://gleam.run).
 
 Doable lets users create, view, update, and delete tasks. Simple on the surface, but it gives us enough surface area to cover the full stack: database persistence, HTTP routing, frontend state management, and cross-platform packaging. The finished product consists of:
 

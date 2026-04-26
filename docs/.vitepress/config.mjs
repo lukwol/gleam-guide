@@ -11,7 +11,7 @@ export default {
       figure img { border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); }
     `],
   ],
-  title: "Gleam Guide",
+  title: "Full-stack Gleam",
   description: "A practical guide to building full-stack apps with Gleam",
   markdown: {
     theme: {
