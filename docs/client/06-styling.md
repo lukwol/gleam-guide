@@ -26,17 +26,25 @@ doable/
 
 ::: code-group
 
-```sh [macOS & Linux]
+```sh [macOS]
+brew install oven-sh/bun/bun
+```
+
+```sh [Linux]
 curl -fsSL https://bun.sh/install | bash
 ```
 
-```sh [Windows (PowerShell)]
+```sh [Windows]
 powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+```sh [npm]
+npm install -g bun
 ```
 
 :::
 
-Restart the shell, then verify with:
+The [official install guide](https://bun.sh/docs/installation) covers more options. Restart the shell, then verify with:
 
 ```sh
 bun --version

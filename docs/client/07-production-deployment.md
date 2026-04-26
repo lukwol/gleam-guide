@@ -79,17 +79,66 @@ COPY --from=build /doable/client/dist /srv
 COPY Caddyfile /etc/caddy/Caddyfile
 ```
 
+`--platform=${BUILDPLATFORM}` tells Docker to run the build stages on the host machine's native architecture, even when targeting a different platform for deployment. The Gleam compilation runs natively — the final Caddy stage just copies the resulting files, so there's nothing to cross-compile.
+
+### Stage 1 — Gleam Compiler
+
+```dockerfile
+FROM --platform=${BUILDPLATFORM} ghcr.io/gleam-lang/gleam:${GLEAM_VERSION}-scratch AS gleam
+```
+
+Same trick as the server Dockerfile — extracts the `gleam` binary from the official scratch image so the build stage can pull it out with `COPY --from=gleam`.
+
+### Stage 2 — Bun
+
+```dockerfile
+FROM --platform=${BUILDPLATFORM} oven/bun:alpine AS bun
+```
+
+Mirrors the Gleam stage for Bun: this stage exists only so the build stage can copy the `bun` binary out of it.
+
+### Stage 3 — Build
+
+```dockerfile
+FROM --platform=${BUILDPLATFORM} erlang:${ERLANG_VERSION}-alpine AS build
+RUN apk add --no-cache nodejs
+COPY --from=gleam /bin/gleam /bin/gleam
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
+
+WORKDIR /doable/client
+
+COPY shared/gleam.toml /doable/shared/gleam.toml
+COPY client/gleam.toml client/manifest.toml ./
+RUN --mount=type=cache,target=/doable/client/build \
+    gleam deps download
+
+COPY client/package.json client/bun.lock ./
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
+
+COPY shared/ /doable/shared/
+COPY client/ ./
+RUN --mount=type=cache,target=/doable/client/build \
+    gleam run -m lustre/dev build
+```
+
 The pattern mirrors the server Dockerfile: copy manifests first, download dependencies, copy source, build. The deps layer only rebuilds when `gleam.toml`, `manifest.toml`, or `package.json` change — source edits don't trigger a re-download. `gleam run -m lustre/dev build` compiles the Gleam code, runs the Tailwind CLI over `client.css`, and emits the bundled output to `dist/`.
 
 `apk add --no-cache nodejs` brings in Node — the Tailwind CLI binary that `bun install` placed in `node_modules/.bin` is a Node script and won't run without it.
 
-The final stage is a plain `caddy:alpine` image. Only the compiled `dist/` directory and the Caddyfile are copied in — no Node, no Bun, no Gleam toolchain. The result is a lean image that's just Caddy and static files.
+### Stage 4 — Runtime
 
-`--platform=${BUILDPLATFORM}` tells Docker to run the build stages on the host machine's native architecture, even when targeting a different platform for deployment. The Gleam compilation runs natively — the final Caddy stage just copies the resulting files, so there's nothing to cross-compile.
+```dockerfile
+FROM caddy:alpine
+COPY --from=build /doable/client/dist /srv
+COPY Caddyfile /etc/caddy/Caddyfile
+```
+
+The final image is a plain `caddy:alpine`. Only the compiled `dist/` directory and the Caddyfile are copied in — no Node, no Bun, no Gleam toolchain. The result is a lean image that's just Caddy and static files.
 
 ## Dockerignore
 
-The earlier server chapter introduced a small `.dockerignore`. Now that the client also goes into Docker, extend it so build artefacts and `node_modules` don't get sent up with every build:
+The earlier server chapter introduced a small `.dockerignore`. Now that the client also goes into Docker, extend it so Lustre Dev Tools artefacts and Bun's `node_modules` don't get sent up with every build:
 
 ```sh
 # .dockerignore
@@ -101,12 +150,13 @@ The earlier server chapter introduced a small `.dockerignore`. Now that the clie
 **/build
 erl_crash.dump
 
-# Lustre Dev Tools    [!code ++]
-client/.lustre        [!code ++]
-client/dist           [!code ++]
-                      [!code ++]
-# Bun                 [!code ++]
-client/node_modules   [!code ++]
+                      # [!code ++]
+# Lustre Dev Tools      [!code ++]
+client/.lustre        # [!code ++]
+client/dist           # [!code ++]
+                      # [!code ++]
+# Bun                   [!code ++]
+client/node_modules   # [!code ++]
 ```
 
 ## Caddyfile

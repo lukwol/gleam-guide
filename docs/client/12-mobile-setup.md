@@ -73,7 +73,7 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk | tail -1)"
 ```
 
-```powershell [Windows (PowerShell)]
+```powershell [Windows]
 $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 $env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
 $env:NDK_HOME = "$env:ANDROID_HOME\ndk\$((Get-ChildItem $env:ANDROID_HOME\ndk | Sort-Object Name | Select-Object -Last 1).Name)"

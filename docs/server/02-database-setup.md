@@ -12,17 +12,27 @@ doable/
 
 ## Install Docker
 
-Docker Desktop bundles the Docker engine and the Compose plugin, and is the simplest option on any platform. Download it from [docker.com](https://docs.docker.com/get-started/get-docker/).
+Docker Desktop bundles the Docker engine and the Compose plugin, and is the simplest option on any platform. The standalone [Docker Engine](https://docs.docker.com/engine/install/) plus the [Compose plugin](https://docs.docker.com/compose/install/linux/) is a lighter alternative on Linux.
 
-On macOS it can also be installed via Homebrew:
+::: code-group
 
-```sh
+```sh [macOS]
 brew install --cask docker
 ```
 
-On Linux, the standalone [Docker Engine](https://docs.docker.com/engine/install/) plus the [Compose plugin](https://docs.docker.com/compose/install/linux/) is a lighter alternative to Desktop.
+```sh [Linux]
+# Docker Engine — follow https://docs.docker.com/engine/install/
+# Compose plugin — follow https://docs.docker.com/compose/install/linux/
+```
 
-Verify both the engine and the Compose plugin are available:
+```sh [Windows]
+# Download and run Docker Desktop from
+# https://docs.docker.com/desktop/install/windows-install/
+```
+
+:::
+
+The [official install guide](https://docs.docker.com/get-started/get-docker/) covers more options. Verify both the engine and the Compose plugin are available:
 
 ```sh
 docker --version

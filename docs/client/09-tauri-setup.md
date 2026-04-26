@@ -30,7 +30,12 @@ Tauri's backend compiles from Rust, so the Rust toolchain — `rustc`, `cargo`, 
 
 ::: code-group
 
-```sh [macOS & Linux]
+```sh [macOS]
+brew install rustup
+rustup-init
+```
+
+```sh [Linux]
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
