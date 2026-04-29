@@ -12,8 +12,8 @@ Doable lets users create, view, update, and delete tasks. Simple on the surface,
 - **Mobile Apps** — deployed to [iOS](https://developer.apple.com/ios/) and [Android](https://developer.android.com) via Tauri
 
 <figure>
-  <img src="/screenshots/tasks-styled-white-mobile.png" class="light-only" style="max-width:480px">
-  <img src="/screenshots/tasks-styled-dark-mobile.png" class="dark-only" style="max-width:480px">
+  <img src="/screenshots/tasks-styled-white-mobile.png" class="light-only" style="width:100%; max-width:480px">
+  <img src="/screenshots/tasks-styled-dark-mobile.png" class="dark-only" style="width:100%; max-width:480px">
   <figcaption>Doable — the finished task manager running on iOS</figcaption>
 </figure>
 
@@ -24,27 +24,27 @@ Doable lets users create, view, update, and delete tasks. Simple on the surface,
 The database and Gleam API server run in Docker via `docker compose up`. The API server can also be run locally when actively developing it. The database is a single PostgreSQL container with two databases inside: one for development and one for integration tests. All three clients — browser, desktop, and mobile — share a single [`lustre_dev_tools`](https://hexdocs.pm/lustre_dev_tools/) dev server for hot reload, which proxies their API requests to the Gleam API server (in Docker) or a local instance, avoiding CORS issues. Integration tests simulate requests directly against the router, connected to the dedicated test database.
 
 ```
-    ┌────────────────Docker────────────────┐
-    │┌─────────────PostgreSQL─────────────┐│
-    ││┌───────────────┐   ┌──────────────┐││
-    │││ Test Database │   │ Dev Database │││
-    ││└──────▲────────┘   └───────▲───▲──┘││
-    │└───────┼────────────────────┼───┼───┘│
-    │        │                    │   └────┼──────────┐
-    │        │         ┌──────────┴───────┐│ ┌────────┴─────────┐
-    │        │         │ Gleam API Server ││ │ Local API Server │
-    │        │         └─────────────▲────┘│ └───▲──────────────┘
-    └────────┼───────────────────────┼─────┘     │
-             │                       │           │
-             │                  ┌────┴───────────┴───┐
-             │                  │ Lustre Dev Server  │
-             │                  └──▲──────▲───────▲──┘
-             │                     │      │       │
-             │                ┌────┘      │       └─────────┐
-             │                │           │                 │
-  ┌──────────┴────────┐  ┌────┴────┐  ┌───┴─────────┐  ┌────┴───────┐
-  │ Integration Tests │  │ Browser │  │ Desktop App │  │ Mobile App │
-  └───────────────────┘  └─────────┘  └─────────────┘  └────────────┘
+  ┌────────────────Docker────────────────┐
+  │┌─────────────PostgreSQL─────────────┐│
+  ││┌───────────────┐   ┌──────────────┐││
+  │││ Test Database │   │ Dev Database │││
+  ││└──────▲────────┘   └───────▲───▲──┘││
+  │└───────┼────────────────────┼───┼───┘│
+  │        │                    │   └────┼──────────┐
+  │        │         ┌──────────┴───────┐│ ┌────────┴─────────┐
+  │        │         │ Gleam API Server ││ │ Local API Server │
+  │        │         └─────────────▲────┘│ └───▲──────────────┘
+  └────────┼───────────────────────┼─────┘     │
+           │                       │           │
+           │                  ┌────┴───────────┴───┐
+           │                  │ Lustre Dev Server  │
+           │                  └──▲──────▲───────▲──┘
+           │                     │      │       │
+           │                ┌────┘      │       └─────────┐
+           │                │           │                 │
+┌──────────┴────────┐  ┌────┴────┐  ┌───┴─────────┐  ┌────┴───────┐
+│ Integration Tests │  │ Browser │  │ Desktop App │  │ Mobile App │
+└───────────────────┘  └─────────┘  └─────────────┘  └────────────┘
 ```
 
 ### Production
@@ -52,25 +52,25 @@ The database and Gleam API server run in Docker via `docker compose up`. The API
 In production, everything runs inside Docker. [Caddy](https://caddyserver.com) is the single entry point, hosting both the Gleam API server and a file server for the compiled Gleam frontend. The browser loads the frontend from Caddy's file server and sends API requests through it. The desktop and mobile Tauri apps bundle the same compiled frontend locally and use Tauri's HTTP plugin to send API requests to Caddy.
 
 ```
-                ┌──────────────────Docker──────────────────┐
-                │      ┌────PostgreSQL───┐                 │
-                │      │┌───────────────┐│                 │
-                │      ││ Prod Database ││                 │
-                │      │└───▲───────────┘│                 │
-                │      └────┼────────────┘                 │
-                │┌──────────┼──────Caddy──────────────────┐│
-                ││          │           ┌────────────────┐││
-                ││┌─────────┴────────┐  │ Gleam Frontend │││
-                │││ Gleam API Server │  │  File Server   │││
-                ││└──▲─────────▲───▲─┘  └──────────▲─────┘││
-                │└───┼─────────┼───┼───────────────┼──────┘│
-                └────┼─────────┼───┼───────────────┼───────┘
-                     │         │   │               │
-                     │         │   └────────────┐  │
-                     │         │                │  │
-            ┌────────┴────┐  ┌─┴──────────┐  ┌──┴──┴───┐
-            │ Desktop App │  │ Mobile App │  │ Browser │
-            └─────────────┘  └────────────┘  └─────────┘
+    ┌──────────────────Docker──────────────────┐
+    │      ┌────PostgreSQL───┐                 │
+    │      │┌───────────────┐│                 │
+    │      ││ Prod Database ││                 │
+    │      │└───▲───────────┘│                 │
+    │      └────┼────────────┘                 │
+    │┌──────────┼──────Caddy──────────────────┐│
+    ││          │           ┌────────────────┐││
+    ││┌─────────┴────────┐  │ Gleam Frontend │││
+    │││ Gleam API Server │  │  File Server   │││
+    ││└──▲─────────▲───▲─┘  └──────────▲─────┘││
+    │└───┼─────────┼───┼───────────────┼──────┘│
+    └────┼─────────┼───┼───────────────┼───────┘
+         │         │   │               │
+         │         │   └────────────┐  │
+         │         │                │  │
+┌────────┴────┐  ┌─┴──────────┐  ┌──┴──┴───┐
+│ Desktop App │  │ Mobile App │  │ Browser │
+└─────────────┘  └────────────┘  └─────────┘
 ```
 
 ### Backend
@@ -89,22 +89,22 @@ The frontend follows the **[Elm Architecture](https://guide.elm-lang.org/archite
 This makes data flow explicit and unidirectional: user interactions dispatch messages, messages drive state transitions, state drives the view. No hidden side effects, no two-way binding.
 
 ```
-                    ┌───▶ User interaction
-                    │           │
-                    │           ▼
-                    │        Message ◀──────────────────┐
-                    │           │                       │
-                    │           ▼                       │
-                    │   update(model, msg) ──▶ Effect   │
-                    │           │               │       │
-                    │           ▼               ▼       │
-                    │        new Model     Effect runs  │
-                    │           │          (HTTP, …)    │
-                    │           ▼               │       │
-                    │      view(model)          └───────┘
-                    │           │
-                    │           ▼
-                    └──────────HTML
+┌───▶ User interaction
+│           │
+│           ▼
+│        Message ◀──────────────────┐
+│           │                       │
+│           ▼                       │
+│   update(model, msg) ──▶ Effect   │
+│           │               │       │
+│           ▼               ▼       │
+│        new Model     Effect runs  │
+│           │          (HTTP, …)    │
+│           ▼               │       │
+│      view(model)          └───────┘
+│           │
+│           ▼
+└──────────HTML
 ```
 
 ## Who is this guide for
