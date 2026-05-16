@@ -49,12 +49,12 @@ mkdir doable && cd doable
 Then create the three projects inside it:
 
 ```sh
-gleam new server --skip-github
-gleam new client --skip-github --template javascript
-gleam new shared --skip-github
+gleam new server --skip-github --skip-git
+gleam new client --skip-github --skip-git --template javascript
+gleam new shared --skip-github --skip-git
 ```
 
-The `--skip-github` flag skips generating GitHub Actions workflows, keeping things simple for now. The `--template javascript` flag sets `client`'s compile target to JavaScript; `server` and `shared` default to Erlang.
+The `--skip-github` flag skips generating GitHub Actions workflows and `--skip-git` skips initialising a git repository, keeping things simple for now. The `--template javascript` flag sets `client`'s compile target to JavaScript; `server` and `shared` default to Erlang.
 
 Both `server` and `client` depend on `shared` via a local path reference. Add the following to their `gleam.toml`[^1]:
 
